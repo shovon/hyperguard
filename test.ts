@@ -133,3 +133,7 @@ import { strict as assert } from "assert";
   assertIncorrect(arrayOf(number()), "nice");
   assertIncorrect(arrayOf(number()), ["nice"]);
 }
+
+{
+  const assertAlternatives = () => {};
+}
