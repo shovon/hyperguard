@@ -1,25 +1,3 @@
-/*
-Copyright 2022 Salehen Shovon Rahman
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
-of the Software, and to permit persons to whom the Software is furnished to do
-so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
-
 import {
   exact,
   nullable,
@@ -33,28 +11,21 @@ import {
   tuple,
   InferType,
   Validator,
+  any,
+  recursiveObject,
 } from "./lib";
 import { strict as assert } from "assert";
 
-function isEmail() {
-  return true;
-}
+// // TODO: document this
+// type Node = {
+//   value: any;
+//   next: Node | null;
+// };
 
-function isUrl() {
-  return true;
-}
-
-function isDate() {
-  return true;
-}
-
-let userSchema = object({
-  name: string(),
-  age: number((n) => n >= 0 && Number.isInteger(n)),
-  email: optional(string(isEmail)),
-  website: optional(nullable(string(isUrl))),
-  createdOn: string(isDate),
-});
+// const next: Validator<Node> = recursiveObject<Node>(() => ({
+//   value: any(),
+//   next: nullable(next),
+// }));
 
 {
   const assertExact = <T>(v: Validator<T>, value: T) => {
@@ -155,7 +126,10 @@ let userSchema = object({
     assert(!validation.valid);
   };
 
-  assertArrayOf(arrayOf(), 42);
-  assertArrayOf(number(), 24);
-  assertIncorrect(number(), "Sweet");
+  assertArrayOf(arrayOf(number()), [42]);
+  assertArrayOf(arrayOf(number()), [24, 24]);
+  assertArrayOf(arrayOf(number()), [24, 2]);
+  assertIncorrect(arrayOf(number()), 2);
+  assertIncorrect(arrayOf(number()), "nice");
+  assertIncorrect(arrayOf(number()), ["nice"]);
 }

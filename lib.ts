@@ -1,3 +1,25 @@
+/*
+Copyright 2022 Salehen Shovon Rahman
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is furnished to do
+so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
 export type ValidationResult<T> = { valid: false } | { value: T; valid: true };
 
 export type Validator<T> = {
@@ -1733,7 +1755,7 @@ export function objectOf<V>(
       !!value &&
       typeof value === "object" &&
       Object.keys(value).every(
-        (key) => validator.validate(value[key]).valid && predicate(value, i)
+        (key) => validator.validate(value[key]).valid && predicate(value, key)
       )
         ? { value, valid: true }
         : { valid: false },
@@ -1757,6 +1779,37 @@ export function object<V extends object>(schema: {
       !!value &&
       typeof value === "object" &&
       Object.keys(value).every((key) => {
+        const validation = validValidator((schema as any)[key]);
+        if (validation.valid) {
+          return validation.validator.validate(value[key]).valid;
+        } else {
+          throw new Error("Something went wrong");
+        }
+      })
+        ? { valid: false, __outputType: value }
+        : { value, valid: true, __outputType: value },
+  };
+}
+
+export function any(): Validator<any> {
+  return {
+    __outputType: "",
+    validate: (value: any) => ({ valid: true, value }),
+  };
+}
+
+export function recursiveObject<V extends object>(
+  schemaFn: () => {
+    [key in keyof V]: Validator<V[key]>;
+  }
+): Validator<V> {
+  return {
+    __outputType: {} as V,
+    validate: (value: any) =>
+      !!value &&
+      typeof value === "object" &&
+      Object.keys(value).every((key) => {
+        const schema = schemaFn();
         const validation = validValidator((schema as any)[key]);
         if (validation.valid) {
           return validation.validator.validate(value[key]).valid;
