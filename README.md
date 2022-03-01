@@ -5,7 +5,14 @@ Ridiculously easy JSON object validator, with absolutely no dependencies. Copy a
 Take a look for yourself at the level of simplicity that this library has:
 
 ```typescript
-import { object, string, number, optional, nullable, InferType } from "yup";
+import {
+  object,
+  string,
+  number,
+  optional,
+  nullable,
+  InferType,
+} from "json-valid";
 
 let userSchema = object({
   name: string(),
