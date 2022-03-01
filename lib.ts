@@ -1801,10 +1801,8 @@ export function any(): Validator<any> {
   };
 }
 
-export function recursiveObject<V extends object>(
-  schemaFn: () => {
-    [key in keyof V]: Validator<V[key]>;
-  }
+export function lazy<V extends any>(
+  schemaFn: () => Validator<V>
 ): Validator<V> {
   return {
     __outputType: {} as V,

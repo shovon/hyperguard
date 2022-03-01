@@ -12,7 +12,7 @@ import {
   InferType,
   Validator,
   any,
-  recursiveObject,
+  lazy,
 } from "./lib";
 import { strict as assert } from "assert";
 
@@ -22,10 +22,10 @@ import { strict as assert } from "assert";
 //   next: Node | null;
 // };
 
-// const next: Validator<Node> = recursiveObject<Node>(() => ({
+// const next: Validator<Node> = object({
 //   value: any(),
-//   next: nullable(next),
-// }));
+//   next: lazy(() => nullable(next)),
+// });
 
 {
   const assertExact = <T>(v: Validator<T>, value: T) => {
