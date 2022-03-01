@@ -1770,9 +1770,12 @@ function validValidator<V>(
     : { valid: false };
 }
 
-export function object<V extends object>(schema: {
-  [key in keyof V]: Validator<V[key]>;
-}): Validator<V> {
+export function object<V extends object>(
+  schema: {
+    [key in keyof V]: Validator<V[key]>;
+  },
+  predicate: (value: V) => boolean = () => true
+): Validator<V> {
   return {
     __outputType: {} as V,
     validate: (value: any) =>
