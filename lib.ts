@@ -20,13 +20,34 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+/**
+ * An object that represents the result of a validation check.
+ */
 export type ValidationResult<T> = { valid: false } | { value: T; valid: true };
 
+/**
+ * An object that serves as a validator.
+ */
 export type Validator<T> = {
   __outputType: T;
   validate: (value: any) => ValidationResult<T>;
 };
 
+/**
+ * A helper type for converting a Validator<T> type to a T
+ *
+ * For example, if you wanted to grab the validator from a `string()`, you'd use
+ * this type like so:
+ *
+ * ```typescript
+ * const stringValidator = string();
+ *
+ * type Str = InferType<typeof stringValidator>;
+ * // Should be `type Str = string`
+ * ```
+ *
+ * You can do this with objects as well
+ */
 export type InferType<T extends Validator<any>> = T["__outputType"];
 
 export function alternatives<T0, T1>(
@@ -1661,12 +1682,13 @@ export function tuple<
 export function tuple(t: Validator<any>[]): Validator<any[]> {
   return {
     __outputType: {} as any,
-    validate: (value: any) =>
-      Array.isArray(value) &&
-      t.length === value.length &&
-      t.every((validator, i) => validator.validate(value[i]))
+    validate: (value: any) => {
+      return Array.isArray(value) &&
+        t.length === value.length &&
+        t.every((validator, i) => validator.validate(value[i]).valid)
         ? { valid: true, value }
-        : { valid: false },
+        : { valid: false };
+    },
   };
 }
 
@@ -1765,7 +1787,7 @@ export function objectOf<V>(
 function validValidator<V>(
   value: any
 ): { valid: false } | { valid: true; validator: Validator<V> } {
-  return value && typeof value.validator === "function"
+  return value && typeof value.validate === "function"
     ? { valid: true, validator: value }
     : { valid: false };
 }
@@ -1789,8 +1811,8 @@ export function object<V extends object>(
           throw new Error("Something went wrong");
         }
       })
-        ? { valid: false, __outputType: value }
-        : { value, valid: true, __outputType: value },
+        ? { value, valid: true, __outputType: value }
+        : { valid: false, __outputType: value },
   };
 }
 
