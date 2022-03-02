@@ -1692,13 +1692,9 @@ export function tuple(t: Validator<any>[]): Validator<any[]> {
   };
 }
 
-export const string = (
-  predicate: (value: string) => boolean = () => true
-): Validator<string> => {
+export const string = (): Validator<string> => {
   const validate: (value: any) => ValidationResult<string> = (value: any) =>
-    typeof value !== "string" || !predicate(value)
-      ? { valid: false }
-      : { value, valid: true };
+    typeof value !== "string" ? { valid: false } : { value, valid: true };
   return {
     __outputType: "",
     validate,
@@ -1735,14 +1731,10 @@ export function optional<V>(validator: Validator<V>): Validator<V | undefined> {
   };
 }
 
-export const number = (
-  predicate: (value: number) => boolean = () => true
-): Validator<number> => ({
+export const number = (): Validator<number> => ({
   __outputType: 0,
   validate: (value: any) =>
-    typeof value !== "number" || !predicate(value)
-      ? { valid: false }
-      : { value, valid: true },
+    typeof value !== "number" ? { valid: false } : { value, valid: true },
 });
 
 export const boolean = (): Validator<boolean> => ({
@@ -1751,34 +1743,26 @@ export const boolean = (): Validator<boolean> => ({
     typeof value !== "boolean" ? { valid: false } : { value, valid: true },
 });
 
-export function arrayOf<V>(
-  validator: Validator<V>,
-  predicate: (value: V, index: number) => boolean = () => true
-): Validator<V[]> {
+export function arrayOf<V>(validator: Validator<V>): Validator<V[]> {
   return {
     __outputType: [],
     validate: (value: any) =>
       Array.isArray(value) &&
-      value.every(
-        (value, i) => validator.validate(value).valid && predicate(value, i)
-      )
+      value.every((value, i) => validator.validate(value).valid)
         ? { value, valid: true }
         : { valid: false },
   };
 }
 
 export function objectOf<V>(
-  validator: Validator<V>,
-  predicate: (value: V, key: string) => boolean = () => true
+  validator: Validator<V>
 ): Validator<{ [keys: string]: V }> {
   return {
     __outputType: {},
     validate: (value: any) =>
       !!value &&
       typeof value === "object" &&
-      Object.keys(value).every(
-        (key) => validator.validate(value[key]).valid && predicate(value, key)
-      )
+      Object.keys(value).every((key) => validator.validate(value[key]).valid)
         ? { value, valid: true }
         : { valid: false },
   };
@@ -1792,18 +1776,15 @@ function validValidator<V>(
     : { valid: false };
 }
 
-export function object<V extends object>(
-  schema: {
-    [key in keyof V]: Validator<V[key]>;
-  },
-  predicate: (value: V) => boolean = () => true
-): Validator<V> {
+export function object<V extends object>(schema: {
+  [key in keyof V]: Validator<V[key]>;
+}): Validator<V> {
   return {
     __outputType: {} as V,
     validate: (value: any) =>
       !!value &&
       typeof value === "object" &&
-      Object.keys(value).every((key) => {
+      Object.keys(schema).every((key) => {
         const validation = validValidator((schema as any)[key]);
         if (validation.valid) {
           return validation.validator.validate(value[key]).valid;
@@ -1828,19 +1809,6 @@ export function lazy<V extends any>(
 ): Validator<V> {
   return {
     __outputType: {} as V,
-    validate: (value: any) =>
-      !!value &&
-      typeof value === "object" &&
-      Object.keys(value).every((key) => {
-        const schema = schemaFn();
-        const validation = validValidator((schema as any)[key]);
-        if (validation.valid) {
-          return validation.validator.validate(value[key]).valid;
-        } else {
-          throw new Error("Something went wrong");
-        }
-      })
-        ? { valid: false, __outputType: value }
-        : { value, valid: true, __outputType: value },
+    validate: (value: any) => schemaFn().validate(value),
   };
 }

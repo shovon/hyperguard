@@ -76,17 +76,7 @@ const assertIncorrect = <T>(
   // string
   assertValidator(string(), "haha", "Should validate string");
   assertValidator(string(), "sweet", "Should validate string");
-  assertValidator(
-    string((s) => /a/.test(s)),
-    "aaaab",
-    "Should validate string with a predicate"
-  );
   assertIncorrect(string(), 10, "Incorrect types should not match");
-  assertIncorrect(
-    string((s) => /a/.test(s)),
-    "zzzzzb",
-    "A string should not be validated if the predicate fails"
-  );
 }
 
 {
@@ -164,6 +154,15 @@ const assertIncorrect = <T>(
     object({}),
     { sweet: "cool" },
     "An object with fields is a valid empty object"
+  );
+  assertValidator(
+    object({ sweet: exact("cool"), nice: exact("bar") }),
+    {
+      sweet: "cool",
+      nice: "bar",
+      woot: 42,
+    } as any,
+    "An object with more fields is certainly a valid object according to the schema"
   );
   assertIncorrect(
     object({ sweet: exact("cool") }),
@@ -301,4 +300,120 @@ const assertIncorrect = <T>(
 
 {
   // lazy
+  assertValidator(
+    lazy(() => object({})),
+    {},
+    "An empty object is a valid empty object"
+  );
+  assertValidator(
+    lazy(() => object({ sweet: number() })),
+    { sweet: 10 },
+    "The object should match the schema"
+  );
+  assertValidator(
+    lazy(() => object({ sweet: exact("cool") })),
+    { sweet: "cool" },
+    "The object should match the schema"
+  );
+  assertValidator(
+    lazy(() => object({ sweet: optional(exact("cool")) })),
+    {} as any,
+    "An empty object is a valid object where the only field is optional"
+  );
+  assertValidator(
+    lazy(() => object({})),
+    { sweet: "cool" },
+    "An object with fields is a valid empty object"
+  );
+  assertValidator(
+    lazy(() => object({ sweet: exact("cool"), nice: exact("bar") })),
+    {
+      sweet: "cool",
+      nice: "bar",
+      woot: 42,
+    } as any,
+    "An object with more fields is certainly a valid object according to the schema"
+  );
+  assertIncorrect(
+    lazy(() => object({ sweet: exact("cool") })),
+    { sweet: 10 },
+    "An object not matching the schema should fail the test"
+  );
+  assertIncorrect(
+    lazy(() => object({ sweet: exact("cool") })),
+    "haha",
+    "An object not matching the schema should fail the test"
+  );
+
+  // Recursive nodes
+
+  type Node = {
+    value: any;
+    left: Node | null;
+    right: Node | null;
+  };
+
+  const node: Validator<Node> = lazy<Node>(() =>
+    object({
+      value: any(),
+      left: nullable(node),
+      right: nullable(node),
+    })
+  );
+
+  assertValidator(
+    node,
+    { value: "sweet", left: null, right: null },
+    "An object without nested nodes should be fine"
+  );
+
+  assertValidator(
+    node,
+    {
+      value: "sweet",
+      left: {
+        value: "nice",
+        left: null,
+        right: null,
+      },
+      right: null,
+    },
+    "An object with  nested left node should be fine"
+  );
+
+  assertValidator(
+    node,
+    {
+      value: "sweet",
+      left: {
+        value: "nice",
+        left: null,
+        right: null,
+      },
+      right: {
+        value: "cool",
+        left: {
+          value: "haha",
+          left: null,
+          right: null,
+        },
+        right: null,
+      },
+    },
+    "Deeply nested objects should be fine"
+  );
+
+  assertIncorrect(
+    node,
+    {
+      value: "sweet",
+      left: {
+        value: "nice",
+        // left: null, // Missing anything on the left node
+        right: null,
+      },
+      right: null,
+    },
+    "Nested values should not go unchecked"
+  );
 }
