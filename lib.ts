@@ -46,7 +46,24 @@ export type Validator<T> = {
  * // Should be `type Str = string`
  * ```
  *
- * You can do this with objects as well
+ * You can do this with objects as well. For example:
+ *
+ * ```typescript
+ * const objectValidator = object({
+ *   name: string(),
+ *   email: string(),
+ *   age: number()
+ * });
+ *
+ * type Obj = InferType<typeof objectValidator>;
+ * // Should be:
+ * //
+ * // type Obj = {
+ * //   name: string
+ * //   email: string
+ * //   age: number
+ * // }
+ * ```
  */
 export type InferType<T extends Validator<any>> = T["__outputType"];
 
@@ -902,6 +919,28 @@ export function alternatives<
   | T24
 >;
 
+/**
+ * A validator for validating objects against a list of validators.
+ *
+ * This is especially useful if a possible object has more than one possible
+ * valid type.
+ *
+ * ## Usage
+ *
+ * ```typescript
+ * const alts = alternatives(string(), number());
+ *
+ * const num = 10;
+ * const str = "hello";
+ * const bool = true;
+ *
+ * console.log(alts.validate(num).valid); // Should be true
+ * console.log(alts.validate(str).valid); // Should be true
+ * console.log(alts.validate(bool).valid); // Should be false
+ * ```
+ * @param alts A list of validators that are to be run
+ * @returns A validator to validate an object against a set of validators
+ */
 export function alternatives(...alts: Validator<any>[]): Validator<any> {
   return {
     __outputType: {} as any,
@@ -1679,6 +1718,11 @@ export function tuple<
   ]
 >;
 
+/**
+ * Used to validate a tuple against possible values
+ * @param t The tuple of validators to validate a tuple against
+ * @returns A validator to validate tuples
+ */
 export function tuple(t: Validator<any>[]): Validator<any[]> {
   return {
     __outputType: {} as any,
@@ -1692,6 +1736,10 @@ export function tuple(t: Validator<any>[]): Validator<any[]> {
   };
 }
 
+/**
+ * Used to validate a value to determine if a value is a string
+ * @returns A validator to check if the value is of type string
+ */
 export const string = (): Validator<string> => {
   const validate: (value: any) => ValidationResult<string> = (value: any) =>
     typeof value !== "string" ? { valid: false } : { value, valid: true };

@@ -1,8 +1,14 @@
 # JSON valid
 
-Ridiculously easy JSON object validator, with absolutely no dependencies. Copy and paste the code into your own projects.
+JSON-valid is a tiny library, to help validate JSON 
 
-Take a look for yourself at the level of simplicity that this library has:
+**Killer Features:**
+
+- minimal API, with
+- zero dependencies
+- install either via npm, or copy and paste the code. Your choice
+- Powerful TypeScript support to infer static types from schema
+- Composable validators, empowering you to add your own validation rules
 
 ```typescript
 import {
@@ -16,10 +22,10 @@ import {
 
 let userSchema = object({
   name: string(),
-  age: number((n) => n >= 0 && Number.isInteger(n)),
-  email: optional(string(isEmail)),
-  website: optional(nullable(string(isUrl))),
-  createdOn: string(isDate),
+  age: number(),
+  email: optional(string()),
+  website: optional(nullable(string())),
+  createdOn: string(),
 });
 
 type User = InferType<typeof userSchema>;

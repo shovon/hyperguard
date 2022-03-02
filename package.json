@@ -1,5 +1,10 @@
 {
   "version": "1.0.0",
+  "main": "lib.js",
+  "types": "lib.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
   "devDependencies": {
     "@types/node": "^17.0.21"
   }
