@@ -16,17 +16,6 @@ import {
 } from "./lib";
 import { strict as assert } from "assert";
 
-// // TODO: document this
-// type Node = {
-//   value: any;
-//   next: Node | null;
-// };
-
-// const next: Validator<Node> = object({
-//   value: any(),
-//   next: lazy(() => nullable(next)),
-// });
-
 const assertValidator = <T>(v: Validator<T>, value: T, intent: string = "") => {
   const validation = v.validate(value);
   assert(

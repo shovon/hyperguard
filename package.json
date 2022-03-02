@@ -1,9 +1,12 @@
 {
+  "name": "valentina",
   "version": "1.0.0",
   "main": "dist/lib.js",
   "types": "dist/lib.d.ts",
   "scripts": {
-    "build": "tsc"
+    "test": "ts-node test.ts",
+    "build": "tsc",
+    "prepublish": "npm run build"
   },
   "devDependencies": {
     "@types/node": "^17.0.21"

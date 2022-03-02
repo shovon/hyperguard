@@ -1719,7 +1719,15 @@ export function tuple<
 >;
 
 /**
- * Used to validate a tuple against possible values
+ * Used to validate a tuple against the individual values in an array.
+ *
+ * ## Usage
+ *
+ * ```typescript
+ * const tup = tuple(string(), number());
+ *
+ *
+ * ```
  * @param t The tuple of validators to validate a tuple against
  * @returns A validator to validate tuples
  */

@@ -2,6 +2,7 @@
   "declaration": true,
   "files": ["lib.ts"],
   "compilerOptions": {
+    "declaration": true,
     "module": "CommonJS",
     "outDir": "dist",
     "noImplicitAny": true,
