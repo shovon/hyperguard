@@ -1,14 +1,16 @@
-# JSON valid
+# valentina JavaScript object validation
 
-JSON-valid is a tiny library, to help validate JSON 
+`valentina` is a tiny library for validating JavaScript values. Whether it be primitives, such as strings and numbers, or modelling more complex objects, `valentina` will empower you to express your data validation rules, your way.
 
 **Killer Features:**
 
-- minimal API, with
-- zero dependencies
-- install either via npm, or copy and paste the code. Your choice
+- minimal and intuitive API, allowing for expressive JavaScript object schema and type definition
 - Powerful TypeScript support to infer static types from schema
-- Composable validators, empowering you to add your own validation rules
+- Composable validators, empowering you to add your own rules, your way
+- zero dependencies
+- install either via npm, or copy and paste the code
+
+## Getting Started
 
 ```typescript
 import {
