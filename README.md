@@ -20,7 +20,7 @@ import {
   optional,
   nullable,
   InferType,
-} from "json-valid";
+} from "valentina";
 
 let userSchema = object({
   name: string(),
@@ -34,8 +34,8 @@ type User = InferType<typeof userSchema>;
 /* {
   name: string;
   age: number;
-  email?: string | undefined
-  website?: string | null | undefined
+  email: string | undefined
+  website: string | null | undefined
   createdOn: string
 }*/
 ```
