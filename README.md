@@ -14,7 +14,7 @@ _Valentina_ is a tiny library for validating JavaScript values. Whether they be 
 
 The core idea of Valentina is that you create a `Validator`, and you can compose multiple such `Validator`s to define an elaborate validation rule.
 
-Additonally, the correct type can be inferred from the `Validator`.
+Additonally, the correct type can even be inferred from the `Validator`, using `InferType`.
 
 ```typescript
 import { object, string, number, InferType } from "valentina";
@@ -45,4 +45,12 @@ type User = {
 */
 ```
 
+We can invoke the `Validator<T>.validate` method to validate an object:
+
+```typescript
+
+```
+
 ## API
+
+### `string(): Validator<string>`
