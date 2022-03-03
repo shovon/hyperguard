@@ -23,7 +23,9 @@ SOFTWARE.
 /**
  * An object that represents the result of a validation check.
  */
-export type ValidationResult<T> = { valid: false } | { value: T; valid: true };
+export type ValidationResult<T> =
+  | { isValid: false }
+  | { value: T; isValid: true };
 
 /**
  * An object that serves as a validator.
@@ -67,29 +69,29 @@ export type Validator<T> = {
  */
 export type InferType<T extends Validator<any>> = T["__outputType"];
 
-export function alternatives<T0, T1>(
+export function either<T0, T1>(
   a0: Validator<T0>,
   a1: Validator<T1>
 ): Validator<T0 | T1>;
-export function alternatives<T0, T1, T2>(
+export function either<T0, T1, T2>(
   a0: Validator<T0>,
   a1: Validator<T1>,
   a2: Validator<T2>
 ): Validator<T0 | T1 | T2>;
-export function alternatives<T0, T1, T2, T3>(
+export function either<T0, T1, T2, T3>(
   a0: Validator<T0>,
   a1: Validator<T1>,
   a2: Validator<T2>,
   a3: Validator<T3>
 ): Validator<T0 | T1 | T2 | T3>;
-export function alternatives<T0, T1, T2, T3, T4>(
+export function either<T0, T1, T2, T3, T4>(
   a0: Validator<T0>,
   a1: Validator<T1>,
   a2: Validator<T2>,
   a3: Validator<T3>,
   a4: Validator<T4>
 ): Validator<T0 | T1 | T2 | T3 | T4>;
-export function alternatives<T0, T1, T2, T3, T4, T5>(
+export function either<T0, T1, T2, T3, T4, T5>(
   a0: Validator<T0>,
   a1: Validator<T1>,
   a2: Validator<T2>,
@@ -97,7 +99,7 @@ export function alternatives<T0, T1, T2, T3, T4, T5>(
   a4: Validator<T4>,
   a5: Validator<T5>
 ): Validator<T0 | T1 | T2 | T3 | T4 | T5>;
-export function alternatives<T0, T1, T2, T3, T4, T5, T6>(
+export function either<T0, T1, T2, T3, T4, T5, T6>(
   a0: Validator<T0>,
   a1: Validator<T1>,
   a2: Validator<T2>,
@@ -106,7 +108,7 @@ export function alternatives<T0, T1, T2, T3, T4, T5, T6>(
   a5: Validator<T5>,
   a6: Validator<T6>
 ): Validator<T0 | T1 | T2 | T3 | T4 | T5 | T6>;
-export function alternatives<T0, T1, T2, T3, T4, T5, T6, T7>(
+export function either<T0, T1, T2, T3, T4, T5, T6, T7>(
   a0: Validator<T0>,
   a1: Validator<T1>,
   a2: Validator<T2>,
@@ -116,7 +118,7 @@ export function alternatives<T0, T1, T2, T3, T4, T5, T6, T7>(
   a6: Validator<T6>,
   a7: Validator<T7>
 ): Validator<T0 | T1 | T2 | T3 | T4 | T5 | T6 | T7>;
-export function alternatives<T0, T1, T2, T3, T4, T5, T6, T7, T8>(
+export function either<T0, T1, T2, T3, T4, T5, T6, T7, T8>(
   a0: Validator<T0>,
   a1: Validator<T1>,
   a2: Validator<T2>,
@@ -127,7 +129,7 @@ export function alternatives<T0, T1, T2, T3, T4, T5, T6, T7, T8>(
   a7: Validator<T7>,
   a8: Validator<T8>
 ): Validator<T0 | T1 | T2 | T3 | T4 | T5 | T6 | T7 | T8>;
-export function alternatives<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(
+export function either<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(
   a0: Validator<T0>,
   a1: Validator<T1>,
   a2: Validator<T2>,
@@ -139,7 +141,7 @@ export function alternatives<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(
   a8: Validator<T8>,
   a9: Validator<T9>
 ): Validator<T0 | T1 | T2 | T3 | T4 | T5 | T6 | T7 | T8 | T9>;
-export function alternatives<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(
+export function either<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(
   a0: Validator<T0>,
   a1: Validator<T1>,
   a2: Validator<T2>,
@@ -152,7 +154,7 @@ export function alternatives<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(
   a9: Validator<T9>,
   a10: Validator<T10>
 ): Validator<T0 | T1 | T2 | T3 | T4 | T5 | T6 | T7 | T8 | T9 | T10>;
-export function alternatives<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(
+export function either<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(
   a0: Validator<T0>,
   a1: Validator<T1>,
   a2: Validator<T2>,
@@ -166,21 +168,7 @@ export function alternatives<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(
   a10: Validator<T10>,
   a11: Validator<T11>
 ): Validator<T0 | T1 | T2 | T3 | T4 | T5 | T6 | T7 | T8 | T9 | T10 | T11>;
-export function alternatives<
-  T0,
-  T1,
-  T2,
-  T3,
-  T4,
-  T5,
-  T6,
-  T7,
-  T8,
-  T9,
-  T10,
-  T11,
-  T12
->(
+export function either<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(
   a0: Validator<T0>,
   a1: Validator<T1>,
   a2: Validator<T2>,
@@ -195,7 +183,7 @@ export function alternatives<
   a11: Validator<T11>,
   a12: Validator<T12>
 ): Validator<T0 | T1 | T2 | T3 | T4 | T5 | T6 | T7 | T8 | T9 | T10 | T11 | T12>;
-export function alternatives<
+export function either<
   T0,
   T1,
   T2,
@@ -228,7 +216,7 @@ export function alternatives<
 ): Validator<
   T0 | T1 | T2 | T3 | T4 | T5 | T6 | T7 | T8 | T9 | T10 | T11 | T12 | T13
 >;
-export function alternatives<
+export function either<
   T0,
   T1,
   T2,
@@ -263,7 +251,7 @@ export function alternatives<
 ): Validator<
   T0 | T1 | T2 | T3 | T4 | T5 | T6 | T7 | T8 | T9 | T10 | T11 | T12 | T13 | T14
 >;
-export function alternatives<
+export function either<
   T0,
   T1,
   T2,
@@ -315,7 +303,7 @@ export function alternatives<
   | T14
   | T15
 >;
-export function alternatives<
+export function either<
   T0,
   T1,
   T2,
@@ -370,7 +358,7 @@ export function alternatives<
   | T15
   | T16
 >;
-export function alternatives<
+export function either<
   T0,
   T1,
   T2,
@@ -428,7 +416,7 @@ export function alternatives<
   | T16
   | T17
 >;
-export function alternatives<
+export function either<
   T0,
   T1,
   T2,
@@ -489,7 +477,7 @@ export function alternatives<
   | T17
   | T18
 >;
-export function alternatives<
+export function either<
   T0,
   T1,
   T2,
@@ -553,7 +541,7 @@ export function alternatives<
   | T18
   | T19
 >;
-export function alternatives<
+export function either<
   T0,
   T1,
   T2,
@@ -620,7 +608,7 @@ export function alternatives<
   | T19
   | T20
 >;
-export function alternatives<
+export function either<
   T0,
   T1,
   T2,
@@ -690,7 +678,7 @@ export function alternatives<
   | T20
   | T21
 >;
-export function alternatives<
+export function either<
   T0,
   T1,
   T2,
@@ -763,7 +751,7 @@ export function alternatives<
   | T21
   | T22
 >;
-export function alternatives<
+export function either<
   T0,
   T1,
   T2,
@@ -839,7 +827,7 @@ export function alternatives<
   | T22
   | T23
 >;
-export function alternatives<
+export function either<
   T0,
   T1,
   T2,
@@ -941,13 +929,13 @@ export function alternatives<
  * @param alts A list of validators that are to be run
  * @returns A validator to validate an object against a set of validators
  */
-export function alternatives(...alts: Validator<any>[]): Validator<any> {
+export function either(...alts: Validator<any>[]): Validator<any> {
   return {
     __outputType: {} as any,
     validate: (value: any) =>
-      alts.some((validator) => validator.validate(value).valid)
-        ? { valid: true, value, __outputType: value }
-        : { valid: false, __outputType: value },
+      alts.some((validator) => validator.validate(value).isValid)
+        ? { isValid: true, value, __outputType: value }
+        : { isValid: false, __outputType: value },
   };
 }
 export function tuple(t: []): Validator<[]>;
@@ -1726,7 +1714,9 @@ export function tuple<
  * ```typescript
  * const tup = tuple(string(), number());
  *
- *
+ * alts.validate(["a", 1]).isValid // will be true
+ * alts.validate([1, "a"]).isValid // will be false
+ * alts.validate([1]).isValid // will be false
  * ```
  * @param t The tuple of validators to validate a tuple against
  * @returns A validator to validate tuples
@@ -1737,10 +1727,20 @@ export function tuple(t: Validator<any>[]): Validator<any[]> {
     validate: (value: any) => {
       return Array.isArray(value) &&
         t.length === value.length &&
-        t.every((validator, i) => validator.validate(value[i]).valid)
-        ? { valid: true, value }
-        : { valid: false };
+        t.every((validator, i) => validator.validate(value[i]).isValid)
+        ? { isValid: true, value }
+        : { isValid: false };
     },
+  };
+}
+
+export function except<T>(validator: Validator<T>): Validator<Exclude<any, T>> {
+  return {
+    __outputType: {} as Exclude<any, T>,
+    validate: (value: any) =>
+      !validator.validate(value).isValid
+        ? { isValid: true, value }
+        : { isValid: false },
   };
 }
 
@@ -1750,7 +1750,7 @@ export function tuple(t: Validator<any>[]): Validator<any[]> {
  */
 export const string = (): Validator<string> => {
   const validate: (value: any) => ValidationResult<string> = (value: any) =>
-    typeof value !== "string" ? { valid: false } : { value, valid: true };
+    typeof value !== "string" ? { isValid: false } : { value, isValid: true };
   return {
     __outputType: "",
     validate,
@@ -1763,40 +1763,20 @@ export function exact<V extends string | number | boolean | null | undefined>(
   return {
     __outputType: {} as any,
     validate: (value: any) =>
-      value !== expected ? { valid: false } : { value, valid: true },
-  };
-}
-
-export function nullable<V>(validator: Validator<V>): Validator<V | null> {
-  return {
-    __outputType: null,
-    validate: (value: any) =>
-      validator.validate(value).valid || value === null
-        ? { valid: true, value }
-        : { valid: false },
-  };
-}
-
-export function optional<V>(validator: Validator<V>): Validator<V | undefined> {
-  return {
-    __outputType: undefined,
-    validate: (value: any) =>
-      validator.validate(value).valid || value === undefined
-        ? { valid: true, value }
-        : { valid: false },
+      value !== expected ? { isValid: false } : { value, isValid: true },
   };
 }
 
 export const number = (): Validator<number> => ({
   __outputType: 0,
   validate: (value: any) =>
-    typeof value !== "number" ? { valid: false } : { value, valid: true },
+    typeof value !== "number" ? { isValid: false } : { value, isValid: true },
 });
 
 export const boolean = (): Validator<boolean> => ({
   __outputType: false,
   validate: (value: any) =>
-    typeof value !== "boolean" ? { valid: false } : { value, valid: true },
+    typeof value !== "boolean" ? { isValid: false } : { value, isValid: true },
 });
 
 export function arrayOf<V>(validator: Validator<V>): Validator<V[]> {
@@ -1804,9 +1784,9 @@ export function arrayOf<V>(validator: Validator<V>): Validator<V[]> {
     __outputType: [],
     validate: (value: any) =>
       Array.isArray(value) &&
-      value.every((value, i) => validator.validate(value).valid)
-        ? { value, valid: true }
-        : { valid: false },
+      value.every((value, i) => validator.validate(value).isValid)
+        ? { value, isValid: true }
+        : { isValid: false },
   };
 }
 
@@ -1818,9 +1798,9 @@ export function objectOf<V>(
     validate: (value: any) =>
       !!value &&
       typeof value === "object" &&
-      Object.keys(value).every((key) => validator.validate(value[key]).valid)
-        ? { value, valid: true }
-        : { valid: false },
+      Object.keys(value).every((key) => validator.validate(value[key]).isValid)
+        ? { value, isValid: true }
+        : { isValid: false },
   };
 }
 
@@ -1843,20 +1823,20 @@ export function object<V extends object>(schema: {
       Object.keys(schema).every((key) => {
         const validation = validValidator((schema as any)[key]);
         if (validation.valid) {
-          return validation.validator.validate(value[key]).valid;
+          return validation.validator.validate(value[key]).isValid;
         } else {
           throw new Error("Something went wrong");
         }
       })
-        ? { value, valid: true, __outputType: value }
-        : { valid: false, __outputType: value },
+        ? { value, isValid: true, __outputType: value }
+        : { isValid: false, __outputType: value },
   };
 }
 
 export function any(): Validator<any> {
   return {
     __outputType: "",
-    validate: (value: any) => ({ valid: true, value }),
+    validate: (value: any) => ({ isValid: true, value }),
   };
 }
 

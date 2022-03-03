@@ -1,11 +1,9 @@
 import {
   exact,
-  nullable,
-  optional,
   string,
   number,
   arrayOf,
-  alternatives,
+  either,
   objectOf,
   object,
   boolean,
@@ -19,7 +17,7 @@ import { strict as assert } from "assert";
 const assertValidator = <T>(v: Validator<T>, value: T, intent: string = "") => {
   const validation = v.validate(value);
   assert(
-    validation.valid,
+    validation.isValid,
     `Should have been valid, but was invalid. ${intent}`
   );
   assert(
@@ -34,7 +32,7 @@ const assertIncorrect = <T>(
   intent: string = ""
 ) => {
   const validation = v.validate(value);
-  assert(!validation.valid, `Should not have been valid. ${intent}`);
+  assert(!validation.isValid, `Should not have been valid. ${intent}`);
 };
 
 {
@@ -69,49 +67,10 @@ const assertIncorrect = <T>(
 }
 
 {
-  // optional
-  assertValidator(
-    optional(string()),
-    "",
-    "A defined optional string should be valid"
-  );
-  assertValidator(
-    optional(string()),
-    undefined,
-    "An undefined optional string should be valid"
-  );
-  assertIncorrect(
-    optional(string()),
-    10,
-    "A number is not a valid optional string"
-  );
-}
-
-{
   // boolean
   assertValidator(boolean(), true, "the boolean 'true' is a boolean");
   assertValidator(boolean(), true, "the boolean 'false' is a boolean");
   assertIncorrect(boolean(), 10, "a number is not a boolean");
-}
-
-{
-  // nullable
-  assertValidator(
-    nullable(string()),
-    "",
-    "A non-null nullable string should be valid"
-  );
-  assertValidator(
-    nullable(string()),
-    null,
-    "A null nullable string should be valid"
-  );
-  assertValidator(
-    nullable(number()),
-    10,
-    "A non-null nullable number should be valid"
-  );
-  assertIncorrect(nullable(string()), 10, "A number is never valid");
 }
 
 {
@@ -135,7 +94,7 @@ const assertIncorrect = <T>(
     "The object should match the schema"
   );
   assertValidator(
-    object({ sweet: optional(exact("cool")) }),
+    object({ sweet: either(exact("cool"), exact(undefined)) }),
     {} as any,
     "An empty object is a valid object where the only field is optional"
   );
@@ -168,27 +127,27 @@ const assertIncorrect = <T>(
 {
   // alternatives
   assertValidator(
-    alternatives(number(), string()),
+    either(number(), string()),
     42,
     "A number is either a valid string or a number"
   );
   assertValidator(
-    alternatives(number(), string()),
+    either(number(), string()),
     24,
     "A number is a valid string or a number"
   );
   assertValidator(
-    alternatives(number(), string()),
+    either(number(), string()),
     "a",
     "A string is a valid string or a number"
   );
   assertValidator(
-    alternatives(number(), string()),
+    either(number(), string()),
     "b",
     "A string is a valid string or a number"
   );
   assertIncorrect(
-    alternatives(number(), string()),
+    either(number(), string()),
     false,
     "A boolean is neither a string nor a number"
   );
@@ -212,7 +171,7 @@ const assertIncorrect = <T>(
     "An array with two numbers is a valid array of numbers"
   );
   assertValidator(
-    arrayOf(alternatives(number(), string())),
+    arrayOf(either(number(), string())),
     [24, 2, "foo"],
     "An array with two numbers and a string is a valid array of numbers and strings"
   );
@@ -224,7 +183,7 @@ const assertIncorrect = <T>(
     "An array of a single string is not an array of numbers"
   );
   assertIncorrect(
-    arrayOf(alternatives(number(), boolean())),
+    arrayOf(either(number(), boolean())),
     ["nice"],
     "An array of a single string is not an array of numbers and booleans"
   );
@@ -243,7 +202,7 @@ const assertIncorrect = <T>(
     "An object with two number fields is indeed an object of numbers"
   );
   assertValidator(
-    objectOf(alternatives(number(), string())),
+    objectOf(either(number(), string())),
     {
       a: 42,
       b: 43,
@@ -305,7 +264,7 @@ const assertIncorrect = <T>(
     "The object should match the schema"
   );
   assertValidator(
-    lazy(() => object({ sweet: optional(exact("cool")) })),
+    lazy(() => object({ sweet: either(exact("cool"), exact(undefined)) })),
     {} as any,
     "An empty object is a valid object where the only field is optional"
   );
@@ -345,8 +304,8 @@ const assertIncorrect = <T>(
   const node: Validator<Node> = lazy<Node>(() =>
     object({
       value: any(),
-      left: nullable(node),
-      right: nullable(node),
+      left: either(node, exact(null)),
+      right: either(node, exact(null)),
     })
   );
 
