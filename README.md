@@ -131,9 +131,6 @@ The the `either` creator is a good example of **validator composition\*\***. It 
 
 ```typescript
 const eitherStringOrNumber = either(string(), number());
-// Output of `string()` and `number()` are `Validator`s, and `either` uses
-// them to create a new `Validator`, which will use both the `Validator`s from
-// `string` and `number`.
 
 eitherStringOrNumber.validate("10").isValid; // true
 eitherStringOrNumber.validate(10).sValid; // true
@@ -401,7 +398,7 @@ Creates a validator for validating an object and the individual _values_ (not fi
 Example:
 
 ```typescript
-const objectValidator = objectOf(string());
+const objectValidator = tuple(string());
 
 // ✅ Evaluates to true
 objectValidator.validate([]).isValid;
@@ -468,6 +465,8 @@ notUndefinedValidator.validate([]).isValid;
 notUndefinedValidator.validate(undefined).isValid;
 ```
 
-## Credit
+### `object<V extends object>(schema: { [key in keyof V]: Validator<V[key]> }): Validator<V>`
 
-All credit goes to
+## Similar libraries
+
+Valentina was inspired by [yup.js](https://github.com/jquense/yup). It's a good library, but Valentina's purpose is to limit the number of dependencies that JavaScript projects rely on
