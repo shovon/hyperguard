@@ -4,11 +4,12 @@ _Valentina_ is a tiny library for validating JavaScript values. Whether they be 
 
 **Killer Features:**
 
+- no library lock-in; hate this library? As long as the next library uses the `Validator` type, you should be able to migrate very easily
 - minimal and intuitive API, allowing for expressive JavaScript object schema and type definitions
 - Powerful TypeScript support to infer static types from schema
 - Composable validators, empowering you to define your own rules, your way
 - zero dependencies
-- install either via npm, or copy and paste the `lib.ts` file into your project
+- install either via npm, or copy and paste the [`lib.ts`](https://raw.githubusercontent.com/shovon/valentina/main/lib.ts) file into your project
 
 ## Getting Started
 
@@ -73,11 +74,9 @@ if (result.isValid) {
   user = result.value;
 }
 
-// Simply defining `const str = result.value` will be a compile-time error;
-// type guards are used precisely for casting purposes
+// Simply defining `const str = result.value` will result in a compile-time
+// error; type guards are used for casting purposes
 ```
-
-## This is a valid tool
 
 ## Usage Guide
 
@@ -93,9 +92,48 @@ if (validation.isValid) {
 }
 ```
 
+Valentina becomes especially powerful when `Validator`s are broken down into smaller validators, that serve their own purpose. These smaller validators can then be used in other larger validators.
+
+Take for example a chat application that has users.
+
 ## Design Philosophy
 
-> #### Atomic
+### Composition
+
+Rather than relying on—arguably—complex configurations and validation engines, Valentina empowers you to define schemas by composing smaller validators.
+
+Additionally, you can easily re-use smaller validators across larger schemas.
+
+For instance, in an application that sends you a message that only contains _one_ user, or an _array_ of users, you only need to define a `User` schema once.
+
+The following is the user schema:
+
+```typescript
+export const userSchema = object({
+  id: string(),
+  name: string(),
+});
+```
+
+And here are the schemas for the `USER_JOINED` and `APPLICATION_STATE` messages. The first message represents the values of a single user that has joined and the second one represents the current state of the application, which will contain an array of all users.
+
+```typescript
+export const userJoined = object({
+  type: exact("USER_JOINED"),
+  data: userSchema,
+});
+
+export const applicationState = object({
+  type: exact("APPLICATION_STATE"),
+  data: arrayOf(userSchema),
+});
+```
+
+None of the schema components are represented as a small part of a larger configuration object; instead they are all self-contained Validators!
+
+### Atomic Validators
+
+> ##### Atomic
 >
 > _adjective_
 >
@@ -122,6 +160,12 @@ either(string(), number());
 // them to create a new `Validator`, which will use both the `Validator`s from
 // `string` and `number`.
 ```
+
+### No language abstractions
+
+Traditionally, validation libraries often resorted to abstracting away the minutiae with writing JavaScript libraries. The idea is that JavaScript as a language is flawed, and those details need to be abstracted away.
+
+Valentina uses a different approach
 
 ## API
 
@@ -402,3 +446,7 @@ notUndefinedValidator.validate([]).isValid;
 // ❌ Evaluates to false
 notUndefinedValidator.validate(undefined).isValid;
 ```
+
+## Credit
+
+All credit goes to
