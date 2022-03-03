@@ -11,6 +11,7 @@ import {
   Validator,
   any,
   lazy,
+  except,
 } from "./lib";
 import { strict as assert } from "assert";
 
@@ -232,6 +233,21 @@ const assertIncorrect = <T>(
     tuple([string(), number()]),
     [1, "1"],
     "An array with a string and then a number is not an array with a number and then a string"
+  );
+}
+
+{
+  // except
+  assertValidator(
+    except(string(), exact("but")),
+    "hello",
+    'The string `"hello"` is not "but", so the string should be valid'
+  );
+
+  assertIncorrect(
+    except(string(), exact("but")),
+    "but",
+    'The string "but" is "but" so the validation should have failed'
   );
 }
 

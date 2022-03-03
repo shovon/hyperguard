@@ -80,13 +80,30 @@ if (result.isValid) {
 // type guards are used precisely for casting purposes
 ```
 
+## Design Philosophy
+
+Fundamentally, this library should not even exist. You merely need to define the following three types in your TypeScript project.
+
+```typescript
+export type ValidationResult<T> =
+  | { isValid: false }
+  | { value: T; isValid: true };
+
+export type Validator<T> = {
+  __outputType: T;
+  validate: (value: any) => ValidationResult<T>;
+};
+
+export type InferType<T extends Validator<any>> = T["__outputType"];
+```
+
 ## API
 
 ### `string(): Validator<string>`
 
 Creates a validator for determining if a value is of type string.
 
-For example:
+Example:
 
 ```typescript
 const strValidator = string();
@@ -102,7 +119,7 @@ strValidator.validate(10).isValid;
 
 Creates a validator for determining if a value is of type number.
 
-For example:
+Example:
 
 ```typescript
 const numberValidator = number();
@@ -118,7 +135,7 @@ numberValidator.validate("").isValid;
 
 Creates a validator for determining if a value is of type boolean.
 
-For example:
+Example:
 
 ```typescript
 const boolValidator = boolean();
@@ -133,11 +150,27 @@ boolValidator.validate(false).isValid;
 boolValidator.validate("").isValid;
 ```
 
+### `exact<V extends string | number | boolean | null | undefined>(expected: V): Validator<V>`
+
+Creates a validator that checks to see if the value exactly mathes the expected value passed in as the function's parameter.
+
+Example:
+
+```typescript
+const helloValidator = exact("hello");
+
+// ✅ Evaluates to true
+helloValidator.validate("hello").isValid;
+
+// ❌ Evaluates to false
+helloValidator.validate("").isValid;
+```
+
 ### `either(...alts: Validator<any>[]): Validator<any>`
 
-Creates a validator for determining if a value is of any of the types as outlined in the supplied set of validators.
+Creates a validator for determining if a value is of any of the types as outlined in the supplied set of validators. In other words, you want a _union_ of possible types.
 
-So that means—for example—if you expect a value to be either of string, number, or boolean, you can use the `alternatives` function to create a validator to check for any of those types.
+So that means—for example—if you expect a value to be _either_ of string, number, or boolean, you can use the `either` function to create a validator to check for any of those types.
 
 Example:
 
@@ -161,11 +194,40 @@ eitherValidator.validate(10).isValid;
 boolValidator.validate({}).isValid;
 ```
 
+### `arrayOf<T>(validator: Validator<T>): Validator<T[]>`
+
+Creates a validator for validating an array and the individual values that the array holds
+
+Example:
+
+```typescript
+const arrayValidator = arrayOf(string());
+// The resulting validator will be of type Validator<string[]>
+
+// ✅ Evaluates to true
+arrayValidator.validate([]).isValid;
+
+// ✅ Evaluates to true
+arrayValidator.validate(["cool"]).isValid;
+
+// ✅ Evaluates to true
+arrayValidator.validate(["foo", "bar"]).isValid;
+
+// ✅ Evaluates to true
+arrayValidator.validate(["sweet"]).isValid;
+
+// ❌ Evaluates to false
+arrayValidator.validate({}).isValid;
+
+// ❌ Evaluates to false
+arrayValidator.validate([1, 2, 3]).isValid;
+```
+
 ### `any(): Validator<any>`
 
 Creates a validator that will evaluate all values as being valid.
 
-For example:
+Example:
 
 ```typescript
 const anyValidator = any();
@@ -213,31 +275,76 @@ arrayValidator.validate(10).isValid;
 arrayValidator.validate(null).isValid;
 ```
 
-### `arrayOf<T>(validator: Validator<T>[]): Validator<T[]>`
+### `objectOf<T>(validator: Validator<T>): Validator<{ [key: string]: V }>`
 
-Creates
+Creates a validator for validating an object and the individual _values_ (not field names) in said object.
 
-For example:
+Example:
 
 ```typescript
-const alternativesValidator = arrayOf(string());
-// The resulting validator will be of type Validator<boolean | string | number>
+const objectValidator = objectOf(string());
 
 // ✅ Evaluates to true
-alternativesValidator.validate([]).isValid;
+objectValidator.validate([]).isValid;
 
 // ✅ Evaluates to true
-alternativesValidator.validate(["cool"]).isValid;
+objectValidator.validate(["cool"]).isValid;
 
 // ✅ Evaluates to true
-alternativesValidator.validate(["foo", "bar"]).isValid;
+objectValidator.validate(["foo", "bar"]).isValid;
 
 // ✅ Evaluates to true
-alternativesValidator.validate(["sweet"]).isValid;
+objectValidator.validate(["sweet"]).isValid;
 
 // ❌ Evaluates to false
-boolValidator.validate({}).isValid;
+objectValidator.validate({}).isValid;
 
 // ❌ Evaluates to false
-boolValidator.validate([1, 2, 3]).isValid;
+objectValidator.validate([1, 2, 3]).isValid;
+```
+
+### `except<T, I>(validator: Validator<T>, invalidator: Validator<I>): Exclude<T, I>`
+
+Given two `Validator`s—one acting as a "validator" and another as an "invalidator"—the function `except` creates a `Validator` that determines it is indeed a value in accordance to the _validator_, _except_ something defined by the supplied *in*validator.
+
+Example:
+
+```typescript
+const everythingButValidator = except(string(), exact("but"));
+
+// ✅ Evaluates to true
+everythingButValidator.validate("apples").isValid;
+
+// ✅ Evaluates to true
+everythingButValidator.validate("bananas").isValid;
+
+// ✅ Evaluates to true
+everythingButValidator.validate("cherries").isValid;
+
+// ❌ Evaluates to false
+everythingButValidator.validate("but").isValid;
+```
+
+> **Note**
+>
+> Due to a limitation in TypeScript, we are unable derive a subset of an "infinite" type. For example, `Exclude<string, "but">` (set of all strings except for the string `"but"`) will merely evaluate to `string`. Likewise, `Exclude<any, undefined>` will simply evaluate to `any`.
+
+#### Usage
+
+In some instances, it may not matter the exact content of a value, so long as it is not undefined. The `except` function can create a `Validator` that checks for any value that isn't undefined.
+
+```typescript
+const notUndefinedValidator = except(any(), exact(undefined));
+
+// ✅ Evaluates to true
+notUndefinedValidator.validate("cool").isValid;
+
+// ✅ Evaluates to true
+notUndefinedValidator.validate(19).isValid;
+
+// ✅ Evaluates to true
+notUndefinedValidator.validate([]).isValid;
+
+// ❌ Evaluates to false
+notUndefinedValidator.validate(undefined).isValid;
 ```

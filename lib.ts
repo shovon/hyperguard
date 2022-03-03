@@ -1734,26 +1734,28 @@ export function tuple(t: Validator<any>[]): Validator<any[]> {
   };
 }
 
-export function except<T>(validator: Validator<T>): Validator<Exclude<any, T>> {
+export function except<T, I>(
+  validator: Validator<T>,
+  invalidator: Validator<I>
+): Validator<Exclude<T, I>> {
   return {
-    __outputType: {} as Exclude<any, T>,
+    __outputType: {} as Exclude<T, I>,
     validate: (value: any) =>
-      !validator.validate(value).isValid
+      validator.validate(value).isValid && !invalidator.validate(value).isValid
         ? { isValid: true, value }
         : { isValid: false },
   };
 }
 
 /**
- * Used to validate a value to determine if a value is a string
+ * Creates a validator that determines if the supplied value is a string.
  * @returns A validator to check if the value is of type string
  */
 export const string = (): Validator<string> => {
-  const validate: (value: any) => ValidationResult<string> = (value: any) =>
-    typeof value !== "string" ? { isValid: false } : { value, isValid: true };
   return {
     __outputType: "",
-    validate,
+    validate: (value: any) =>
+      typeof value !== "string" ? { isValid: false } : { value, isValid: true },
   };
 };
 
