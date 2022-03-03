@@ -4,7 +4,7 @@ _Valentina_ is a tiny library for validating JavaScript values. Whether they be 
 
 **Killer Features:**
 
-- no library lock-in; hate this library? As long as the next library uses the `Validator` type, you should be able to migrate very easily
+- no library lock-ins; hate this library? As long as the next library defines their own the [`Validator`](https://github.com/shovon/valentina/blob/c56c15a5ddededc5ea69c6b7f96108a1b83ac8b1/lib.ts#L30-L36) type, you should be able to migrate to another library very easily. Or, you can quickly write your own
 - minimal and intuitive API, allowing for expressive JavaScript object schema and type definitions
 - Powerful TypeScript support to infer static types from schema
 - Composable validators, empowering you to define your own rules, your way
@@ -12,6 +12,8 @@ _Valentina_ is a tiny library for validating JavaScript values. Whether they be 
 - install either via npm, or copy and paste the [`lib.ts`](https://raw.githubusercontent.com/shovon/valentina/main/lib.ts) file into your project
 
 ## Getting Started
+
+Schema creation is done by creating a validator. Valentina has simple creators, that will allow you to define your overall schema.
 
 ```typescript
 import {
@@ -54,7 +56,7 @@ type User = {
 */
 ```
 
-We can then invoke the `Validator<T>.validate` method for validating a value:
+A valdiator has a `validate` method, which you can invoke for the purposes of validating data.
 
 ```typescript
 const data: any = {
@@ -92,17 +94,51 @@ if (validation.isValid) {
 }
 ```
 
-Valentina becomes especially powerful when `Validator`s are broken down into smaller validators, that serve their own purpose. These smaller validators can then be used in other larger validators.
-
-Take for example a chat application that has users.
+Valentina becomes especially powerful when larger `Validator`s are broken down into smaller validators, that serve their own purpose. These smaller validators can then be used in other larger validators.
 
 ## Design Philosophy
+
+### Atomic Validators
+
+> ##### Atomic
+>
+> _adjective_
+>
+> of or forming a single irreducible unit or component in a larger system.
+
+The central idea is that complex validation rules can be built from the ground up out of [atomic](https://spin.atomicobject.com/2016/01/06/defining-atomic-object/) elements. Schema construction will happen through the _composition_ of one or more of these "atoms". The Valentina library's `Validator` is the type definition that serves as the "atom".
+
+The definition of a `Validator` is simply:
+
+```typescript
+export type Validator<T> = {
+  __outputType: T;
+  validate: (value: any) => { isValid: false } | { value: T; isValid: true };
+};
+```
+
+Any object of type `Validator` can implement the `validate` method in their own way. It can even invoke the `validate` method from another `Validator`.
 
 ### Composition
 
 Rather than relying on—arguably—complex configurations and validation engines, Valentina empowers you to define schemas by composing smaller validators.
 
 Additionally, you can easily re-use smaller validators across larger schemas.
+
+The the `either` creator is a good example of **validator composition\*\***. It allows you to define a validator for a value that could _either_ be a `string` or a `number`.
+
+```typescript
+const eitherStringOrNumber = either(string(), number());
+// Output of `string()` and `number()` are `Validator`s, and `either` uses
+// them to create a new `Validator`, which will use both the `Validator`s from
+// `string` and `number`.
+
+eitherStringOrNumber.validate("10").isValid; // true
+eitherStringOrNumber.validate(10).sValid; // true
+eitherStringOrNumber.validate(true).sValid; // false
+```
+
+We can go even further. The `object` creator will allow us to compose multiple validators for the purposes of allowing us to validate a more complex schema
 
 For instance, in an application that sends you a message that only contains _one_ user, or an _array_ of users, you only need to define a `User` schema once.
 
@@ -129,43 +165,24 @@ export const applicationState = object({
 });
 ```
 
-None of the schema components are represented as a small part of a larger configuration object; instead they are all self-contained Validators!
+None of the schema components are represented as a small part of a larger configuration object; instead they are all self-contained `Validator`s.
 
-### Atomic Validators
+### No language abstractions
 
-> ##### Atomic
->
-> _adjective_
->
-> of or forming a single irreducible unit or component in a larger system.
+Traditionally, validation libraries often resorted to abstracting away the minutiae behind JavaScript. The idea is that JavaScript as a language is flawed, and those details need to be abstracted away.
 
-The central idea is that complex validation rules can be built from the ground up out of [atomic](https://spin.atomicobject.com/2016/01/06/defining-atomic-object/) elements. Schema construction will happen through the _composition_ of one or more of these "atoms". The Valentina library's `Validator` is the type definition that serves as the "atom".
+Valentina embaces the language.
 
-The definition of a `Validator` is simply:
+At it's core, the power of Valentina is all encompassed by a single type definition, and it goes like so:
 
 ```typescript
 export type Validator<T> = {
   __outputType: T;
-  validate: (value: any) => ValidationResult<T>;
+  validate: (value: any) => { isValid: false } | { value: T; isValid: true };
 };
 ```
 
-Any object of type `Validator` can implement the `validate` method in their own way. It can even invoke the `validate` method from another `Validator`.
-
-The `either` function is a good example of a `Validator` generator that creates a validator that will use other `Validator`s.
-
-```typescript
-either(string(), number());
-// Output of `string()` and `number()` are `Validator`s, and `either` uses
-// them to create a new `Validator`, which will use both the `Validator`s from
-// `string` and `number`.
-```
-
-### No language abstractions
-
-Traditionally, validation libraries often resorted to abstracting away the minutiae with writing JavaScript libraries. The idea is that JavaScript as a language is flawed, and those details need to be abstracted away.
-
-Valentina uses a different approach
+You don't even need to use Valentina. As long as you can
 
 ## API
 
