@@ -119,6 +119,8 @@ export type Validator<T> = {
 
 Any object of type `Validator` can implement the `validate` method in their own way. It can even invoke the `validate` method from another `Validator`.
 
+In fact, as far as this library is concerned, you can define your `Validator`s not only by composing simpler validators defined in this library, but also by writing your own.
+
 ### Composition
 
 Rather than relying on—arguably—complex configurations and validation engines, Valentina empowers you to define schemas by composing smaller validators.
@@ -171,9 +173,9 @@ None of the schema components are represented as a small part of a larger config
 
 Traditionally, validation libraries often resorted to abstracting away the minutiae behind JavaScript. The idea is that JavaScript as a language is flawed, and those details need to be abstracted away.
 
-Valentina embaces the language.
+Valentina embraces the language.
 
-At it's core, the power of Valentina is all encompassed by a single type definition, and it goes like so:
+At it's core, the power of Valentina is all encompassed by the following type definition:
 
 ```typescript
 export type Validator<T> = {
@@ -182,7 +184,9 @@ export type Validator<T> = {
 };
 ```
 
-You don't even need to use Valentina. As long as you can
+You don't even need to use Valentina. As long as you can define your own Validator, you can perform validations as you would with Valentina.
+
+Alternatively, you can even write your own `Validator`s, and they will be 100% compatible with Valentina.
 
 ## API
 
