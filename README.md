@@ -80,22 +80,30 @@ if (result.isValid) {
 // type guards are used precisely for casting purposes
 ```
 
+## Usage Guide
+
+The Valentina library was designed to be used for the purposes of validating incoming JSON data, whether they be from an HTTP request, an AJAX response, a WebSocket payload, etc.
+
 ## Design Philosophy
 
-Fundamentally, this library should not even exist. You merely need to define the following three types in your TypeScript project.
+> #### Atomic
+>
+> _adjective_
+>
+> of or forming a single irreducible unit or component in a larger system.
+
+The central idea is that complex validation rules can be built from the ground up out of [atomic](https://spin.atomicobject.com/2016/01/06/defining-atomic-object/) constituents. Schema construction will happen through the _composition_ of one or more of these "atoms". The Valentina library introduces the concept of a `Validation`, which will serve as an atom
+
+The definition of a `Validator` is simply:
 
 ```typescript
-export type ValidationResult<T> =
-  | { isValid: false }
-  | { value: T; isValid: true };
-
 export type Validator<T> = {
   __outputType: T;
   validate: (value: any) => ValidationResult<T>;
 };
-
-export type InferType<T extends Validator<any>> = T["__outputType"];
 ```
+
+Any object of type `Validator` can implement the `validate` method however they so choose. And it can do so by also invoking the `validate` method from another `Validator`.
 
 ## API
 
@@ -276,6 +284,34 @@ arrayValidator.validate(null).isValid;
 ```
 
 ### `objectOf<T>(validator: Validator<T>): Validator<{ [key: string]: V }>`
+
+Creates a validator for validating an object and the individual _values_ (not field names) in said object.
+
+Example:
+
+```typescript
+const objectValidator = objectOf(string());
+
+// ✅ Evaluates to true
+objectValidator.validate([]).isValid;
+
+// ✅ Evaluates to true
+objectValidator.validate(["cool"]).isValid;
+
+// ✅ Evaluates to true
+objectValidator.validate(["foo", "bar"]).isValid;
+
+// ✅ Evaluates to true
+objectValidator.validate(["sweet"]).isValid;
+
+// ❌ Evaluates to false
+objectValidator.validate({}).isValid;
+
+// ❌ Evaluates to false
+objectValidator.validate([1, 2, 3]).isValid;
+```
+
+### `tuple<T>(validator: Validator<T>): Validator<{ [key: string]: V }>`
 
 Creates a validator for validating an object and the individual _values_ (not field names) in said object.
 
