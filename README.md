@@ -30,11 +30,13 @@ const optional = <T>(validator: Validator<T>) =>
 let userSchema = object({
   name: string(),
   age: number(),
-  address: optional({
-    apartment: optional(string()),
-    streetNumber: string(),
-    streetName: string(),
-  }),
+  address: optional(
+    object({
+      apartment: optional(string()),
+      streetNumber: string(),
+      streetName: string(),
+    })
+  ),
 });
 
 type User = InferType<typeof userSchema>;
