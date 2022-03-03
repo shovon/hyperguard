@@ -12,10 +12,6 @@ _Valentina_ is a tiny library for validating JavaScript values. Whether they be 
 
 ## Getting Started
 
-The core idea of Valentina is that you create a `Validator`, and you can compose multiple such `Validator`s to define an elaborate validation rule, or define your own `Validator` creator.
-
-Additonally, the correct type can even be inferred from the `Validator`, using `InferType`.
-
 ```typescript
 import {
   object,
@@ -30,16 +26,15 @@ import {
 const optional = <T>(validator: Validator<T>) =>
   either(validator, exact(undefined));
 
+// You create a whole schema validators by composing other smaller validators
 let userSchema = object({
   name: string(),
   age: number(),
-  address: either(
-    optional({
-      apartment: optional(string()),
-      streetNumber: string(),
-      streetName: string(),
-    })
-  ),
+  address: optional({
+    apartment: optional(string()),
+    streetNumber: string(),
+    streetName: string(),
+  }),
 });
 
 type User = InferType<typeof userSchema>;
@@ -80,9 +75,21 @@ if (result.isValid) {
 // type guards are used precisely for casting purposes
 ```
 
+## This is a valid tool
+
 ## Usage Guide
 
 The Valentina library was designed to be used for the purposes of validating incoming JSON data, whether they be from an HTTP request, an AJAX response, a WebSocket payload, etc.
+
+```typescript
+const data = await fetch(url).then((response) => response.json());
+
+const validation = schema.validate(data);
+
+if (validation.isValid) {
+  const value = validation.value;
+}
+```
 
 ## Design Philosophy
 
@@ -92,7 +99,7 @@ The Valentina library was designed to be used for the purposes of validating inc
 >
 > of or forming a single irreducible unit or component in a larger system.
 
-The central idea is that complex validation rules can be built from the ground up out of [atomic](https://spin.atomicobject.com/2016/01/06/defining-atomic-object/) constituents. Schema construction will happen through the _composition_ of one or more of these "atoms". The Valentina library introduces the concept of a `Validation`, which will serve as an atom
+The central idea is that complex validation rules can be built from the ground up out of [atomic](https://spin.atomicobject.com/2016/01/06/defining-atomic-object/) elements. Schema construction will happen through the _composition_ of one or more of these "atoms". The Valentina library's `Validator` is the type definition that serves as the "atom".
 
 The definition of a `Validator` is simply:
 
@@ -103,7 +110,16 @@ export type Validator<T> = {
 };
 ```
 
-Any object of type `Validator` can implement the `validate` method however they so choose. And it can do so by also invoking the `validate` method from another `Validator`.
+Any object of type `Validator` can implement the `validate` method in their own way. It can even invoke the `validate` method from another `Validator`.
+
+The `either` function is a good example of a `Validator` generator that creates a validator that will use other `Validator`s.
+
+```typescript
+either(string(), number());
+// Output of `string()` and `number()` are `Validator`s, and `either` uses
+// them to create a new `Validator`, which will use both the `Validator`s from
+// `string` and `number`.
+```
 
 ## API
 
