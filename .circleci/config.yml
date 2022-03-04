@@ -1,0 +1,23 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/attraction-wars-server
+    docker:
+      - image: cimg/node:17.6.0
+    steps:
+      - checkout
+      - run:
+          name: install-npm
+          command: "npm i typescript ts-node"
+      # - restore_cache: # special step to restore the dependency cache
+      #     key: dependency-cache-{{ checksum "package.json" }}
+      - run:
+          name: install-dependencies
+          command: npm install
+      # - save_cache: # special step to save the dependency cache
+      #     key: dependency-cache-{{ checksum "package.json" }}
+      #     paths:
+      #       - ./node_modules
+      - run:
+          name: test
+          command: npm run test
