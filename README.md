@@ -1,5 +1,7 @@
 # Valentina: JavaScript object validation
 
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/shovon/valentina/blob/main/LICENSE)
+
 _Valentina_ is a tiny library for validating JavaScript values. Whether they be primitives, such as strings and numbers, or modelling more complex objects, Valentina will empower you to express your data validation rules, your way.
 
 **Killer Features:**
@@ -94,9 +96,15 @@ if (validation.isValid) {
 }
 ```
 
-Valentina becomes especially powerful when larger `Validator`s are broken down into smaller validators, that serve their own purpose. These smaller validators can then be used in other larger validators.
+Valentina becomes especially powerful when larger `Validator`s are comprised from smaller reusable validators, that serve their own purpose. These validators can then be used across multiple larger validators.
 
 ## Design Philosophy
+
+Valentina is written with three principles in mind:
+
+- Atomic validators
+- Validator composition
+- Embrace the language
 
 ### Atomic Validators
 
@@ -166,7 +174,7 @@ export const applicationState = object({
 
 None of the schema components are represented as a small part of a larger configuration object; instead they are all self-contained `Validator`s.
 
-### No language abstractions
+### Embrace JavaScript itself; No need of language abstractions
 
 Traditionally, validation libraries often resorted to abstracting away the minutiae behind JavaScript. The idea is that JavaScript as a language is flawed, and those details need to be abstracted away.
 
@@ -466,6 +474,14 @@ notUndefinedValidator.validate(undefined).isValid;
 ```
 
 ### `object<V extends object>(schema: { [key in keyof V]: Validator<V[key]> }): Validator<V>`
+
+Given an object of Validators, creates a validator for an object, with validation for specific keys in the object.
+
+Example:
+
+```typescript
+
+```
 
 ## Similar libraries
 
