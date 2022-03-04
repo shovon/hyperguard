@@ -40,11 +40,11 @@ console.log(
  */
 export function either(...alts: Validator<any>[]): Validator<any> {
   return {
-    __outputType: {} as any,
+    __: {} as any,
     validate: (value: any) =>
       alts.some((validator) => validator.validate(value).valid)
-        ? { valid: true, value, __outputType: value }
-        : { valid: false, __outputType: value },
+        ? { valid: true, value, __: value }
+        : { valid: false, __: value },
   };
 }`
 );
@@ -85,11 +85,11 @@ ${Array(24)
  */
 export function tuple(t: any[]): Validator<any[]> {
   return {
-    __outputType: {} as any,
+    __: {} as any,
     validate: (value: any) =>
       alts.some((validator) => validator.validate(value).valid)
-        ? { valid: true, value, __outputType: value }
-        : { valid: false, __outputType: value },
+        ? { valid: true, value, __: value }
+        : { valid: false, __: value },
   };
 }`
 );

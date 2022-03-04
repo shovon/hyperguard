@@ -319,7 +319,7 @@ For instance, the JSON standard does not have a data type for `Date`s. You can c
 
 ```typescript
 export const date = (): Validator<Date> => ({
-  __outputType: new Date(),
+  __: new Date(),
   validate: (value: any) => {
     const validation = string().validate(value);
     if (!validation.isValid) {
@@ -384,7 +384,7 @@ The definition of a `Validator` is simply:
 
 ```typescript
 export type Validator<T> = {
-  __outputType: T;
+  __: T;
   validate: (value: any) => { isValid: false } | { value: T; isValid: true };
 };
 ```
@@ -448,10 +448,12 @@ At it's core, the power of Valentina is all encompassed by the following type de
 
 ```typescript
 export type Validator<T> = {
-  __outputType: T;
+  __: T;
   validate: (value: any) => { isValid: false } | { value: T; isValid: true };
 };
 ```
+
+> The `__` is only used for TypeScript type casting. You don't actually need \*\* in the actual JavaScript Validator object
 
 You don't even need to use Valentina. As long as you can define your own Validator, you can perform validations as you would with Valentina.
 

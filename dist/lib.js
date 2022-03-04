@@ -50,11 +50,11 @@ function either() {
         alts[_i] = arguments[_i];
     }
     return {
-        __outputType: {},
+        __: {},
         validate: function (value) {
             return alts.some(function (validator) { return validator.validate(value).isValid; })
-                ? { isValid: true, value: value, __outputType: value }
-                : { isValid: false, __outputType: value };
+                ? { isValid: true, value: value, __: value }
+                : { isValid: false, __: value };
         }
     };
 }
@@ -76,7 +76,7 @@ exports.either = either;
  */
 function tuple(t) {
     return {
-        __outputType: {},
+        __: {},
         validate: function (value) {
             return Array.isArray(value) &&
                 t.length === value.length &&
@@ -87,9 +87,32 @@ function tuple(t) {
     };
 }
 exports.tuple = tuple;
+/**
+ * Creates a validator for an object that rejects all values that passes the
+ * invalidator.
+ *
+ * This validator is especially useful for cases where a value can be a string,
+ * except for specific strings.
+ *
+ * For example:
+ *
+ * ```
+ *const everythingButValidator = except(string(), exact("but"));
+ *
+ * everythingButValidator.validate("apples").isValid; // ✅
+ * everythingButValidator.validate("bananas").isValid; // ✅
+ * everythingButValidator.validate("cherries").isValid; // ✅
+ * everythingButValidator.validate("but").isValid; // ✅
+ * ```
+ * @param validator The validator for which to validate the value against
+ * @param invalidator The validator for which if is valid, the value will be
+ *   rejected
+ * @returns A Validator that will reject all values for which the invalidator
+ *   validates the object
+ */
 function except(validator, invalidator) {
     return {
-        __outputType: {},
+        __: {},
         validate: function (value) {
             return validator.validate(value).isValid && !invalidator.validate(value).isValid
                 ? { isValid: true, value: value }
@@ -104,39 +127,62 @@ exports.except = except;
  */
 var string = function () {
     return {
-        __outputType: "",
+        __: "",
         validate: function (value) {
             return typeof value !== "string" ? { isValid: false } : { value: value, isValid: true };
         }
     };
 };
 exports.string = string;
+/**
+ * Creates a validator that validates values that match the expected value
+ * exactly.
+ * @param expected The exact value to be expected
+ * @returns A validator that will only validate values that match exactly the
+ *   expected value
+ */
 function exact(expected) {
     return {
-        __outputType: {},
+        __: {},
         validate: function (value) {
             return value !== expected ? { isValid: false } : { value: value, isValid: true };
         }
     };
 }
 exports.exact = exact;
+/**
+ * Creates a validator that determines if the supplied value is a number.
+ * @returns A validator to check if the value is of type number
+ */
 var number = function () { return ({
-    __outputType: 0,
+    __: 0,
     validate: function (value) {
         return typeof value !== "number" ? { isValid: false } : { value: value, isValid: true };
     }
 }); };
 exports.number = number;
+/**
+ * Creates a validator that determines if the supplied value is a boolean.
+ * @returns A validator to check if the value is of type boolean
+ */
 var boolean = function () { return ({
-    __outputType: false,
+    __: false,
     validate: function (value) {
         return typeof value !== "boolean" ? { isValid: false } : { value: value, isValid: true };
     }
 }); };
 exports.boolean = boolean;
+/**
+ * Creates a validator that determines if the supplied value is an array of the
+ * specified validator.
+ * @param validator The validator to validate the individual array values
+ *   against
+ * @returns A validator to check if the value is an array of the specified
+ *   validator
+ */
 function arrayOf(validator) {
     return {
-        __outputType: [],
+        __: [],
         validate: function (value) {
             return Array.isArray(value) &&
                 value.every(function (value, i) { return validator.validate(value).isValid; })
@@ -146,9 +192,19 @@ function arrayOf(validator) {
     };
 }
 exports.arrayOf = arrayOf;
+/**
+ * Creates a validator that determines if the supplied value is an object, whose
+ * fields contains are of nothing but types as defined by the specified
+ * validator.
+ * @param validator The validator to validate the individual fields in the
+ *   object
+ * @returns A validator that determines if the supplied value is an object,
+ *   whose fields contains are of nothing but types as defined by the specified
+ *   validator.
+ */
 function objectOf(validator) {
     return {
-        __outputType: {},
+        __: {},
         validate: function (value) {
             return !!value &&
                 typeof value === "object" &&
@@ -164,9 +220,18 @@ function validValidator(value) {
         ? { valid: true, validator: value }
         : { valid: false };
 }
+/**
+ * Creates a validator for an object, specified by the "schema".
+ *
+ * Each field in the "schema" is a validator, and each of them will validate
+ * values against objects in concern.
+ * @param schema An object containing fields of nothing but validators, each of
+ *   which will be used to validate the value's respective fields
+ * @returns A validator that will validate an object against the `schema`
+ */
 function object(schema) {
     return {
-        __outputType: {},
+        __: {},
         validate: function (value) {
             return !!value &&
                 typeof value === "object" &&
@@ -179,22 +244,35 @@ function object(schema) {
                         throw new Error("Something went wrong");
                     }
                 })
-                ? { value: value, isValid: true, __outputType: value }
-                : { isValid: false, __outputType: value };
+                ? { value: value, isValid: true, __: value }
+                : { isValid: false, __: value };
         }
     };
 }
 exports.object = object;
+/**
+ * Creates a validator that where the validation function will never determine
+ * that a value is invalid
+ * @returns A validator that will validate *all* objects
+ */
 function any() {
     return {
-        __outputType: "",
+        __: "",
         validate: function (value) { return ({ isValid: true, value: value }); }
     };
 }
 exports.any = any;
+/**
+ * Creates a validator that lazily evaluates the callback, at every validation.
+ *
+ * Useful for recursive types, such as a node for a tree.
+ * @param schemaFn A function that returns a validator
+ * @returns A validator, effectively just a "forwarding" of the validator
+ *   returned by the `schemaFn`
+ */
 function lazy(schemaFn) {
     return {
-        __outputType: {},
+        __: {},
         validate: function (value) { return schemaFn().validate(value); }
     };
 }

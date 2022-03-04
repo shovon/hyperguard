@@ -31,7 +31,7 @@ export type ValidationResult<T> =
  * An object that serves as a validator.
  */
 export type Validator<T> = {
-  __outputType: T;
+  __: T;
   validate: (value: any) => ValidationResult<T>;
 };
 
@@ -67,7 +67,7 @@ export type Validator<T> = {
  * // }
  * ```
  */
-export type InferType<T extends Validator<any>> = T["__outputType"];
+export type InferType<T extends Validator<any>> = T["__"];
 
 export function either<T0, T1>(
   a0: Validator<T0>,
@@ -931,11 +931,11 @@ export function either<
  */
 export function either(...alts: Validator<any>[]): Validator<any> {
   return {
-    __outputType: {} as any,
+    __: {} as any,
     validate: (value: any) =>
       alts.some((validator) => validator.validate(value).isValid)
-        ? { isValid: true, value, __outputType: value }
-        : { isValid: false, __outputType: value },
+        ? { isValid: true, value, __: value }
+        : { isValid: false, __: value },
   };
 }
 export function tuple(t: []): Validator<[]>;
@@ -1723,7 +1723,7 @@ export function tuple<
  */
 export function tuple(t: Validator<any>[]): Validator<any[]> {
   return {
-    __outputType: {} as any,
+    __: {} as any,
     validate: (value: any) => {
       return Array.isArray(value) &&
         t.length === value.length &&
@@ -1734,12 +1734,35 @@ export function tuple(t: Validator<any>[]): Validator<any[]> {
   };
 }
 
+/**
+ * Creates a validator for an object that rejects all values that passes the
+ * invalidator.
+ *
+ * This validator is especially useful for cases where a value can be a string,
+ * except for specific strings.
+ *
+ * For example:
+ *
+ * ```
+ *const everythingButValidator = except(string(), exact("but"));
+ *
+ * everythingButValidator.validate("apples").isValid; // ✅
+ * everythingButValidator.validate("bananas").isValid; // ✅
+ * everythingButValidator.validate("cherries").isValid; // ✅
+ * everythingButValidator.validate("but").isValid; // ✅
+ * ```
+ * @param validator The validator for which to validate the value against
+ * @param invalidator The validator for which if is valid, the value will be
+ *   rejected
+ * @returns A Validator that will reject all values for which the invalidator
+ *   validates the object
+ */
 export function except<T, I>(
   validator: Validator<T>,
   invalidator: Validator<I>
 ): Validator<Exclude<T, I>> {
   return {
-    __outputType: {} as Exclude<T, I>,
+    __: {} as Exclude<T, I>,
     validate: (value: any) =>
       validator.validate(value).isValid && !invalidator.validate(value).isValid
         ? { isValid: true, value }
@@ -1753,37 +1776,60 @@ export function except<T, I>(
  */
 export const string = (): Validator<string> => {
   return {
-    __outputType: "",
+    __: "",
     validate: (value: any) =>
       typeof value !== "string" ? { isValid: false } : { value, isValid: true },
   };
 };
 
+/**
+ * Creates a validator that validates values that match the expected value
+ * exactly.
+ * @param expected The exact value to be expected
+ * @returns A validator that will only validate values that match exactly the
+ *   expected value
+ */
 export function exact<V extends string | number | boolean | null | undefined>(
   expected: V
 ): Validator<V> {
   return {
-    __outputType: {} as any,
+    __: {} as any,
     validate: (value: any) =>
       value !== expected ? { isValid: false } : { value, isValid: true },
   };
 }
 
+/**
+ * Creates a validator that determines if the supplied value is a number.
+ * @returns A validator to check if the value is of type number
+ */
 export const number = (): Validator<number> => ({
-  __outputType: 0,
+  __: 0,
   validate: (value: any) =>
     typeof value !== "number" ? { isValid: false } : { value, isValid: true },
 });
 
+/**
+ * Creates a validator that determines if the supplied value is a boolean.
+ * @returns A validator to check if the value is of type boolean
+ */
 export const boolean = (): Validator<boolean> => ({
-  __outputType: false,
+  __: false,
   validate: (value: any) =>
     typeof value !== "boolean" ? { isValid: false } : { value, isValid: true },
 });
 
+/**
+ * Creates a validator that determines if the supplied value is an array of the
+ * specified validator.
+ * @param validator The validator to validate the individual array values
+ *   against
+ * @returns A validator to check if the value is an array of the specified
+ *   validator
+ */
 export function arrayOf<V>(validator: Validator<V>): Validator<V[]> {
   return {
-    __outputType: [],
+    __: [],
     validate: (value: any) =>
       Array.isArray(value) &&
       value.every((value, i) => validator.validate(value).isValid)
@@ -1792,11 +1838,21 @@ export function arrayOf<V>(validator: Validator<V>): Validator<V[]> {
   };
 }
 
+/**
+ * Creates a validator that determines if the supplied value is an object, whose
+ * fields contains are of nothing but types as defined by the specified
+ * validator.
+ * @param validator The validator to validate the individual fields in the
+ *   object
+ * @returns A validator that determines if the supplied value is an object,
+ *   whose fields contains are of nothing but types as defined by the specified
+ *   validator.
+ */
 export function objectOf<V>(
   validator: Validator<V>
 ): Validator<{ [keys: string]: V }> {
   return {
-    __outputType: {},
+    __: {},
     validate: (value: any) =>
       !!value &&
       typeof value === "object" &&
@@ -1814,11 +1870,20 @@ function validValidator<V>(
     : { valid: false };
 }
 
+/**
+ * Creates a validator for an object, specified by the "schema".
+ *
+ * Each field in the "schema" is a validator, and each of them will validate
+ * values against objects in concern.
+ * @param schema An object containing fields of nothing but validators, each of
+ *   which will be used to validate the value's respective fields
+ * @returns A validator that will validate an object against the `schema`
+ */
 export function object<V extends object>(schema: {
   [key in keyof V]: Validator<V[key]>;
 }): Validator<V> {
   return {
-    __outputType: {} as V,
+    __: {} as V,
     validate: (value: any) =>
       !!value &&
       typeof value === "object" &&
@@ -1830,23 +1895,36 @@ export function object<V extends object>(schema: {
           throw new Error("Something went wrong");
         }
       })
-        ? { value, isValid: true, __outputType: value }
-        : { isValid: false, __outputType: value },
+        ? { value, isValid: true, __: value }
+        : { isValid: false, __: value },
   };
 }
 
+/**
+ * Creates a validator that where the validation function will never determine
+ * that a value is invalid
+ * @returns A validator that will validate *all* objects
+ */
 export function any(): Validator<any> {
   return {
-    __outputType: "",
+    __: "",
     validate: (value: any) => ({ isValid: true, value }),
   };
 }
 
+/**
+ * Creates a validator that lazily evaluates the callback, at every validation.
+ *
+ * Useful for recursive types, such as a node for a tree.
+ * @param schemaFn A function that returns a validator
+ * @returns A validator, effectively just a "forwarding" of the validator
+ *   returned by the `schemaFn`
+ */
 export function lazy<V extends any>(
   schemaFn: () => Validator<V>
 ): Validator<V> {
   return {
-    __outputType: {} as V,
+    __: {} as V,
     validate: (value: any) => schemaFn().validate(value),
   };
 }
