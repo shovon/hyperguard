@@ -6,7 +6,7 @@ _Valentina_ is a tiny library for validating JavaScript values. Whether they be 
 
 **Killer Features:**
 
-- no library lock-ins; hate this library? As long as the next library defines their own [`Validator`](https://github.com/shovon/valentina/blob/c56c15a5ddededc5ea69c6b7f96108a1b83ac8b1/lib.ts#L30-L36) type, you should be able to migrate to that other library very easily. Or, you can quickly write your own
+- no library lock-ins. Used this library for a day, and hate it? As long as the next library defines their own [`Validator`](https://github.com/shovon/valentina/blob/c56c15a5ddededc5ea69c6b7f96108a1b83ac8b1/lib.ts#L30-L36) type, you should be able to migrate to that other library very easily. Or, you can quickly write your own
 - minimal and intuitive API, allowing for expressive JavaScript object schema and type definitions
 - Powerful TypeScript support to infer static types from schema
 - Composable validators, empowering you to define your own rules, your way
@@ -58,7 +58,7 @@ type User = {
 */
 ```
 
-A valdiator has a `validate` method, which you can invoke for the purposes of validating data.
+A validator has a `validate` method, which you can invoke for the purposes of validating data.
 
 ```typescript
 const data: any = {
@@ -82,7 +82,9 @@ if (result.isValid) {
 // error; type guards are used for casting purposes
 ```
 
-These are the very basics that you can go off of, and start validating projects, without reading further.
+These are the very basics that you can go off of, and start validating your data.
+
+## Table of Contents
 
 ## Usage Guide
 
@@ -145,6 +147,10 @@ const optionalNullable = <T>(validator: Validator<T>) =>
 ```
 
 #### Custom validators and parsing values
+
+A validator doesn't need to exclusively be for validation, but it can also be used for transforming incoming data.
+
+For instance, the JSON standard does not have
 
 ## Design Philosophy
 

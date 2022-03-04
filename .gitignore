@@ -1,2 +1,2 @@
 node_modules
-dist
+dist/lib.d.ts
