@@ -86,6 +86,35 @@ These are the very basics that you can go off of, and start validating your data
 
 ## Table of Contents
 
+- [Usage Guide](#usage-guide)
+  - [Example application](#example-application)
+  - [Installing](#installing)
+  - [Tips and tricks](#tips-and-tricks)
+    - [Recursive types (for TypeScript)](#recursive-types-for-typescript)
+    - [Create custom validators by composing other validators](#create-custom-validators-by-composing-other-validators)
+    - [Custom validators and parsing values](#custom-validators-and-parsing-values)
+- [Design Philosophy](#design-philosophy)
+  - [Atomic Validators](#atomic-validators) \* [Atomic](#atomic)
+  - [Composition](#composition)
+  - [Embrace JavaScript itself, and use idioms](#embrace-javascript-itself-and-use-idioms)
+- [API](#api)
+  - [string(): Validator&lt;string&gt;](#string-validatorstring)
+  - [number(): Validator&lt;number&gt;](#number-validatornumber)
+  - [boolean(): Validator&lt;boolean&gt;](#boolean-validatorboolean)
+  - [exact&lt;V extends string | number | boolean | null | undefined&gt;(expected: V): Validator&lt;V&gt;](#exactv-extends-string--number--boolean--null--undefinedexpected-v-validatorv)
+  - [either(...alts: Validator&lt;any&gt;[]): Validator&lt;any&gt;](#eitheralts-validatorany-validatorany)
+  - [arrayOf&lt;T&gt;(validator: Validator&lt;T&gt;): Validator&lt;T[]&gt;](#arrayoftvalidator-validatort-validatort)
+  - [any(): Validator&lt;any&gt;](#any-validatorany)
+    - [Usage](#usage)
+  - [objectOf&lt;T&gt;(validator: Validator&lt;T&gt;): Validator&lt;{ [key: string]: V }&gt;](#objectoftvalidator-validatort-validator-key-string-v-)
+  - [tuple&lt;T&gt;(validator: Validator&lt;T&gt;): Validator&lt;{ [key: string]: V }&gt;](#tupletvalidator-validatort-validator-key-string-v-)
+  - [except&lt;T, I&gt;(validator: Validator&lt;T&gt;, invalidator: Validator&lt;I&gt;): Exclude&lt;T, I&gt;](#exceptt-ivalidator-validatort-invalidator-validatori-excludet-i)
+    - [Usage](#usage-1)
+  - [object&lt;V extends object&gt;(schema: { [key in keyof V]: Validator&lt;V[key]&gt; }): Validator&lt;V&gt;](#objectv-extends-objectschema--key-in-keyof-v-validatorvkey--validatorv)
+  - [lazy&lt;V&gt;(schemaFn: () =&gt; Validator&lt;V&gt;): Validator&lt;V&gt;](#lazyvschemafn---validatorv-validatorv)
+    - [Motivation and usage](#motivation-and-usage)
+- [Similar libraries](#similar-libraries)
+
 ## Usage Guide
 
 The Valentina library was designed to be used for the purposes of validating incoming JSON data, whether they be from an HTTP request, an AJAX response, a WebSocket payload, etc.
