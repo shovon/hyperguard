@@ -1,6 +1,27 @@
 {
   "name": "valentina",
-  "version": "0.0.1",
+  "version": "0.0.2",
+  "description": "Dead simple JavaScript object validation",
+  "keywords": [
+    "javascript",
+    "typescript",
+    "validation"
+  ],
+  "homepage": "https://github.com/shovon/valentina#readme",
+  "bugs": {
+    "url": "https://github.com/shovon/valentina/issues",
+    "email": "hey.to.sal@gmail.com"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Sal Rahman",
+    "email": "hey.to.sal@gmail.com",
+    "url": "https://salrahman.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shovon/valentina.git"
+  },
   "main": "dist/lib.js",
   "types": "dist/lib.d.ts",
   "scripts": {

@@ -11,7 +11,7 @@ _Valentina_ is a tiny library for validating JavaScript values. Whether they be 
 - Powerful TypeScript support to infer static types from schema
 - Composable validators, empowering you to define your own rules, your way
 - zero dependencies
-- install either via npm, or copy and paste the [`lib.ts`](https://raw.githubusercontent.com/shovon/valentina/main/lib.ts) (or [`lib.ts`](https://github.com/shovon/valentina/blob/main/dist/lib.js) for JavaScript) file into your project
+- install either via npm, or copy and paste the [`lib.ts`](https://raw.githubusercontent.com/shovon/valentina/main/lib.ts) (or [`lib.js`](https://github.com/shovon/valentina/blob/main/dist/lib.js) for JavaScript) file into your project
 
 ## Getting Started
 
