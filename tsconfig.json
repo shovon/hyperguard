@@ -1,6 +1,6 @@
 {
   "declaration": true,
-  "files": ["lib.ts"],
+  "files": ["lib.ts", "test.ts"],
   "compilerOptions": {
     "declaration": true,
     "module": "CommonJS",

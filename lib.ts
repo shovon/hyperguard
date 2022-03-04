@@ -21,19 +21,97 @@ SOFTWARE.
 */
 
 /**
- * An object that represents the result of a validation check.
- */
-export type ValidationResult<T> =
-  | { isValid: false }
-  | { value: T; isValid: true };
-
-/**
  * An object that serves as a validator.
  */
 export type Validator<T> = {
   __: T;
   validate: (value: any) => ValidationResult<T>;
 };
+
+/**
+ * An object that represents the result of a validation check.
+ */
+export type ValidationResult<T> =
+  | { isValid: false; error: IValidationError }
+  | { value: T; isValid: true };
+
+/**
+ * An object that represents a validation error.
+ */
+export type IValidationError = {
+  readonly type: string;
+  readonly errorMessage: string;
+  readonly value: any;
+} & { [key: string]: any };
+
+/**
+ * A base abstract class that represents a generic validation error.
+ */
+export abstract class ValidationError
+  extends Error
+  implements IValidationError
+{
+  /**
+   * Represents the call stack of the validation.
+   */
+  public fullStack?: string;
+
+  /**
+   *
+   * @param type A string representing what type of validation error that the
+   *   error represents
+   * @param errorMessage Some detail regarding the nature of the error
+   * @param value The original value that triggered the validation error
+   */
+  constructor(
+    public type: string,
+    public errorMessage: string,
+    public value: any
+  ) {
+    super(errorMessage);
+
+    this.fullStack = this.stack;
+  }
+}
+
+export class EitherError extends ValidationError {
+  constructor(value: any, public validationResults: ValidationResult<any>[]) {
+    super(
+      "Either error",
+      "The provided value does not match any of the possible validators",
+      value
+    );
+  }
+}
+
+export class TupleError<T> extends ValidationError {
+  constructor(value: any[], public validationResults: ValidationResult<T>[]) {
+    const errorCount = validationResults.filter(
+      (validation) => !validation.isValid
+    );
+    super("Tuple error", `The supplied tuple had ${errorCount} issues`, value);
+  }
+}
+
+export class NotAnArrayError extends ValidationError {
+  constructor(value: any) {
+    super(
+      "Not an array error",
+      "Expected an array, but instead got something else",
+      value
+    );
+  }
+}
+
+export class UnexpectedArrayLengthError extends ValidationError {
+  constructor(value: any[], public expectedLength: number) {
+    super(
+      "Unexpected array length error",
+      `Expected an array of length ${expectedLength} but instead got ${value.length}`,
+      value
+    );
+  }
+}
 
 /**
  * A helper type for converting a Validator<T> type to a T
@@ -929,13 +1007,19 @@ export function either<
  * @param alts A list of validators that are to be run
  * @returns A validator to validate an object against a set of validators
  */
-export function either(...alts: Validator<any>[]): Validator<any> {
+export function either<T>(...alts: Validator<T>[]): Validator<T> {
   return {
     __: {} as any,
-    validate: (value: any) =>
-      alts.some((validator) => validator.validate(value).isValid)
+    validate: (value: any) => {
+      const validations = alts.map((validator) => validator.validate(value));
+      return validations.some((validation) => validation.isValid)
         ? { isValid: true, value, __: value }
-        : { isValid: false, __: value },
+        : {
+            isValid: false,
+            __: value,
+            error: new EitherError(value, validations),
+          };
+    },
   };
 }
 export function tuple(t: []): Validator<[]>;
@@ -1725,13 +1809,33 @@ export function tuple(t: Validator<any>[]): Validator<any[]> {
   return {
     __: {} as any,
     validate: (value: any) => {
-      return Array.isArray(value) &&
-        t.length === value.length &&
-        t.every((validator, i) => validator.validate(value[i]).isValid)
+      if (!Array.isArray(value)) {
+        return {
+          isValid: false,
+          error: new NotAnArrayError(value),
+        };
+      }
+      if (t.length !== value.length) {
+        return {
+          isValid: false,
+          error: new UnexpectedArrayLengthError(value, t.length),
+        };
+      }
+      const validations = t.map((validator, i) => validator.validate(value[i]));
+      return validations.every((validation) => validation.isValid)
         ? { isValid: true, value }
-        : { isValid: false };
+        : {
+            isValid: false,
+            error: new TupleError(value, validations),
+          };
     },
   };
+}
+
+export class UnexpectedValueError extends ValidationError {
+  constructor(value: any) {
+    super("Unexpected value error", "The supplied value is not allowed", value);
+  }
 }
 
 /**
@@ -1763,11 +1867,33 @@ export function except<T, I>(
 ): Validator<Exclude<T, I>> {
   return {
     __: {} as Exclude<T, I>,
-    validate: (value: any) =>
-      validator.validate(value).isValid && !invalidator.validate(value).isValid
+    validate: (value: any) => {
+      const validation = validator.validate(value);
+      if (validation.isValid === false) {
+        return { isValid: false, error: validation.error };
+      }
+      return validator.validate(value).isValid &&
+        !invalidator.validate(value).isValid
         ? { isValid: true, value }
-        : { isValid: false },
+        : { isValid: false, error: new UnexpectedValueError(value) };
+    },
   };
+}
+
+function _v(v: any) {
+  return typeof v;
+}
+
+const _s = _v({} as any);
+
+export class UnexpectedTypeofValue extends ValidationError {
+  constructor(value: any, public expectedType: typeof _s) {
+    super(
+      "Unexpected typeof",
+      `Expected a value of type ${expectedType}, but got something else`,
+      value
+    );
+  }
 }
 
 /**
@@ -1778,9 +1904,23 @@ export const string = (): Validator<string> => {
   return {
     __: "",
     validate: (value: any) =>
-      typeof value !== "string" ? { isValid: false } : { value, isValid: true },
+      typeof value !== "string"
+        ? { isValid: false, error: new UnexpectedTypeofValue(value, "string") }
+        : { value, isValid: true },
   };
 };
+
+type ExactTypes = string | number | boolean | null | undefined;
+
+class NotExactValueError extends ValidationError {
+  constructor(value: any, public expectedValue: ExactTypes) {
+    super(
+      "Incorrect value",
+      `Expected the value to equal exactly ${expectedValue} but instead got something else`,
+      value
+    );
+  }
+}
 
 /**
  * Creates a validator that validates values that match the expected value
@@ -1789,13 +1929,13 @@ export const string = (): Validator<string> => {
  * @returns A validator that will only validate values that match exactly the
  *   expected value
  */
-export function exact<V extends string | number | boolean | null | undefined>(
-  expected: V
-): Validator<V> {
+export function exact<V extends ExactTypes>(expected: V): Validator<V> {
   return {
     __: {} as any,
     validate: (value: any) =>
-      value !== expected ? { isValid: false } : { value, isValid: true },
+      value !== expected
+        ? { isValid: false, error: new NotExactValueError(value, expected) }
+        : { value, isValid: true },
   };
 }
 
@@ -1806,7 +1946,9 @@ export function exact<V extends string | number | boolean | null | undefined>(
 export const number = (): Validator<number> => ({
   __: 0,
   validate: (value: any) =>
-    typeof value !== "number" ? { isValid: false } : { value, isValid: true },
+    typeof value !== "number"
+      ? { isValid: false, error: new UnexpectedTypeofValue(value, "number") }
+      : { value, isValid: true },
 });
 
 /**
@@ -1816,8 +1958,25 @@ export const number = (): Validator<number> => ({
 export const boolean = (): Validator<boolean> => ({
   __: false,
   validate: (value: any) =>
-    typeof value !== "boolean" ? { isValid: false } : { value, isValid: true },
+    typeof value !== "boolean"
+      ? { isValid: false, error: new UnexpectedTypeofValue(value, "boolean") }
+      : { value, isValid: true },
 });
+
+type BadValue<T> = { index: number; validation: ValidationResult<T> };
+
+export class ArrayOfInvalidValuesError<T> extends ValidationError {
+  public badValues: BadValue<T>[];
+
+  constructor(value: T[], errors: BadValue<T>[]) {
+    super(
+      "Array of invalid values",
+      `${errors.length} of the ${value.length} are invalid`,
+      value
+    );
+    this.badValues = errors;
+  }
+}
 
 /**
  * Creates a validator that determines if the supplied value is an array of the
@@ -1830,12 +1989,47 @@ export const boolean = (): Validator<boolean> => ({
 export function arrayOf<V>(validator: Validator<V>): Validator<V[]> {
   return {
     __: [],
-    validate: (value: any) =>
-      Array.isArray(value) &&
-      value.every((value, i) => validator.validate(value).isValid)
+    validate: (value: any) => {
+      if (!Array.isArray(value)) {
+        return { isValid: false, error: new NotAnArrayError(value) };
+      }
+      const validations = value.map((v) => validator.validate(v));
+      return validations.every(({ isValid }) => isValid)
         ? { value, isValid: true }
-        : { isValid: false },
+        : {
+            isValid: false,
+            error: new ArrayOfInvalidValuesError(
+              value,
+              validations
+                .map((v, i) => ({ index: i, validation: v }))
+                .filter(({ validation }) => !validation.isValid)
+            ),
+          };
+    },
   };
+}
+
+export class BadObjectError extends ValidationError {
+  constructor(
+    value: any,
+    public objectSchema: { [key: string]: ValidationError }
+  ) {
+    super(
+      "Bad object",
+      "The supplied object had fields that failed to validate",
+      value
+    );
+  }
+}
+
+function mergeObjects(objects: { [key: string]: any }[]) {
+  const result: { [key: string]: any } = {};
+  for (const object of objects) {
+    for (const [key, value] of Object.entries(object)) {
+      result[key] = value;
+    }
+  }
+  return result;
 }
 
 /**
@@ -1853,12 +2047,39 @@ export function objectOf<V>(
 ): Validator<{ [keys: string]: V }> {
   return {
     __: {},
-    validate: (value: any) =>
-      !!value &&
-      typeof value === "object" &&
-      Object.keys(value).every((key) => validator.validate(value[key]).isValid)
+    validate: (value: any) => {
+      if (value === undefined) {
+        return { isValid: false, error: new ValueIsUndefinedError() };
+      }
+      if (value === null) {
+        return { isValid: false, error: new ValueIsNullError() };
+      }
+      if (typeof value !== "object") {
+        return {
+          isValid: false,
+          error: new UnexpectedTypeofValue(value, "object"),
+        };
+      }
+
+      const fields = Object.keys(value).map((key) => ({
+        key,
+        validation: validator.validate(value[key]),
+      }));
+
+      return fields.every(({ validation }) => validation.isValid)
         ? { value, isValid: true }
-        : { isValid: false },
+        : {
+            isValid: false,
+            error: new BadObjectError(
+              value,
+              mergeObjects(
+                fields
+                  .filter(({ validation }) => !validation.isValid)
+                  .map(({ key, validation }) => ({ [key]: validation }))
+              )
+            ),
+          };
+    },
   };
 }
 
@@ -1868,6 +2089,26 @@ function validValidator<V>(
   return value && typeof value.validate === "function"
     ? { valid: true, validator: value }
     : { valid: false };
+}
+
+export class ValueIsUndefinedError extends ValidationError {
+  constructor() {
+    super(
+      "Value is undefined",
+      "The supplied value is undefined, when it should have been something else",
+      undefined
+    );
+  }
+}
+
+export class ValueIsNullError extends ValidationError {
+  constructor() {
+    super(
+      "Value is null",
+      "The supplied value is null, when it should have been something else",
+      null
+    );
+  }
 }
 
 /**
@@ -1884,19 +2125,41 @@ export function object<V extends object>(schema: {
 }): Validator<V> {
   return {
     __: {} as V,
-    validate: (value: any) =>
-      !!value &&
-      typeof value === "object" &&
-      Object.keys(schema).every((key) => {
-        const validation = validValidator((schema as any)[key]);
-        if (validation.valid) {
-          return validation.validator.validate(value[key]).isValid;
-        } else {
-          throw new Error("Something went wrong");
-        }
-      })
-        ? { value, isValid: true, __: value }
-        : { isValid: false, __: value },
+    validate: (value: any) => {
+      if (value === undefined) {
+        return { isValid: false, error: new ValueIsUndefinedError() };
+      }
+      if (value === null) {
+        return { isValid: false, error: new ValueIsNullError() };
+      }
+      if (typeof value !== "object") {
+        return {
+          isValid: false,
+          error: new UnexpectedTypeofValue(value, "object"),
+        };
+      }
+
+      const fields = Object.keys(value).map((key) => ({
+        key,
+        validation: ((schema as any)[key] as Validator<any>).validate(
+          value[key]
+        ),
+      }));
+
+      return fields.every(({ validation }) => validation.isValid)
+        ? { value, isValid: true }
+        : {
+            isValid: false,
+            error: new BadObjectError(
+              value,
+              mergeObjects(
+                fields
+                  .filter(({ validation }) => !validation.isValid)
+                  .map(({ key, validation }) => ({ [key]: validation }))
+              )
+            ),
+          };
+    },
   };
 }
 

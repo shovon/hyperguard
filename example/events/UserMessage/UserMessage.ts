@@ -10,4 +10,4 @@ export const userMessageSchema = object({
   }),
 });
 
-export type Message = InferType<typeof userMessageSchema>;
+export type UserMessage = InferType<typeof userMessageSchema>;
