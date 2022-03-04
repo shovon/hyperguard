@@ -245,7 +245,7 @@ function handleMessage(value: Event) {
 }
 ```
 
-For a full example, take a look at the [example project](https://github.com/shovon/valentina/tree/main/example);
+For a full example, take a look at the [example project](https://github.com/shovon/valentina/tree/main/example).
 
 ### Installing
 
