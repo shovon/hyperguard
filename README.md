@@ -1,6 +1,6 @@
 # Valentina: JavaScript object validation
 
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/shovon/valentina/blob/main/LICENSE) [![npm version](https://img.shields.io/npm/v/valentina.svg?style=flat)](https://www.npmjs.com/package/valentina) [![CircleCI](https://circleci.com/gh/shovon/valentina/tree/main.svg?style=svg)](https://circleci.com/gh/shovon/valentina/tree/main)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/shovon/valentina/blob/main/LICENSE) [![npm version](https://badge.fury.io/js/valentina.svg)](https://badge.fury.io/js/valentina) [![CircleCI](https://circleci.com/gh/shovon/valentina/tree/main.svg?style=svg)](https://circleci.com/gh/shovon/valentina/tree/main)
 
 _Valentina_ is a tiny library for validating JavaScript values. Whether they be primitives, such as strings and numbers, or modelling more complex objects, Valentina will empower you to express your data validation rules, your way.
 
