@@ -102,6 +102,63 @@ if (validation.isValid) {
 
 Valentina becomes especially powerful when larger `Validator`s are comprised from smaller reusable validators, that serve their own purpose. These validators can then be used across multiple larger validators.
 
+### Example application
+
+Our chat application will have four events:
+
+- user joined
+- user left
+- application state
+- message sent
+
+The user object will have two fields: `id` and a `name`.
+
+```typescript
+export const userSchema = object({
+  id: string(),
+  name: string(),
+});
+
+export type User = InferType<typeof userSchema>;
+/**
+// Will be defined as
+type User = {
+  id: string
+  name: string
+}
+*/
+```
+
+Both the "user joined" event and the "application state" event will have a `User` type somewhere in their definition
+
+Let's define the "user joined" event.
+
+```typescript
+import { userSchema } from "./User";
+
+// USER_JOINED
+
+export const userJoinedSchema = object({
+  type: exact("USER_JOINED"),
+
+  // Composing a smaller `userSchema`
+  data: userSchema,
+});
+
+export type UserJoined = InferType<typeof userJoinedSchema>;
+
+// APPLICATION_STATE
+
+export const applicationStateSchema = object({
+  type: exact("APPLICATION_STATE"),
+
+  // Composing a smaller `userSchema`
+  data: arrayOf(userSchema),
+});
+
+export type ApplicationState = InferType<typeof applicationStateSchema>;
+```
+
 ### Installing
 
 With Node.js, if you want to use a package manager with npm, then this library will work all of the following package managers:
@@ -112,11 +169,31 @@ With Node.js, if you want to use a package manager with npm, then this library w
 
 ### Tips and tricks
 
-Below are some tricks you can use to make Valentina an even more powerful validation tool
+Below are some tricks you can use to make Valentina an even more powerful validation tool.
+
+#### Recursive types (for TypeScript)
+
+If your application has data, whose schema comes in a tree-like structure (recursive type), then you can use the `lazy` validator.
+
+```typescript
+type Node = {
+  value: any;
+  left: Node | null;
+  right: Node | null;
+};
+
+const nodeSchema: Validator<Node> = lazy<Node>(() => {
+  object({
+    value: any(),
+    left: either(node, exact(null)),
+    right: either(node, exact(null)),
+  });
+});
+```
 
 #### Create custom validators by composing other validators
 
-Valentina offers some basic validator creators, such as for strings, numbers, and booleans. However, it does not provide validators that can be creatd by composing the above validators. Here's an example: optional values. Valentina does not have a validator for that.
+Valentina offers some basic validator creators, such as for strings, numbers, and booleans. But, if you wanted to create your own validator creator for other purposes, you certainly can. Here's an example: optional values.
 
 So let's say you wanted validation for an object with string fields that can be set to `undefined`, then a validator for that would look like so:
 
@@ -150,7 +227,52 @@ const optionalNullable = <T>(validator: Validator<T>) =>
 
 A validator doesn't need to exclusively be for validation, but it can also be used for transforming incoming data.
 
-For instance, the JSON standard does not have
+For instance, the JSON standard does not have a data type for `Date`s. You can create a validator that will parse a string, and convert it to a JavaScript date
+
+```typescript
+export const date = (): Validator<Date> => ({
+  __outputType: new Date(),
+  validate: (value: any) => {
+    const validation = string().validate(value);
+    if (!validation.isValid) {
+      return { isValid: false };
+    }
+    const d = new Date();
+    return isNaN(d.getTime())
+      ? { isValid: false }
+      : { isValid: true, value: d };
+  },
+});
+```
+
+From which you can try to derive a date from a string.
+
+Example:
+
+```typescript
+const valid = new Date(new Date().toISOString());
+
+const shouldBeValid = date().validate(validDate);
+
+if (valid.isValid) {
+  // Given the above `valid
+}
+
+const invalid = new Date("invalid");
+
+const shouldBeInvalid;
+```
+
+It gets even better. The above validator will have its type inferred as a `Date`.
+
+```typescript
+const dateSchema = date();
+
+type CustomDate = InferType<typeof dateSchema>;
+// type CustomDate = Date;
+```
+
+And, when used in a larger schema, it can be defined as something
 
 ## Design Philosophy
 
@@ -505,7 +627,7 @@ everythingButValidator.validate("but").isValid;
 
 > **Note**
 >
-> Due to a limitation in TypeScript, we are unable derive a subset of an "infinite" type. For example, `Exclude<string, "but">` (set of all strings except for the string `"but"`) will merely evaluate to `string`. Likewise, `Exclude<any, undefined>` will simply evaluate to `any`.
+> Due to a limitation in TypeScript, we are unable derive a subset of an "unbounded" type. For example, `Exclude<string, "but">` (set of all strings except for the string `"but"`) will merely evaluate to `string`. Likewise, `Exclude<any, undefined>` will simply evaluate to `any`.
 
 #### Usage
 
@@ -534,7 +656,33 @@ Given an object of Validators, creates a validator for an object, with validatio
 Example:
 
 ```typescript
+const objValidator = object({
+  type: exact("SOME_OBJ"),
+  value: string(),
+  someNumber: number(),
+  somethingOptional: either(string(), exact(undefined)),
+});
 
+// ✅ Evaluates to true
+objValidator.validate({ type: "SOME_OBJ", value: "something", someNumber: 10 })
+  .isValid;
+
+// ✅ Evaluates to true
+objValidator.validate({
+  type: "SOME_OBJ",
+  value: "something",
+  someNumber: 10,
+  sometihingOptional: "sweet",
+}).isValid;
+
+// ✅ Evaluates to true
+objValidator.validate({ type: "SOME_OBJ", value: "something", someNumber: 10 })
+  .isValid;
+
+// ❌ Evaluates to false (the field `type` is set to something other than
+// `SOME_OBJ`)
+objValidator.validate({ type: "something", value: "something", someNumber: 10 })
+  .isValid;
 ```
 
 ## Similar libraries

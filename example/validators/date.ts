@@ -7,7 +7,7 @@ export const date = (): Validator<Date> => ({
     if (!validation.isValid) {
       return { isValid: false };
     }
-    const d = new Date();
+    const d = new Date(validation.value);
     return isNaN(d.getTime())
       ? { isValid: false }
       : { isValid: true, value: d };

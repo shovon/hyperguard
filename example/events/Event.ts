@@ -1,6 +1,6 @@
 import { either, InferType } from "../../lib";
 import { applicationStateSchema } from "./ApplicationState";
-import { userMessageSchema } from "./UserMessage";
+import { userMessageSchema } from "./UserMessage/UserMessage";
 import { userJoinedSchema } from "./UserJoined";
 import { userLeftMessageSchema } from "./UserLeft";
 

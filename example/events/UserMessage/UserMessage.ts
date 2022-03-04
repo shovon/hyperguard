@@ -1,11 +1,12 @@
-import { exact, InferType, object, string } from "../../lib";
+import { either, exact, InferType, object, string } from "../../../lib";
 import { broadcastMessageSchema } from "./BroadcastMessage";
+import { directMessageSchema } from "./DirectMessage";
 
 export const userMessageSchema = object({
   type: exact("USER_MESSAGE"),
   data: object({
     from: string(),
-    data: broadcastMessageSchema,
+    data: either(broadcastMessageSchema, directMessageSchema),
   }),
 });
 
