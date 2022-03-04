@@ -6,7 +6,7 @@ _Valentina_ is a tiny library for validating JavaScript values. Whether they be 
 
 **Killer Features:**
 
-- no library lock-ins. Used this library for a day, and hate it? As long as the next library defines their own [`Validator`](https://github.com/shovon/valentina/blob/c56c15a5ddededc5ea69c6b7f96108a1b83ac8b1/lib.ts#L30-L36) type, you should be able to migrate to that other library very easily. Or, you can quickly write your own
+- no library lock-ins. So you used this library for a day, and hate it? As long as the next library defines their own [`Validator`](https://github.com/shovon/valentina/blob/c56c15a5ddededc5ea69c6b7f96108a1b83ac8b1/lib.ts#L30-L36) type, you should be able to migrate to that other library very easily. Or, you can quickly write your own
 - minimal and intuitive API, allowing for expressive JavaScript object schema and type definitions
 - Powerful TypeScript support to infer static types from schema
 - Composable validators, empowering you to define your own rules, your way
@@ -157,7 +157,66 @@ export const applicationStateSchema = object({
 });
 
 export type ApplicationState = InferType<typeof applicationStateSchema>;
+
+export const userLeftSchema = object({
+  type: exact("USER_LEFT"),
+  data: object({
+    id: string(),
+  }),
+});
+
+export type UserLeft = InferType<typeof userLeftSchema>;
 ```
+
+And then, when a message was broadcast, the sent message from the server could have the following schema:
+
+```typescript
+export const messageReceivedSchema = object({
+  type: exact("MESSAGE_RECEIVED"),
+  data: object({
+    from: string(),
+    whenSent: string(),
+    messageBody: string(),
+  }),
+});
+
+export type MessageReceived = InferType<typeof messageReceivedSchema>;
+```
+
+And finally, you can consolidate all events into a single schema, by using the `either` validator.
+
+```typescript
+export const eventSchema = either(
+  applicationStateSchema,
+  userJoinedSchema,
+  userLeftSchema,
+  messageReceivedSchema
+);
+
+export type Event = InferType<typeof eventSchema>;
+```
+
+Then, the application can handle events like so:
+
+```typescript
+function handleMessage(value: Event) {
+  switch (value.type) {
+    case "USER_JOINED":
+      break;
+    case "APPLICATION_STATE":
+      break;
+    case "USER_LEFT":
+      break;
+    case "MESSAGE_RECEIVED":
+      break;
+    default:
+      console.error("Unknown type");
+      break;
+  }
+}
+```
+
+For a full example, take a look at the [example project](https://github.com/shovon/valentina/tree/main/example);
 
 ### Installing
 
@@ -280,7 +339,7 @@ Valentina is written with three principles in mind:
 
 - Atomic validators
 - Validator composition
-- Embrace language idioms
+- Embrace the language, and use idioms
 
 ### Atomic Validators
 
@@ -684,6 +743,8 @@ objValidator.validate({ type: "SOME_OBJ", value: "something", someNumber: 10 })
 objValidator.validate({ type: "something", value: "something", someNumber: 10 })
   .isValid;
 ```
+
+### `lazy<V>(schemaFn: () => Validator<V>): Validator<V>`
 
 ## Similar libraries
 
