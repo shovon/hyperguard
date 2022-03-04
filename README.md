@@ -232,7 +232,7 @@ Below are some tricks you can use to make Valentina an even more powerful valida
 
 #### Recursive types (for TypeScript)
 
-If your application has data, whose schema comes in a tree-like structure (recursive type), then you can use the `lazy` validator.
+If your application has data, whose schema comes in a tree-like structure (recursive type), then you can use the `lazy` validator, so that your schema can work with TypeScript.
 
 ```typescript
 type Node = {
@@ -745,6 +745,44 @@ objValidator.validate({ type: "something", value: "something", someNumber: 10 })
 ```
 
 ### `lazy<V>(schemaFn: () => Validator<V>): Validator<V>`
+
+The lazy validator allows you to wrap another validator in a callback.
+
+```typescript
+const everythingButValidator = lazy(() => except(string(), exact("but")));
+
+// ✅ Evaluates to true
+everythingButValidator.validate("apples").isValid;
+
+// ✅ Evaluates to true
+everythingButValidator.validate("bananas").isValid;
+
+// ✅ Evaluates to true
+everythingButValidator.validate("cherries").isValid;
+
+// ❌ Evaluates to false
+everythingButValidator.validate("but").isValid;
+```
+
+#### Motivation and usage
+
+If your application has data, whose schema comes in a tree-like structure (recursive type), then you can use the `lazy` validator, so that your schema can work with TypeScript.
+
+```typescript
+type Node = {
+  value: any;
+  left: Node | null;
+  right: Node | null;
+};
+
+const nodeSchema: Validator<Node> = lazy<Node>(() => {
+  object({
+    value: any(),
+    left: either(node, exact(null)),
+    right: either(node, exact(null)),
+  });
+});
+```
 
 ## Similar libraries
 
