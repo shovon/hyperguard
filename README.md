@@ -6,7 +6,7 @@ _Valentina_ is a tiny library for validating JavaScript values. Whether they be 
 
 **Killer Features:**
 
-- no library lock-ins; hate this library? As long as the next library defines their own the [`Validator`](https://github.com/shovon/valentina/blob/c56c15a5ddededc5ea69c6b7f96108a1b83ac8b1/lib.ts#L30-L36) type, you should be able to migrate to another library very easily. Or, you can quickly write your own
+- no library lock-ins; hate this library? As long as the next library defines their own [`Validator`](https://github.com/shovon/valentina/blob/c56c15a5ddededc5ea69c6b7f96108a1b83ac8b1/lib.ts#L30-L36) type, you should be able to migrate to that other library very easily. Or, you can quickly write your own
 - minimal and intuitive API, allowing for expressive JavaScript object schema and type definitions
 - Powerful TypeScript support to infer static types from schema
 - Composable validators, empowering you to define your own rules, your way
@@ -82,6 +82,8 @@ if (result.isValid) {
 // error; type guards are used for casting purposes
 ```
 
+These are the very basics that you can go off of, and start validating projects, without reading further.
+
 ## Usage Guide
 
 The Valentina library was designed to be used for the purposes of validating incoming JSON data, whether they be from an HTTP request, an AJAX response, a WebSocket payload, etc.
@@ -98,13 +100,61 @@ if (validation.isValid) {
 
 Valentina becomes especially powerful when larger `Validator`s are comprised from smaller reusable validators, that serve their own purpose. These validators can then be used across multiple larger validators.
 
+### Installing
+
+On Node.js `npm install valentina`. If you use Yarn, then you can use `yarn add valentina`.
+
+### Tips and tricks
+
+Below are some tricks you can use to make Valentina an even more powerful validation tool
+
+#### Create custom validators by composing other validators
+
+Valentina offers some basic validator creators, such as for strings, numbers, and booleans.
+
+However, Valentina does not provide validators that can be creatd by composing the above validators.
+
+Here's an example: optional values. Valentina does not have a validator for that.
+
+So let's say you wanted validation for an object with string fields that can be set to `undefined`.
+
+A Validator for that would look like so:
+
+```typescript
+either(string(), exact(undefined));
+```
+
+Let's generalize that validator, and have it be returned by a creator.
+
+Such a function will look like so:
+
+```typescript
+const optional = <T>(validator: Validator<T>) =>
+  either(validator, exact(undefined));
+```
+
+Same for nullable types:
+
+```typescript
+const nullable = <T>(validator: Validator<T>) => either(validator, exact(null));
+```
+
+And, if you wanted validation for fields that are both nullable and optional, then you can define something like this:
+
+```typescript
+const optionalNullable = <T>(validator: Validator<T>) =>
+  nullable(optional(validator));
+```
+
+#### Custom validators and parsing values
+
 ## Design Philosophy
 
 Valentina is written with three principles in mind:
 
 - Atomic validators
 - Validator composition
-- Embrace the language
+- Embrace language idioms
 
 ### Atomic Validators
 
@@ -174,11 +224,11 @@ export const applicationState = object({
 
 None of the schema components are represented as a small part of a larger configuration object; instead they are all self-contained `Validator`s.
 
-### Embrace JavaScript itself; No need of language abstractions
+### Embrace JavaScript itself, and use idioms
 
-Traditionally, validation libraries often resorted to abstracting away the minutiae behind JavaScript. The idea is that JavaScript as a language is flawed, and those details need to be abstracted away.
+Traditionally, validation libraries often resorted to abstracting away the minutiae behind JavaScript. According to those libraries, the idea is that JavaScript as a language is flawed, and those flaws need to be abstracted away.
 
-Valentina embraces the language.
+Valentina, on the other hand, embraces the language.
 
 At it's core, the power of Valentina is all encompassed by the following type definition:
 
