@@ -102,7 +102,11 @@ Valentina becomes especially powerful when larger `Validator`s are comprised fro
 
 ### Installing
 
-On Node.js `npm install valentina`. If you use Yarn, then you can use `yarn add valentina`.
+With Node.js, if you want to use a package manager with npm, then this library will work all of the following package managers:
+
+- npm: `npm install valentina`
+- Yarn: `yarn add valentina`
+- pnpm: `pnpm add valentina`
 
 ### Tips and tricks
 
@@ -110,15 +114,9 @@ Below are some tricks you can use to make Valentina an even more powerful valida
 
 #### Create custom validators by composing other validators
 
-Valentina offers some basic validator creators, such as for strings, numbers, and booleans.
+Valentina offers some basic validator creators, such as for strings, numbers, and booleans. However, it does not provide validators that can be creatd by composing the above validators. Here's an example: optional values. Valentina does not have a validator for that.
 
-However, Valentina does not provide validators that can be creatd by composing the above validators.
-
-Here's an example: optional values. Valentina does not have a validator for that.
-
-So let's say you wanted validation for an object with string fields that can be set to `undefined`.
-
-A Validator for that would look like so:
+So let's say you wanted validation for an object with string fields that can be set to `undefined`, then a validator for that would look like so:
 
 ```typescript
 either(string(), exact(undefined));
