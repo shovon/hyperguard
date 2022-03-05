@@ -2139,7 +2139,7 @@ export function object<V extends object>(schema: {
         };
       }
 
-      const fields = Object.keys(value).map((key) => ({
+      const fields = Object.keys(schema).map((key) => ({
         key,
         validation: ((schema as any)[key] as Validator<any>).validate(
           value[key]
