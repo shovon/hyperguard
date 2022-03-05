@@ -1853,7 +1853,7 @@ export class UnexpectedValueError extends ValidationError {
  * everythingButValidator.validate("apples").isValid; // ✅
  * everythingButValidator.validate("bananas").isValid; // ✅
  * everythingButValidator.validate("cherries").isValid; // ✅
- * everythingButValidator.validate("but").isValid; // ✅
+ * everythingButValidator.validate("but").isValid; // ❌
  * ```
  * @param validator The validator for which to validate the value against
  * @param invalidator The validator for which if is valid, the value will be
