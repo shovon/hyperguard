@@ -52,9 +52,24 @@ function either() {
     return {
         __: {},
         validate: function (value) {
-            return alts.some(function (validator) { return validator.validate(value).isValid; })
+            var validations = alts.map(function (validator) { return validator.validate(value); });
+            return validations.some(function (validation) { return validation.isValid; })
                 ? { isValid: true, value: value, __: value }
-                : { isValid: false, __: value };
+                : {
+                    isValid: false,
+                    __: value,
+                    error: {
+                        message: "The value ".concat(value !== undefined || value !== null
+                            ? value.toString() + " "
+                            : "", "is not valid according to any of the validators"),
+                        value: value,
+                        details: validations
+                            .map(function (validation) {
+                            return !validation.isValid ? validation.error : null;
+                        })
+                            .filter(function (validation) { return !!validation; })
+                    }
+                };
         }
     };
 }
@@ -78,11 +93,43 @@ function tuple(t) {
     return {
         __: {},
         validate: function (value) {
-            return Array.isArray(value) &&
-                t.length === value.length &&
-                t.every(function (validator, i) { return validator.validate(value[i]).isValid; })
+            if (!Array.isArray(value)) {
+                return {
+                    isValid: false,
+                    error: {
+                        message: "The provided value is not an array",
+                        value: value,
+                        details: {
+                            tupleValidators: t
+                        }
+                    }
+                };
+            }
+            if (t.length !== value.length) {
+                return {
+                    isValid: false,
+                    error: {
+                        message: "Expected an array of length ".concat(t.length, ", but got ").concat(value.length),
+                        value: value,
+                        details: {
+                            tupleValidators: t,
+                            expectedLength: t.length,
+                            actualLength: value.length
+                        }
+                    }
+                };
+            }
+            var validations = t.map(function (validator, i) { return validator.validate(value[i]); });
+            return validations.every(function (validation, i) { return validation.isValid; })
                 ? { isValid: true, value: value }
-                : { isValid: false };
+                : {
+                    isValid: false,
+                    error: {
+                        message: "".concat(validations.filter(function (validation) { return !validation.isValid; }).length, " of the ").concat(validations.length, " tuple items are invalid"),
+                        value: value,
+                        details: {}
+                    }
+                };
         }
     };
 }

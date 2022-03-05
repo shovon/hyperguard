@@ -6,12 +6,13 @@ _Valentina_ is a tiny library for validating JavaScript values. Whether they be 
 
 **Killer Features:**
 
-- no library lock-ins. So you used this library for a day, and hate it? As long as the next library defines their own [`Validator`](https://github.com/shovon/valentina/blob/c56c15a5ddededc5ea69c6b7f96108a1b83ac8b1/lib.ts#L30-L36) type, you should be able to migrate to that other library very easily. Or, you can quickly write your own
+- clear and transparent API, with no hidden surprises
 - minimal and intuitive API, allowing for expressive JavaScript object schema and type definitions
 - Powerful TypeScript support to infer static types from schema
 - Composable validators, empowering you to define your own rules, your way
 - zero dependencies
 - install either via npm, or copy and paste the [`lib.ts`](https://raw.githubusercontent.com/shovon/valentina/main/lib.ts) (or [`lib.js`](https://raw.githubusercontent.com/shovon/valentina/main/dist/lib.js) for JavaScript) file into your project
+- no library lock-ins. So you used this library for a day, and now you hate it? As long as the next library defines their own [`Validator`](https://github.com/shovon/valentina/blob/c56c15a5ddededc5ea69c6b7f96108a1b83ac8b1/lib.ts#L30-L36) type, you should be able to migrate to that other library very easily. Or, you can quickly write your own
 
 ## Getting Started
 
@@ -90,11 +91,11 @@ These are the very basics that you can go off of, and start validating your data
   - [Example application](#example-application)
   - [Installing](#installing)
   - [Tips and tricks](#tips-and-tricks)
-    - [Recursive types (for TypeScript)](#recursive-types-for-typescript)
+    - [Recursive types](#recursive-types)
     - [Create custom validators by composing other validators](#create-custom-validators-by-composing-other-validators)
     - [Custom validators and parsing values](#custom-validators-and-parsing-values)
 - [Design Philosophy](#design-philosophy)
-  - [Atomic Validators](#atomic-validators) \* [Atomic](#atomic)
+  - [Atomic Validators](#atomic-validators)
   - [Composition](#composition)
   - [Embrace JavaScript itself, and use idioms](#embrace-javascript-itself-and-use-idioms)
 - [API](#api)
@@ -259,7 +260,7 @@ With Node.js, if you want to use a package manager with npm, then this library w
 
 Below are some tricks you can use to make Valentina an even more powerful validation tool.
 
-#### Recursive types (for TypeScript)
+#### Recursive types
 
 If your application has data, whose schema comes in a tree-like structure (recursive type), then you can use the `lazy` validator, so that your schema can work with TypeScript.
 
@@ -315,19 +316,34 @@ const optionalNullable = <T>(validator: Validator<T>) =>
 
 A validator doesn't need to exclusively be for validation, but it can also be used for transforming incoming data.
 
-For instance, the JSON standard does not have a data type for `Date`s. You can create a validator that will parse a string, and convert it to a JavaScript date
+For instance, the JSON standard does not have a data type for `Date`s. You can create a validator that will parse a string, and convert it to a JavaScript date.
 
 ```typescript
+import { ValidationError } from "valentina";
+
+class DateError extends ValidationError {
+  constructor(value: string) {
+    super(
+      "Date error",
+      `The supplied string ${value} was not a valid format that can be parsed into a Date`,
+      value
+    );
+  }
+}
+
 export const date = (): Validator<Date> => ({
   __: new Date(),
   validate: (value: any) => {
     const validation = string().validate(value);
-    if (!validation.isValid) {
-      return { isValid: false };
+    if (validation.isValid === false) {
+      return { isValid: false, error: validation.error };
     }
-    const d = new Date();
+    const d = new Date(validation.value);
     return isNaN(d.getTime())
-      ? { isValid: false }
+      ? {
+          isValid: false,
+          error: new DateError(validation.value),
+        }
       : { isValid: true, value: d };
   },
 });
@@ -343,7 +359,7 @@ const valid = new Date(new Date().toISOString());
 const shouldBeValid = date().validate(validDate);
 
 if (valid.isValid) {
-  // Given the above `valid
+  valid.value; // This is the value
 }
 
 const invalid = new Date("invalid");
@@ -360,15 +376,39 @@ type CustomDate = InferType<typeof dateSchema>;
 // type CustomDate = Date;
 ```
 
-And, when used in a larger schema, it can be defined as something
+> **Note**
+>
+> In the above example, we created a custom error class called `DateError`, by deriving Valentina's `ValidationError` class.
+>
+> By the definition of the `error` field in `ValidationResult<T>`, you don't have to use a class. You can simply initialize an object with the appropriate fileds.
+>
+> So in the above example, you could have simply defined a function, that returns an object, that has the appropriate fields.
+>
+> For example.
+>
+> ```typescript
+> function createDateError(value: string) {
+>   return {
+>     type: "Date error",
+>     errorMessage: `The supplied string ${value} was not a valid format that can be parsed into a Date`,
+>     value,
+>   };
+> }
+> ```
+>
+> The above would have been a perfectly valid error object.
+>
+> With that said, using `ValidationError` provides the added advantage of capturing the call stack, allowing for easier debuggability, or even observability (you can `JSON.stringify` the error, and all fields will be available in the resulting JSON, which you can log to a remote server, for further investigation)
 
 ## Design Philosophy
 
-Valentina is written with three principles in mind:
+Valentina is written with five principles in mind:
 
 - Atomic validators
 - Validator composition
-- Embrace the language, and use idioms
+- Embrace the language; use idioms
+- Clarity and transparency
+- Power to the client
 
 ### Atomic Validators
 
@@ -385,7 +425,18 @@ The definition of a `Validator` is simply:
 ```typescript
 export type Validator<T> = {
   __: T;
-  validate: (value: any) => { isValid: false } | { value: T; isValid: true };
+  validate: (value: any) => ValidResult<T> | InvalidResult;
+};
+
+type ValidResult<T> = { value: T; isValid: true };
+
+type InvalidResult = {
+  isValid: false;
+  error: {
+    readonly type: string;
+    readonly errorMessage: string;
+    readonly value: any;
+  } & { [key: string]: any };
 };
 ```
 
@@ -399,7 +450,7 @@ Rather than relying on—arguably—complex configurations and validation engine
 
 Additionally, you can easily re-use smaller validators across larger schemas.
 
-The the `either` creator is a good example of **validator composition\*\***. It allows you to define a validator for a value that could _either_ be a `string` or a `number`.
+The `either` creator is a good example of **validator composition\*\***. It allows you to define a validator for a value that could _either_ be a `string` or a `number`.
 
 ```typescript
 const eitherStringOrNumber = either(string(), number());
@@ -438,18 +489,37 @@ export const applicationState = object({
 
 None of the schema components are represented as a small part of a larger configuration object; instead they are all self-contained `Validator`s.
 
-### Embrace JavaScript itself, and use idioms
+> **Side note**
+>
+> Notice that the function composition chain becomes cumbersome?
+>
+> You can potentially abstract those compositions away, to hide the inherent ugliness of it, but what would be even more awesome is if JavaScript supported the [pipelining operator](https://2ality.com/2022/01/pipe-operator.html).
+>
+> **Part of the reason why this library exists is to nudge the [TC39](https://tc39.es/) to actually approve the [proposed JavaScript pipeline operator](https://github.com/tc39/proposal-pipeline-operator)**
+
+### Embrace JavaScript itself; use idioms
 
 Traditionally, validation libraries often resorted to abstracting away the minutiae behind JavaScript. According to those libraries, the idea is that JavaScript as a language is flawed, and those flaws need to be abstracted away.
 
-Valentina, on the other hand, embraces the language.
+**Valentina, on the other hand, embraces JavaScript.**
 
-At it's core, the power of Valentina is all encompassed by the following type definition:
+At it's core, the power of Valentina is all encompassed by the following type definitions:
 
 ```typescript
 export type Validator<T> = {
   __: T;
-  validate: (value: any) => { isValid: false } | { value: T; isValid: true };
+  validate: (value: any) => ValidResult<T> | InvalidResult;
+};
+
+type ValidResult<T> = { value: T; isValid: true };
+
+type InvalidResult = {
+  isValid: false;
+  error: {
+    readonly type: string;
+    readonly errorMessage: string;
+    readonly value: any;
+  } & { [key: string]: any };
 };
 ```
 
@@ -458,6 +528,62 @@ export type Validator<T> = {
 You don't even need to use Valentina. As long as you can define your own Validator, you can perform validations as you would with Valentina.
 
 Alternatively, you can even write your own `Validator`s, and they will be 100% compatible with Valentina.
+
+### Clarity and transparency
+
+This library does away with configurations. And thus, behaviour is never redefined using booleans, or other configuration options.
+
+This makes behaviours of each validator creators testable and predictable.
+
+Additionally, results from validation will be easily inspectable, and serializable into JSON via `JSON.stringify`.
+
+### Power to the client
+
+Want to go beyond what this library has to offer? You're in luck. Valentina won't lock you into using a quazi-proprietary `addMethod` function. You are free to create your own validators.
+
+Better yet, these validators can be used beyond just validation; but also data transformation.
+
+For instance, if you have a string that represents a timestamp, you can convert the string to a JavaScript `Date`.
+
+```typescript
+import { ValidationError } from "valentina";
+
+class DateError extends ValidationError {
+  constructor(value: string) {
+    super(
+      "Date error",
+      `The supplied string ${value} was not a valid format that can be parsed into a Date`,
+      value
+    );
+  }
+}
+
+export const date = (): Validator<Date> => ({
+  __: new Date(),
+  validate: (value: any) => {
+    const validation = string().validate(value);
+    if (validation.isValid === false) {
+      return { isValid: false, error: validation.error };
+    }
+    const d = new Date(validation.value);
+    return isNaN(d.getTime())
+      ? {
+          isValid: false,
+          error: new DateError(validation.value),
+        }
+      : { isValid: true, value: d };
+  },
+});
+```
+
+You can then use the `date` validator creator to parse strings into a `Date`.
+
+```typescript
+const validation = date().validate("2022-03-04T23:44:42.086Z");
+if (validation.isValid) {
+  // validation.value should be a Date, and not a string
+}
+```
 
 ## API
 
@@ -797,7 +923,7 @@ everythingButValidator.validate("but").isValid;
 
 #### Motivation and usage
 
-If your application has data, whose schema comes in a tree-like structure (recursive type), then you can use the `lazy` validator, so that your schema can work with TypeScript.
+If your application has data, whose schema comes in a tree-like structure (recursive type), then you can use the `lazy` validator, so that your schema can work.
 
 ```typescript
 type Node = {

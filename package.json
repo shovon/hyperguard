@@ -1,6 +1,6 @@
 {
   "name": "valentina",
-  "version": "0.0.5",
+  "version": "0.1.0",
   "description": "Dead simple JavaScript object validation",
   "keywords": [
     "javascript",
@@ -27,7 +27,7 @@
   "scripts": {
     "test": "ts-node test.ts",
     "build": "tsc",
-    "prepublish": "npm run test && npm run build"
+    "prepublish": "npm run build && node dist/test.js"
   },
   "devDependencies": {
     "@types/node": "^17.0.21"

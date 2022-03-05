@@ -1,14 +1,23 @@
-import { parseJSON } from "./json";
 import { Event, eventSchema } from "./events/Event";
 import { UserJoined } from "./events/UserJoined";
 import { ApplicationState } from "./events/ApplicationState";
 import { UserLeftMessage } from "./events/UserLeft";
+import { json } from "./validators/json";
+import { UserMessage } from "./events/UserMessage/UserMessage";
 
 const ws = new WebSocket("https://example.com/path/to/nowhere");
 
 function handleUserJoined(value: UserJoined) {}
 function handleApplicationState(value: ApplicationState) {}
 function handleUserLeft(value: UserLeftMessage) {}
+function handleUserMessage(value: UserMessage) {
+  switch (value.data.data.type) {
+    case "BROADCAST_MESSAGE":
+      break;
+    case "DIRECT_MESSAGE":
+      break;
+  }
+}
 
 function handleMessage(value: Event) {
   switch (value.type) {
@@ -22,6 +31,7 @@ function handleMessage(value: Event) {
       handleUserLeft(value);
       break;
     case "USER_MESSAGE":
+      handleUserMessage(value);
       break;
     default:
       // Fun fact: in TypeScript, if there weren't any
@@ -45,7 +55,7 @@ function handleValidJSON(value: any) {
 }
 
 ws.addEventListener("message", ({ data }) => {
-  const result = parseJSON(data);
+  const result = json().validate(data);
   if (result.isValid) {
     handleValidJSON(result.value);
   }
