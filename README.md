@@ -139,9 +139,9 @@ Valentina becomes especially powerful when larger `Validator`s are comprised fro
 
 ### Installing
 
-By design, Valentina welcomes you to copy and paste the `lib.ts` or `lib.js` files into your project. You are under no obligation to use any package manager.
+By design, Valentina places you under **no obligation** to use any package manager; you most certainly can copy and paste either [`lib.ts`](https://github.com/shovon/valentina/blob/main/lib.ts) or [`lib.js`](https://github.com/shovon/valentina/blob/main/dist/lib.js).
 
-With that said, you are certainly more than welcomed to use a package manager, especially since it allow for easy update.
+With that said, you are certainly more than welcomed to use a package manager, especially since it will allow you to easily upgrade, without the possibility of errors while copying and pasting.
 
 #### npm (Node.js, Webpack, Vite, Browserify, or any other that use npm)
 
