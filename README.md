@@ -250,11 +250,31 @@ For a full example, take a look at the [example project](https://github.com/shov
 
 ### Installing
 
-With Node.js, if you want to use a package manager with npm, then this library will work all of the following package managers:
+By design, Valentina welcomes you to copy and paste the `lib.ts` or `lib.js` files into your project. You are under no obligation to use any package manager.
+
+With that said, you are certainly more than welcomed to use a package manager, especially since it allow for easy update.
+
+#### npm (Node.js, Webpack, Vite, Browserify, or any other that use npm)
+
+If you are using Node.js, Valentina has been published to npm for your convenience. You can install Valentina using your preferred package manager:
 
 - npm: `npm install valentina`
 - Yarn: `yarn add valentina`
 - pnpm: `pnpm add valentina`
+
+Additional transpilers should not be needed, but if you are having trouble importing Valentina into your bundler (Webpack, Vite, Browserify, etc.), then please do [open a new issue](https://github.com/shovon/valentina/issues), and I will investigate.
+
+#### Deno
+
+With Deno, you can directly import the `lib.ts` file from GitHub.
+
+```typescript
+import * as Valentina from "https://raw.githubusercontent.com/shovon/valentina/main/lib.ts";
+```
+
+#### Browser global
+
+**This is still pending. Looking for a viable solution.**
 
 ### Tips and tricks
 
