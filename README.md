@@ -204,7 +204,7 @@ import { userSchema } from "./User";
 export const userJoinedSchema = object({
   type: exact("USER_JOINED"),
 
-  // Composing a smaller `userSchema`
+  // Compositon from another schema
   data: userSchema,
 });
 
@@ -215,7 +215,7 @@ export type UserJoined = InferType<typeof userJoinedSchema>;
 export const applicationStateSchema = object({
   type: exact("APPLICATION_STATE"),
 
-  // Composing a smaller `userSchema`
+  // Compositon from another schema
   data: arrayOf(userSchema),
 });
 
