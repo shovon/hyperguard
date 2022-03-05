@@ -86,10 +86,13 @@ export class EitherError extends ValidationError {
 
 export class TupleError<T> extends ValidationError {
   constructor(value: any[], public validationResults: ValidationResult<T>[]) {
-    const errorCount = validationResults.filter(
-      (validation) => !validation.isValid
+    super(
+      "Tuple error",
+      `The supplied tuple had ${validationResults.filter(
+        (validation) => !validation.isValid
+      )} issues`,
+      value
     );
-    super("Tuple error", `The supplied tuple had ${errorCount} issues`, value);
   }
 }
 
