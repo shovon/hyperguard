@@ -195,7 +195,25 @@ Download or copy & paste the ECMAScript module located in [`dist/esm/lib.js`]().
 
 ```html
 <!-- Minified -->
-<script src="/path/to/valentina/lib.js"></script>
+<script type="module">
+  import * as valentina from "/path/to/valentina/lib.js";
+</script>
+```
+
+> **Hot Tip**
+>
+> If you want a minified version, you can download it from this URL:
+>
+> https://cdn.jsdelivr.net/npm/valentina@latest/dist/esm/lib.min.js
+
+**Option 2: Importing from npm (via jsDelivr)**
+
+If you don't want to download, and you just want to give the library a try, then you can link directly to jsDelivr.
+
+```html
+<script type="module">
+  import * as valentina from "https://cdn.jsdelivr.net/npm/valentina@latest/dist/esm/lib.min.js";
+</script>
 ```
 
 ### Example application
