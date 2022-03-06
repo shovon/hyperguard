@@ -186,7 +186,7 @@ function _v(v) {
     return typeof v;
 }
 const _s = _v({});
-export class UnexpectedTypeofValue extends ValidationError {
+export class UnexpectedTypeofError extends ValidationError {
     constructor(value, expectedType) {
         super("Unexpected typeof", `Expected a value of type ${expectedType}, but got something else`, value);
         this.expectedType = expectedType;
@@ -200,7 +200,7 @@ export const string = () => {
     return {
         __: "",
         validate: (value) => typeof value !== "string"
-            ? { isValid: false, error: new UnexpectedTypeofValue(value, "string") }
+            ? { isValid: false, error: new UnexpectedTypeofError(value, "string") }
             : { value, isValid: true },
     };
 };
@@ -232,7 +232,7 @@ export function exact(expected) {
 export const number = () => ({
     __: 0,
     validate: (value) => typeof value !== "number"
-        ? { isValid: false, error: new UnexpectedTypeofValue(value, "number") }
+        ? { isValid: false, error: new UnexpectedTypeofError(value, "number") }
         : { value, isValid: true },
 });
 /**
@@ -242,7 +242,7 @@ export const number = () => ({
 export const boolean = () => ({
     __: false,
     validate: (value) => typeof value !== "boolean"
-        ? { isValid: false, error: new UnexpectedTypeofValue(value, "boolean") }
+        ? { isValid: false, error: new UnexpectedTypeofError(value, "boolean") }
         : { value, isValid: true },
 });
 export class ArrayOfInvalidValuesError extends ValidationError {
@@ -316,7 +316,7 @@ export function objectOf(validator) {
             if (typeof value !== "object") {
                 return {
                     isValid: false,
-                    error: new UnexpectedTypeofValue(value, "object"),
+                    error: new UnexpectedTypeofError(value, "object"),
                 };
             }
             const fields = Object.keys(value).map((key) => ({
@@ -371,7 +371,7 @@ export function object(schema) {
             if (typeof value !== "object") {
                 return {
                     isValid: false,
-                    error: new UnexpectedTypeofValue(value, "object"),
+                    error: new UnexpectedTypeofError(value, "object"),
                 };
             }
             const fields = Object.keys(schema).map((key) => ({
@@ -414,4 +414,27 @@ export function lazy(schemaFn) {
         validate: (value) => schemaFn().validate(value),
     };
 }
+export class ParserError extends ValidationError {
+    constructor(value, errorObject) {
+        super("Parsing error", "Failed to parse the value", value);
+        this.errorObject = errorObject;
+    }
+}
+/**
+ * Creates a validator that will parse the supplied value
+ *
+ * @param parse The parser function that will parse the supplied value
+ * @returns A validator to validate the value against
+ */
+export const parser = (parse) => ({
+    __: {},
+    validate(value) {
+        try {
+            return { isValid: true, value: parse(value) };
+        }
+        catch (e) {
+            return { isValid: false, error: new ParserError(value, e) };
+        }
+    },
+});
 //# sourceMappingURL=lib.js.map
