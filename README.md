@@ -88,17 +88,19 @@ These are the very basics that you can go off of, and start validating your data
 ## Table of Contents
 
 - [Usage Guide](#usage-guide)
-  - [Example application](#example-application)
   - [Installing](#installing)
     - [npm (Node.js, Webpack, Vite, Browserify, or any other that use npm)](#npm-nodejs-webpack-vite-browserify-or-any-other-that-use-npm)
+      - [Importing via CommonJS require](#importing-via-commonjs-require)
+      - [Importing via Node.js' ECMAScript module (import statement)](#importing-via-nodejs-ecmascript-module-import-statement)
     - [Deno](#deno)
-    - [Browser global](#browser-global)
+    - [Browser via import statement (dist/esm/lib.js)](#browser-via-import-statement-distesmlibjs)
+  - [Example application](#example-application)
   - [Tips and tricks](#tips-and-tricks)
     - [Recursive types](#recursive-types)
     - [Create custom validators by composing other validators](#create-custom-validators-by-composing-other-validators)
     - [Custom validators and parsing values](#custom-validators-and-parsing-values)
 - [Design Philosophy](#design-philosophy)
-  - [Atomic Validators](#atomic-validators) \* [Atomic](#atomic)
+  - [Atomic Validators](#atomic-validators)
   - [Composition](#composition)
   - [Embrace JavaScript itself; use idioms](#embrace-javascript-itself-use-idioms)
   - [Clarity and transparency](#clarity-and-transparency)
@@ -466,7 +468,7 @@ Valentina is written with five principles in mind:
 
 ### Atomic Validators
 
-> ##### Atomic
+> **Atomic**
 >
 > _adjective_
 >
