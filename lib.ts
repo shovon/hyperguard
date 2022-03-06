@@ -1829,7 +1829,10 @@ export function tuple(t: Validator<any>[]): Validator<any[]> {
         ? { isValid: true, value }
         : {
             isValid: false,
-            error: new TupleError(value, validations),
+            error: new TupleError(
+              value,
+              validations.filter((validation) => !validation.isValid)
+            ),
           };
     },
   };
@@ -2015,7 +2018,7 @@ export function arrayOf<V>(validator: Validator<V>): Validator<V[]> {
 export class BadObjectError extends ValidationError {
   constructor(
     value: any,
-    public objectSchema: { [key: string]: ValidationError }
+    public faultyFields: { [key: string]: ValidationError }
   ) {
     super(
       "Bad object",
