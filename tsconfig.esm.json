@@ -4,8 +4,8 @@
   "compilerOptions": {
     "declaration": false,
     "outDir": "dist/esm",
-    "target": "ES2022",
-    "module": "ES2022",
+    "target": "es2021",
+    "module": "ES2020",
     "sourceMap": true
   }
 }

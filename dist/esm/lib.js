@@ -23,13 +23,6 @@ SOFTWARE.
  * A base abstract class that represents a generic validation error.
  */
 export class ValidationError extends Error {
-    type;
-    errorMessage;
-    value;
-    /**
-     * Represents the call stack of the validation.
-     */
-    fullStack;
     /**
      *
      * @param type A string representing what type of validation error that the
@@ -46,14 +39,12 @@ export class ValidationError extends Error {
     }
 }
 export class EitherError extends ValidationError {
-    validationResults;
     constructor(value, validationResults) {
         super("Either error", "The provided value does not match any of the possible validators", value);
         this.validationResults = validationResults;
     }
 }
 export class TupleError extends ValidationError {
-    validationResults;
     constructor(value, validationResults) {
         super("Tuple error", `The supplied tuple had ${validationResults.filter((validation) => !validation.isValid)} issues`, value);
         this.validationResults = validationResults;
@@ -65,7 +56,6 @@ export class NotAnArrayError extends ValidationError {
     }
 }
 export class UnexpectedArrayLengthError extends ValidationError {
-    expectedLength;
     constructor(value, expectedLength) {
         super("Unexpected array length error", `Expected an array of length ${expectedLength} but instead got ${value.length}`, value);
         this.expectedLength = expectedLength;
@@ -197,7 +187,6 @@ function _v(v) {
 }
 const _s = _v({});
 export class UnexpectedTypeofValue extends ValidationError {
-    expectedType;
     constructor(value, expectedType) {
         super("Unexpected typeof", `Expected a value of type ${expectedType}, but got something else`, value);
         this.expectedType = expectedType;
@@ -216,7 +205,6 @@ export const string = () => {
     };
 };
 class NotExactValueError extends ValidationError {
-    expectedValue;
     constructor(value, expectedValue) {
         super("Incorrect value", `Expected the value to equal exactly ${expectedValue} but instead got something else`, value);
         this.expectedValue = expectedValue;
@@ -258,7 +246,6 @@ export const boolean = () => ({
         : { value, isValid: true },
 });
 export class ArrayOfInvalidValuesError extends ValidationError {
-    badValues;
     constructor(value, errors) {
         super("Array of invalid values", `${errors.length} of the ${value.length} are invalid`, value);
         this.badValues = errors;
@@ -292,7 +279,6 @@ export function arrayOf(validator) {
     };
 }
 export class BadObjectError extends ValidationError {
-    objectSchema;
     constructor(value, objectSchema) {
         super("Bad object", "The supplied object had fields that failed to validate", value);
         this.objectSchema = objectSchema;
