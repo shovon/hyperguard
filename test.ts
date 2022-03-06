@@ -12,6 +12,8 @@ import {
   any,
   lazy,
   except,
+  ExactTypes,
+  IValidationError,
 } from "./lib";
 import { strict as assert } from "assert";
 
@@ -30,34 +32,73 @@ const assertValidator = <T>(v: Validator<T>, value: T, intent: string = "") => {
 const assertIncorrect = <T>(
   v: Validator<T>,
   value: any,
-  intent: string = ""
+  intent: string = "",
+  errorValidator?: Validator<IValidationError>
 ) => {
   const validation = v.validate(value);
   assert(!validation.isValid, `Should not have been valid. ${intent}`);
+  if (errorValidator) {
+    if (validation.isValid === false) {
+      assert(
+        !errorValidator.validate(validation).isValid,
+        "Failed to validate error object"
+      );
+    }
+  }
 };
 
 {
+  const notExactErrorSchema = (validator: Validator<ExactTypes>) =>
+    object({
+      type: string(),
+      errorMessage: string(),
+      value: any(),
+      expectedValue: validator,
+    });
+
   // exact
   assertValidator(exact("hello"), "hello", "Exact 'hello'");
-  assertIncorrect(exact("hello"), "hah", "'hah' should not match 'hello'");
+  assertIncorrect(
+    exact("hello"),
+    "hah",
+    "'hah' should not match 'hello'",
+    notExactErrorSchema(exact("hello"))
+  );
   assertValidator(exact(10), 10, "Exact '10'");
-  assertIncorrect(exact(10), 2, "'10' should not match '2'");
+  assertIncorrect(
+    exact(10),
+    2,
+    "'10' should not match '2'",
+    notExactErrorSchema(exact(10))
+  );
   assertValidator(exact(undefined), undefined, "Exact 'undefined'");
   assertIncorrect(
     exact(undefined),
     null,
-    "'undefined' should not match 'null'"
+    "'undefined' should not match 'null'",
+    notExactErrorSchema(exact(undefined))
   );
   assertValidator(exact(null), null, "Exact 'null'");
   assertIncorrect(
     exact(null),
     undefined,
-    "'null' should not match 'undefined'"
+    "'null' should not match 'undefined'",
+    notExactErrorSchema(exact(null))
   );
   assertValidator(exact(false), false, "Exact 'false'");
-  assertIncorrect(exact(false), true, "'false' should not match 'true'");
+  assertIncorrect(
+    exact(false),
+    true,
+    "'false' should not match 'true'",
+    notExactErrorSchema(exact(false))
+  );
   assertValidator(exact(true), true, "Exact 'true'");
-  assertIncorrect(exact(true), false, "'true' should not match 'false'");
+  assertIncorrect(
+    exact(true),
+    false,
+    "'true' should not match 'false'",
+    notExactErrorSchema(exact(true))
+  );
 }
 
 {

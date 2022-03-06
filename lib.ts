@@ -1916,7 +1916,7 @@ export const string = (): Validator<string> => {
   };
 };
 
-type ExactTypes = string | number | boolean | null | undefined;
+export type ExactTypes = string | number | boolean | null | undefined;
 
 class NotExactValueError extends ValidationError {
   constructor(value: any, public expectedValue: ExactTypes) {

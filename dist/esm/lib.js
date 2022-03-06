@@ -134,7 +134,7 @@ export function tuple(t) {
                 ? { isValid: true, value }
                 : {
                     isValid: false,
-                    error: new TupleError(value, validations),
+                    error: new TupleError(value, validations.filter((validation) => !validation.isValid)),
                 };
         },
     };
@@ -279,9 +279,9 @@ export function arrayOf(validator) {
     };
 }
 export class BadObjectError extends ValidationError {
-    constructor(value, objectSchema) {
+    constructor(value, faultyFields) {
         super("Bad object", "The supplied object had fields that failed to validate", value);
-        this.objectSchema = objectSchema;
+        this.faultyFields = faultyFields;
     }
 }
 function mergeObjects(objects) {
