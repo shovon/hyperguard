@@ -437,4 +437,22 @@ export const parser = (parse) => ({
         }
     },
 });
+class PredicateError extends ValidationError {
+    constructor(value) {
+        super("Predicate failure", "The predicate failed to match", value);
+    }
+}
+export function predicate(validator, pred, errorFunction = (value) => new PredicateError(value)) {
+    return {
+        __: {},
+        validate(value) {
+            const validation = validator.validate(value);
+            return validation.isValid === false
+                ? validation
+                : pred(value)
+                    ? { isValid: true, value: validation.value }
+                    : { isValid: false, error: errorFunction(value) };
+        },
+    };
+}
 //# sourceMappingURL=lib.js.map

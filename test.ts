@@ -16,6 +16,7 @@ import {
   IValidationError,
   PossibleTypeof,
   parser,
+  predicate,
 } from "./lib";
 import { strict as assert } from "assert";
 
@@ -474,5 +475,30 @@ const assertIncorrect = <T>(
     "hello",
     "Should not have been valid",
     notExactErrorSchema()
+  );
+}
+
+{
+  const predicateError = () =>
+    object({
+      type: string(),
+      errorMessage: string(),
+      value: any(),
+    });
+
+  const minString = (length: number) =>
+    predicate(string(), (value) => value.length >= length);
+
+  assertValidator(
+    minString(5),
+    "Vancouver",
+    "Expected that the string 'Vancouver' be evaluated to have a minimum length of 5"
+  );
+
+  assertIncorrect(
+    minString(10),
+    "Vancouver",
+    "Expected that the string 'Vancouver' be evaluated not have a length of at least 10",
+    predicateError()
   );
 }

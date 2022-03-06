@@ -2222,3 +2222,28 @@ export const parser = <T>(parse: (value: any) => T): Validator<T> => ({
     }
   },
 });
+
+class PredicateError extends ValidationError {
+  constructor(value: any) {
+    super("Predicate failure", "The predicate failed to match", value);
+  }
+}
+
+export function predicate<T>(
+  validator: Validator<T>,
+  pred: (value: T) => boolean,
+  errorFunction: (value: any) => IValidationError = (value) =>
+    new PredicateError(value)
+): Validator<T> {
+  return {
+    __: {} as any,
+    validate(value: any): ValidationResult<T> {
+      const validation = validator.validate(value);
+      return validation.isValid === false
+        ? validation
+        : pred(value as T)
+        ? { isValid: true, value: validation.value }
+        : { isValid: false, error: errorFunction(value) };
+    },
+  };
+}
