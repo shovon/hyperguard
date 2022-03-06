@@ -1892,8 +1892,10 @@ function _v(v: any) {
 
 const _s = _v({} as any);
 
-export class UnexpectedTypeofValue extends ValidationError {
-  constructor(value: any, public expectedType: typeof _s) {
+export type PossibleTypeof = typeof _s;
+
+export class UnexpectedTypeofError extends ValidationError {
+  constructor(value: any, public expectedType: PossibleTypeof) {
     super(
       "Unexpected typeof",
       `Expected a value of type ${expectedType}, but got something else`,
@@ -1911,7 +1913,7 @@ export const string = (): Validator<string> => {
     __: "",
     validate: (value: any) =>
       typeof value !== "string"
-        ? { isValid: false, error: new UnexpectedTypeofValue(value, "string") }
+        ? { isValid: false, error: new UnexpectedTypeofError(value, "string") }
         : { value, isValid: true },
   };
 };
@@ -1953,7 +1955,7 @@ export const number = (): Validator<number> => ({
   __: 0,
   validate: (value: any) =>
     typeof value !== "number"
-      ? { isValid: false, error: new UnexpectedTypeofValue(value, "number") }
+      ? { isValid: false, error: new UnexpectedTypeofError(value, "number") }
       : { value, isValid: true },
 });
 
@@ -1965,7 +1967,7 @@ export const boolean = (): Validator<boolean> => ({
   __: false,
   validate: (value: any) =>
     typeof value !== "boolean"
-      ? { isValid: false, error: new UnexpectedTypeofValue(value, "boolean") }
+      ? { isValid: false, error: new UnexpectedTypeofError(value, "boolean") }
       : { value, isValid: true },
 });
 
@@ -2063,7 +2065,7 @@ export function objectOf<V>(
       if (typeof value !== "object") {
         return {
           isValid: false,
-          error: new UnexpectedTypeofValue(value, "object"),
+          error: new UnexpectedTypeofError(value, "object"),
         };
       }
 
@@ -2141,7 +2143,7 @@ export function object<V extends object>(schema: {
       if (typeof value !== "object") {
         return {
           isValid: false,
-          error: new UnexpectedTypeofValue(value, "object"),
+          error: new UnexpectedTypeofError(value, "object"),
         };
       }
 
@@ -2197,3 +2199,26 @@ export function lazy<V extends any>(
     validate: (value: any) => schemaFn().validate(value),
   };
 }
+
+export class ParserError extends ValidationError {
+  constructor(value: any, public errorObject: any) {
+    super("Parsing error", "Failed to parse the value", value);
+  }
+}
+
+/**
+ * Creates a validator that will parse the supplied value
+ *
+ * @param parse The parser function that will parse the supplied value
+ * @returns A validator to validate the value against
+ */
+export const parser = <T>(parse: (value: any) => T): Validator<T> => ({
+  __: {} as any,
+  validate(value: any) {
+    try {
+      return { isValid: true, value: parse(value) };
+    } catch (e) {
+      return { isValid: false, error: new ParserError(value, e) };
+    }
+  },
+});

@@ -14,6 +14,8 @@ import {
   except,
   ExactTypes,
   IValidationError,
+  PossibleTypeof,
+  parser,
 } from "./lib";
 import { strict as assert } from "assert";
 
@@ -27,6 +29,21 @@ const assertValidator = <T>(v: Validator<T>, value: T, intent: string = "") => {
     validation.value === value,
     `Values do not match. ${value} !== ${validation.value}`
   );
+};
+
+const assertTransformValidator = <T>(
+  v: Validator<T>,
+  value: T,
+  expected: any,
+  intent: string = ""
+) => {
+  const validation = v.validate(value);
+  assert(
+    validation.isValid,
+    `Should have been valid, but was invalid. ${intent}`
+  );
+
+  assert.deepEqual(validation.value, expected);
 };
 
 const assertIncorrect = <T>(
@@ -102,10 +119,23 @@ const assertIncorrect = <T>(
 }
 
 {
+  const unexpectedTypeofErrorSchema = (validator: PossibleTypeof) =>
+    object({
+      type: string(),
+      errorMessage: string(),
+      value: any(),
+      expectedType: exact(validator),
+    });
+
   // string
   assertValidator(string(), "haha", "Should validate string");
   assertValidator(string(), "sweet", "Should validate string");
-  assertIncorrect(string(), 10, "Incorrect types should not match");
+  assertIncorrect(
+    string(),
+    10,
+    "Incorrect types should not match",
+    unexpectedTypeofErrorSchema("string")
+  );
 }
 
 {
@@ -420,5 +450,29 @@ const assertIncorrect = <T>(
       right: null,
     },
     "Nested values should not go unchecked"
+  );
+}
+
+{
+  const notExactErrorSchema = () =>
+    object({
+      type: string(),
+      errorMessage: string(),
+      value: any(),
+      errorObject: object({}),
+    });
+
+  const jsonParser = () => parser((value) => JSON.parse(value));
+  assertTransformValidator(
+    jsonParser(),
+    "{}",
+    {},
+    "Expected empty object to parse"
+  );
+  assertIncorrect(
+    jsonParser(),
+    "hello",
+    "Should not have been valid",
+    notExactErrorSchema()
   );
 }
