@@ -2229,11 +2229,16 @@ class PredicateError extends ValidationError {
   }
 }
 
+/**
+ * A validator creator that also accepts a predicate
+ * @param validator The validator to run the predicate against
+ * @param pred The predicate to run against the value
+ * @returns A Validator, where if the predicate were to fail, it will result in
+ *   a failed validation
+ */
 export function predicate<T>(
   validator: Validator<T>,
-  pred: (value: T) => boolean,
-  errorFunction: (value: any) => IValidationError = (value) =>
-    new PredicateError(value)
+  pred: (value: T) => boolean
 ): Validator<T> {
   return {
     __: {} as any,
@@ -2243,7 +2248,48 @@ export function predicate<T>(
         ? validation
         : pred(value as T)
         ? { isValid: true, value: validation.value }
-        : { isValid: false, error: errorFunction(value) };
+        : { isValid: false, error: new PredicateError(value) };
     },
   };
 }
+
+/**
+ * A Validator creator that will enable you to replace the error returned by the
+ * supplied validator
+ * @param validator The validator for which to have the error substituted
+ * @param error An error function that will return the appropriate error object
+ */
+export function replaceError<T>(
+  validator: Validator<T>,
+  createError: (value: any) => IValidationError
+): Validator<T> {
+  return {
+    __: {} as any,
+    validate(value: any) {
+      const validation = validator.validate(value);
+      return validation.isValid === false
+        ? { isValid: false, error: createError(value) }
+        : { isValid: true, value };
+    },
+  };
+}
+
+/**
+ * Chains two validators together
+ * @param left the first validator to validate values against
+ * @param right the second validator to validate values against
+ * @returns a validator that will validate first against the first validator
+ *   then the second validator
+ */
+export const chain = <T1, T2>(
+  left: Validator<T1>,
+  right: Validator<T2>
+): Validator<T2> => ({
+  __: {} as T2,
+  validate(value) {
+    const validation = left.validate(value);
+    return validation.isValid === false
+      ? { isValid: false, error: validation.error }
+      : right.validate(value);
+  },
+});
