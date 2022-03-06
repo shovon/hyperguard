@@ -502,3 +502,12 @@ const assertIncorrect = <T>(
     predicateError()
   );
 }
+
+{
+  const predicateError = () =>
+    object({
+      type: string(),
+      errorMessage: string(),
+      value: any(),
+    });
+}
