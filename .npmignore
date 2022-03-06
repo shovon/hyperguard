@@ -3,3 +3,5 @@ test.ts
 example
 .github
 .DS_Store
+.circleci
+tsconfig.*

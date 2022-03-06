@@ -1,0 +1,7 @@
+**Option 2: Don't keep a copy; load it from somewhere else**
+
+So instead of copying and pasting the library, you can instead load it from [jsDelivr](https://www.jsdelivr.com/)
+
+```html
+<script src="">
+```

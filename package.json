@@ -1,6 +1,6 @@
 {
   "name": "valentina",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "Dead simple JavaScript object validation",
   "keywords": [
     "javascript",
@@ -23,11 +23,15 @@
     "url": "https://github.com/shovon/valentina.git"
   },
   "main": "dist/lib.js",
+  "module": "dist/esm/lib.js",
   "types": "dist/lib.d.ts",
   "scripts": {
     "test": "npm run build && node dist/test.js",
-    "build": "tsc",
-    "prepublish": "npm run build && npm run test"
+    "build": "npm run buildesm && npm run buildcjs",
+    "buildesm": "tsc --project tsconfig.esm.json",
+    "buildcjs": "tsc --project tsconfig.commonjs.json",
+    "prepublish": "npm run build && npm run test",
+    "clean": "rm -rf dist"
   },
   "devDependencies": {
     "@types/node": "^17.0.21"

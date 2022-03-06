@@ -11,7 +11,7 @@ _Valentina_ is a tiny library for validating JavaScript values. Whether they be 
 - Powerful TypeScript support to infer static types from schema
 - Composable validators, empowering you to define your own rules, your way
 - zero dependencies
-- install either via npm, or copy and paste the [`lib.ts`](https://raw.githubusercontent.com/shovon/valentina/main/lib.ts) (or [`lib.js`](https://raw.githubusercontent.com/shovon/valentina/main/dist/lib.js) for JavaScript) file into your project
+- install either via npm, or copy and paste the [`lib.ts`](https://raw.githubusercontent.com/shovon/valentina/main/lib.ts) (or [`dist/lib.js`](https://raw.githubusercontent.com/shovon/valentina/main/dist/lib.js) for JavaScript) file into your project
 - no library lock-ins. So you used this library for a day, and now you hate it? As long as the next library defines their own [`Validator`](https://github.com/shovon/valentina/blob/c56c15a5ddededc5ea69c6b7f96108a1b83ac8b1/lib.ts#L30-L36) type, you should be able to migrate to that other library very easily. Or, you can quickly write your own
 
 ## Getting Started
@@ -139,19 +139,35 @@ Valentina becomes especially powerful when larger `Validator`s are comprised fro
 
 ### Installing
 
-By design, Valentina places you under **no obligation** to use any package manager; you most certainly can copy and paste either [`lib.ts`](https://github.com/shovon/valentina/blob/main/lib.ts) or [`lib.js`](https://github.com/shovon/valentina/blob/main/dist/lib.js).
+By design, Valentina places you under **no obligation** to use any package manager; you most certainly can copy and paste either [`lib.ts`](https://github.com/shovon/valentina/blob/main/lib.ts) for TypeScript, [`dist/lib.js`](https://github.com/shovon/valentina/blob/main/dist/lib.js) for CommonJS (require), or [`dist/esm/lib.js`](https://github.com/shovon/valentina/blob/main/dist/esm/lib.js) for importing via the `import` statement.
 
 With that said, you are certainly more than welcomed to use a package manager, especially since it will allow you to easily upgrade, without the possibility of errors while copying and pasting.
 
 #### npm (Node.js, Webpack, Vite, Browserify, or any other that use npm)
 
-If you are using Node.js, Valentina has been published to npm for your convenience. You can install Valentina using your preferred package manager:
+If you are using Node.js or a bundler that uses npm, Valentina has been published to npm for your convenience. You can install using your preferred package manager. For example:
 
 - npm: `npm install valentina`
 - Yarn: `yarn add valentina`
 - pnpm: `pnpm add valentina`
 
-Additional transpilers should not be needed, but if you are having trouble importing Valentina into your bundler (Webpack, Vite, Browserify, etc.), then please do [open a new issue](https://github.com/shovon/valentina/issues), and I will investigate.
+Additional, for the JavaScript CommonJS code, transpilers should not be needed. However if you are having trouble importing Valentina into your bundler (Webpack, Vite, Browserify, etc.), then please do [open a new issue](https://github.com/shovon/valentina/issues), and I will investigate.
+
+##### Importing via CommonJS `require`
+
+Once installed, you should be able to import the module via CommonJS `require`, like so:
+
+```javascript
+const valentina = require("valentina");
+```
+
+##### Importing via Node.js' ECMAScript module (`import` statement)
+
+In a Node.js `mjs` file, you can simply import using the `import` syntax.
+
+```javascript
+import * as valentina from "valentina";
+```
 
 #### Deno
 
@@ -161,9 +177,22 @@ With Deno, you can directly import the `lib.ts` file from GitHub.
 import * as Valentina from "https://raw.githubusercontent.com/shovon/valentina/main/lib.ts";
 ```
 
-#### Browser global
+#### Browser via `import` statement (dist/esm/lib.js)
 
-**This is still pending. Looking for a viable solution.**
+> **Warning**
+>
+> The `dist/lib.js` file will not work in browsers!
+>
+> **You must use the `dist/esm/lib.js` file instead!**
+
+**Option 1: Checking in an original copy of lib.js file into your project**
+
+Download or copy & paste the ECMAScript module located in [`dist/esm/lib.js`](). Optionally, you can also grab a copy of the sourcemap file at [`dist/esm/lib.js.map`]() for debugging purposes.
+
+```html
+<!-- Minified -->
+<script src="/path/to/valentina/lib.js"></script>
+```
 
 ### Example application
 
@@ -475,7 +504,7 @@ Rather than relying on—arguably—complex configurations and validation engine
 
 Additionally, you can easily re-use smaller validators across larger schemas.
 
-The `either` creator is a good example of **validator composition\*\***. It allows you to define a validator for a value that could _either_ be a `string` or a `number`.
+The `either` creator is a good example of **validator composition**. It allows you to define a validator for a value that could _either_ be a `string` or a `number`.
 
 ```typescript
 const eitherStringOrNumber = either(string(), number());

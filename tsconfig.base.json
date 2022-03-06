@@ -1,10 +1,7 @@
 {
-  "declaration": true,
   "files": ["lib.ts", "test.ts"],
   "compilerOptions": {
     "declaration": true,
-    "module": "CommonJS",
-    "outDir": "dist",
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
