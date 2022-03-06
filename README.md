@@ -212,6 +212,14 @@ If you don't want to download, and you just want to give the library a try, then
 
 ```html
 <script type="module">
+  import * as valentina from "https://cdn.jsdelivr.net/npm/valentina@latest/dist/esm/lib.js";
+</script>
+```
+
+Alternatively, if you want the minified version, you can simply add a `.min` after the `/lib`, and before the `.js`:
+
+```html
+<script type="module">
   import * as valentina from "https://cdn.jsdelivr.net/npm/valentina@latest/dist/esm/lib.min.js";
 </script>
 ```
