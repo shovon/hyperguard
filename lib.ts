@@ -2257,18 +2257,20 @@ export function predicate<T>(
  * A Validator creator that substitutes the error from one validator, to another
  * error for that validator.
  * @param validator The validator for which to have the error substituted
- * @param error An error function that will return the appropriate error object
+ * @param createError An error function that will return the appropriate error
+ *   object
+ * @returns A validator
  */
 export function replaceError<T>(
   validator: Validator<T>,
-  createError: (value: any) => IValidationError
+  createError: (value: any, error: IValidationError) => IValidationError
 ): Validator<T> {
   return {
     __: {} as any,
     validate(value: any) {
       const validation = validator.validate(value);
       return validation.isValid === false
-        ? { isValid: false, error: createError(value) }
+        ? { isValid: false, error: createError(value, validation.error) }
         : { isValid: true, value };
     },
   };
