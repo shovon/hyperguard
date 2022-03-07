@@ -20,6 +20,7 @@ import {
   replaceError,
   ValidationError,
   chain,
+  fallback,
 } from "./lib";
 import { strict as assert } from "assert";
 
@@ -565,4 +566,31 @@ const assertIncorrect = <T>(
 
   assertDateEqual(date, isoString);
   assertIncorrect(date, 10, "Number is not a string");
+}
+
+{
+  const assertFallbackEqual = <T>(
+    v: Validator<T>,
+    incorrectValue: any,
+    fallbackValue: T,
+    intent: string = ""
+  ) => {
+    const validation = v.validate(incorrectValue);
+    assert(
+      validation.isValid,
+      `Should have been valid, but was invalid. ${intent}`
+    );
+    assert.equal(
+      validation.value,
+      fallbackValue,
+      `Values do not match. ${fallback} !== ${validation.value}`
+    );
+  };
+
+  assertFallbackEqual(
+    fallback(string(), () => ""),
+    10,
+    "",
+    "There should be an empty string fallback"
+  );
 }

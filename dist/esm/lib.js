@@ -465,7 +465,6 @@ export function predicate(validator, pred) {
 /**
  * A Validator creator that substitutes the error from one validator, to another
  * error for that validator.
- *
  * @param validator The validator for which to have the error substituted
  * @param error An error function that will return the appropriate error object
  */
@@ -482,7 +481,6 @@ export function replaceError(validator, createError) {
 }
 /**
  * Chains two validators together.
- *
  * @param left the first validator to validate values against
  * @param right the second validator to validate values against
  * @returns a validator that will validate first against the first validator
@@ -495,6 +493,21 @@ export const chain = (left, right) => ({
         return validation.isValid === false
             ? { isValid: false, error: validation.error }
             : right.validate(value);
+    },
+});
+/**
+ * Creates a validator that can fallback to another value.
+ * @param validator The validator that, if failed, will need a fallback
+ * @param getFallback The function to acquire the fallback value
+ * @returns A validator that should never be invalid
+ */
+export const fallback = (validator, getFallback) => ({
+    __: {},
+    validate(value) {
+        const validation = validator.validate(value);
+        return validation.isValid === false
+            ? { isValid: true, value: getFallback() }
+            : validation;
     },
 });
 //# sourceMappingURL=lib.js.map
