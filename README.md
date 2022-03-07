@@ -403,7 +403,14 @@ A validator doesn't need to exclusively be for validation, but it can also be us
 For instance, the JSON standard does not have a data type for `Date`s. You can create a validator that will parse a string, and convert it to a JavaScript date.
 
 ```typescript
-import { ValidationError } from "valentina";
+import {
+  chain,
+  parser,
+  predicate,
+  replaceError,
+  string,
+  ValidationError,
+} from "valentina";
 
 class DateError extends ValidationError {
   constructor(value: string) {
@@ -415,22 +422,17 @@ class DateError extends ValidationError {
   }
 }
 
-export const date = (): Validator<Date> => ({
-  __: new Date(),
-  validate: (value: any) => {
-    const validation = string().validate(value);
-    if (validation.isValid === false) {
-      return { isValid: false, error: validation.error };
-    }
-    const d = new Date(validation.value);
-    return isNaN(d.getTime())
-      ? {
-          isValid: false,
-          error: new DateError(validation.value),
-        }
-      : { isValid: true, value: d };
-  },
-});
+export const date = () =>
+  replaceError(
+    predicate(
+      chain(
+        string(),
+        parser((value) => new Date(value))
+      ),
+      (d) => isNaN(d.getTime())
+    ),
+    (value) => new DateError(value)
+  );
 ```
 
 From which you can try to derive a date from a string.
