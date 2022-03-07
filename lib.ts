@@ -2254,8 +2254,9 @@ export function predicate<T>(
 }
 
 /**
- * A Validator creator that will enable you to replace the error returned by the
- * supplied validator
+ * A Validator creator that substitutes the error from one validator, to another
+ * error for that validator.
+ *
  * @param validator The validator for which to have the error substituted
  * @param error An error function that will return the appropriate error object
  */
@@ -2275,7 +2276,8 @@ export function replaceError<T>(
 }
 
 /**
- * Chains two validators together
+ * Chains two validators together.
+ *
  * @param left the first validator to validate values against
  * @param right the second validator to validate values against
  * @returns a validator that will validate first against the first validator

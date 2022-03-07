@@ -17,6 +17,8 @@ import {
   PossibleTypeof,
   parser,
   predicate,
+  replaceError,
+  ValidationError,
 } from "./lib";
 import { strict as assert } from "assert";
 
@@ -504,10 +506,33 @@ const assertIncorrect = <T>(
 }
 
 {
-  const predicateError = () =>
+  const type = "Custom error";
+  const errorMessage = "Some custom error message";
+  const customMessage = "This is a custom message";
+
+  const customError = () =>
     object({
-      type: string(),
-      errorMessage: string(),
+      type: exact(type),
+      errorMessage: exact(errorMessage),
       value: any(),
+      customMessage: exact(customMessage),
     });
+
+  class CustomError extends ValidationError {
+    constructor(value: any, public customMessage: string) {
+      super(type, errorMessage, value);
+    }
+  }
+
+  const validator = replaceError(
+    string(),
+    (value) => new CustomError(value, customMessage)
+  );
+
+  assertIncorrect(
+    validator,
+    25,
+    "An error should have happened, but it didn't",
+    customError()
+  );
 }
