@@ -442,7 +442,14 @@ class PredicateError extends ValidationError {
         super("Predicate failure", "The predicate failed to match", value);
     }
 }
-export function predicate(validator, pred, errorFunction = (value) => new PredicateError(value)) {
+/**
+ * A validator creator that also accepts a predicate
+ * @param validator The validator to run the predicate against
+ * @param pred The predicate to run against the value
+ * @returns A Validator, where if the predicate were to fail, it will result in
+ *   a failed validation
+ */
+export function predicate(validator, pred) {
     return {
         __: {},
         validate(value) {
@@ -451,8 +458,43 @@ export function predicate(validator, pred, errorFunction = (value) => new Predic
                 ? validation
                 : pred(value)
                     ? { isValid: true, value: validation.value }
-                    : { isValid: false, error: errorFunction(value) };
+                    : { isValid: false, error: new PredicateError(value) };
         },
     };
 }
+/**
+ * A Validator creator that substitutes the error from one validator, to another
+ * error for that validator.
+ *
+ * @param validator The validator for which to have the error substituted
+ * @param error An error function that will return the appropriate error object
+ */
+export function replaceError(validator, createError) {
+    return {
+        __: {},
+        validate(value) {
+            const validation = validator.validate(value);
+            return validation.isValid === false
+                ? { isValid: false, error: createError(value) }
+                : { isValid: true, value };
+        },
+    };
+}
+/**
+ * Chains two validators together.
+ *
+ * @param left the first validator to validate values against
+ * @param right the second validator to validate values against
+ * @returns a validator that will validate first against the first validator
+ *   then the second validator
+ */
+export const chain = (left, right) => ({
+    __: {},
+    validate(value) {
+        const validation = left.validate(value);
+        return validation.isValid === false
+            ? { isValid: false, error: validation.error }
+            : right.validate(value);
+    },
+});
 //# sourceMappingURL=lib.js.map

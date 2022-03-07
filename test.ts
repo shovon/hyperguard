@@ -17,6 +17,9 @@ import {
   PossibleTypeof,
   parser,
   predicate,
+  replaceError,
+  ValidationError,
+  chain,
 } from "./lib";
 import { strict as assert } from "assert";
 
@@ -501,4 +504,65 @@ const assertIncorrect = <T>(
     "Expected that the string 'Vancouver' be evaluated not have a length of at least 10",
     predicateError()
   );
+}
+
+{
+  const type = "Custom error";
+  const errorMessage = "Some custom error message";
+  const customMessage = "This is a custom message";
+
+  const customError = () =>
+    object({
+      type: exact(type),
+      errorMessage: exact(errorMessage),
+      value: any(),
+      customMessage: exact(customMessage),
+    });
+
+  class CustomError extends ValidationError {
+    constructor(value: any, public customMessage: string) {
+      super(type, errorMessage, value);
+    }
+  }
+
+  const validator = replaceError(
+    string(),
+    (value) => new CustomError(value, customMessage)
+  );
+
+  assertIncorrect(
+    validator,
+    25,
+    "An error should have happened, but it didn't",
+    customError()
+  );
+}
+
+{
+  const assertDateEqual = (
+    v: Validator<Date>,
+    value: string,
+    intent: string = ""
+  ) => {
+    const validation = v.validate(value);
+    assert(
+      validation.isValid,
+      `Should have been valid, but was invalid. ${intent}`
+    );
+    assert.equal(
+      validation.value.toISOString(),
+      value,
+      `Values do not match. ${value} !== ${validation.value.toISOString()}`
+    );
+  };
+
+  const isoString = "1970-01-01T00:00:00.000Z";
+
+  const date = chain(
+    string(),
+    parser((value) => new Date(value))
+  );
+
+  assertDateEqual(date, isoString);
+  assertIncorrect(date, 10, "Number is not a string");
 }
