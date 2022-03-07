@@ -4,7 +4,7 @@
 
 _Valentina_ is a tiny library for validating JavaScript values. Whether they be primitives, such as strings and numbers, or modelling more complex objects, Valentina will empower you to express your data validation rules, your way.
 
-[Try Valentina now](https://replit.com/@shovon1/typescript-valentina#index.ts)
+**[Try Valentina now](https://replit.com/@shovon1/typescript-valentina#index.ts)**
 
 **Killer Features:**
 
