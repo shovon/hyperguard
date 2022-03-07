@@ -43,10 +43,7 @@ export const date = () =>
 // using temporary variables.
 // ```typescript
 // const s = string();
-// const c = chain(
-//   s,
-//   parser((value) => new Date(value))
-// );
+// const c = chain(s, parser((value) => new Date(value)));
 // const p = predicate<Date>(c, (d) => isNaN(d.getTime()));
 // const r = replaceError(p, (value) => new DateError(value));
 // ```
