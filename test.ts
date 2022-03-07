@@ -557,7 +557,6 @@ const assertIncorrect = <T>(
   };
 
   const isoString = "1970-01-01T00:00:00.000Z";
-  const d = new Date(isoString);
 
   const date = chain(
     string(),
