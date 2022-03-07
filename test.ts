@@ -19,6 +19,7 @@ import {
   predicate,
   replaceError,
   ValidationError,
+  chain,
 } from "./lib";
 import { strict as assert } from "assert";
 
@@ -535,4 +536,34 @@ const assertIncorrect = <T>(
     "An error should have happened, but it didn't",
     customError()
   );
+}
+
+{
+  const assertDateEqual = (
+    v: Validator<Date>,
+    value: string,
+    intent: string = ""
+  ) => {
+    const validation = v.validate(value);
+    assert(
+      validation.isValid,
+      `Should have been valid, but was invalid. ${intent}`
+    );
+    assert.equal(
+      validation.value.toISOString(),
+      value,
+      `Values do not match. ${value} !== ${validation.value.toISOString()}`
+    );
+  };
+
+  const isoString = "1970-01-01T00:00:00.000Z";
+  const d = new Date(isoString);
+
+  const date = chain(
+    string(),
+    parser((value) => new Date(value))
+  );
+
+  assertDateEqual(date, isoString);
+  assertIncorrect(date, 10, "Number is not a string");
 }
