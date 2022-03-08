@@ -15,20 +15,20 @@ import {
   ExactTypes,
   IValidationError,
   PossibleTypeof,
-  parser,
+  transform,
   predicate,
   replaceError,
   ValidationError,
   chain,
   fallback,
 } from "./lib";
-import { strict as assert, strictEqual } from "assert";
+import { strict as assert } from "assert";
 
 const date = () =>
   predicate(
     chain(
       string(),
-      parser((value) => new Date(value))
+      transform((value) => new Date(value))
     ),
     (d) => {
       return !isNaN(d.getTime());
@@ -80,6 +80,20 @@ const assertIncorrect = <T>(
     }
   }
 };
+
+{
+  const dateParse = () =>
+    chain(
+      transform((value) => new Date(value)),
+      transform((value) => value.toISOString())
+    );
+
+  const expectedDateString = new Date(0).toISOString();
+
+  const validation = dateParse().validate(0);
+  assert(validation.isValid);
+  assert.strictEqual(expectedDateString, validation.value);
+}
 
 {
   const notExactErrorSchema = (validator: Validator<ExactTypes>) =>
@@ -277,7 +291,7 @@ const assertIncorrect = <T>(
     predicate(
       chain(
         string(),
-        parser((value) => new Date(value))
+        transform((value) => new Date(value))
       ),
       (d) => !isNaN(d.getTime())
     );
@@ -378,7 +392,7 @@ const assertIncorrect = <T>(
     predicate(
       chain(
         string(),
-        parser((value) => new Date(value))
+        transform((value) => new Date(value))
       ),
       (d) => {
         return !isNaN(d.getTime());
@@ -559,6 +573,11 @@ const assertIncorrect = <T>(
     },
     "Nested values should not go unchecked"
   );
+
+  const dateParse = lazy(() => date());
+  const validation = dateParse.validate(new Date().toISOString());
+  assert(validation.isValid);
+  assert(validation.value instanceof Date);
 }
 
 {
@@ -570,7 +589,7 @@ const assertIncorrect = <T>(
       errorObject: object({}),
     });
 
-  const jsonParser = () => parser((value) => JSON.parse(value));
+  const jsonParser = () => transform((value) => JSON.parse(value));
   assertTransformValidator(
     jsonParser(),
     "{}",
@@ -609,7 +628,19 @@ const assertIncorrect = <T>(
     predicateError()
   );
 
-  // TODO
+  const date = predicate(
+    chain(
+      string(),
+      transform((value) => new Date(value))
+    ),
+    (v) => !isNaN(v.getTime())
+  );
+
+  const d = new Date().toISOString();
+
+  const validation = date.validate(d);
+  assert(validation.isValid);
+  assert(validation.value instanceof Date);
 }
 
 {
@@ -642,6 +673,14 @@ const assertIncorrect = <T>(
     "An error should have happened, but it didn't",
     customError()
   );
+
+  const validationSynthesis = replaceError(
+    date(),
+    (value) => new CustomError(value, customMessage)
+  ).validate(new Date().toISOString());
+
+  assert(validationSynthesis.isValid);
+  assert(validationSynthesis.value instanceof Date);
 }
 
 {
@@ -666,7 +705,7 @@ const assertIncorrect = <T>(
 
   const date = chain(
     string(),
-    parser((value) => new Date(value))
+    transform((value) => new Date(value))
   );
 
   assertDateEqual(date, isoString);
@@ -698,4 +737,11 @@ const assertIncorrect = <T>(
     "",
     "There should be an empty string fallback"
   );
+
+  const dateFallback = fallback(date(), () => undefined as undefined);
+
+  const validation = dateFallback.validate(new Date(0).toString());
+
+  assert(validation.isValid);
+  assert(validation.value instanceof Date);
 }

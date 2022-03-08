@@ -428,7 +428,7 @@ export function lazy(schemaFn) {
         validate: (value) => schemaFn().validate(value),
     };
 }
-export class ParserError extends ValidationError {
+export class TransformError extends ValidationError {
     constructor(value, errorObject) {
         super("Parsing error", "Failed to parse the value", value);
         this.errorObject = errorObject;
@@ -440,14 +440,14 @@ export class ParserError extends ValidationError {
  * @param parse The parser function that will parse the supplied value
  * @returns A validator to validate the value against
  */
-export const parser = (parse) => ({
+export const transform = (parse) => ({
     __: {},
     validate(value) {
         try {
             return { isValid: true, value: parse(value) };
         }
         catch (e) {
-            return { isValid: false, error: new ParserError(value, e) };
+            return { isValid: false, error: new TransformError(value, e) };
         }
     },
 });
@@ -491,7 +491,7 @@ export function replaceError(validator, createError) {
             const validation = validator.validate(value);
             return validation.isValid === false
                 ? { isValid: false, error: createError(value, validation.error) }
-                : { isValid: true, value };
+                : { isValid: true, value: validation.value };
         },
     };
 }
@@ -508,7 +508,7 @@ export const chain = (left, right) => ({
         const validation = left.validate(value);
         return validation.isValid === false
             ? { isValid: false, error: validation.error }
-            : right.validate(value);
+            : right.validate(validation.value);
     },
 });
 /**

@@ -2213,7 +2213,7 @@ export function lazy<V extends any>(
   };
 }
 
-export class ParserError extends ValidationError {
+export class TransformError extends ValidationError {
   constructor(value: any, public errorObject: any) {
     super("Parsing error", "Failed to parse the value", value);
   }
@@ -2225,13 +2225,13 @@ export class ParserError extends ValidationError {
  * @param parse The parser function that will parse the supplied value
  * @returns A validator to validate the value against
  */
-export const parser = <T>(parse: (value: any) => T): Validator<T> => ({
+export const transform = <T>(parse: (value: any) => T): Validator<T> => ({
   __: {} as any,
   validate(value: any) {
     try {
       return { isValid: true, value: parse(value) };
     } catch (e) {
-      return { isValid: false, error: new ParserError(value, e) };
+      return { isValid: false, error: new TransformError(value, e) };
     }
   },
 });
@@ -2284,7 +2284,7 @@ export function replaceError<T>(
       const validation = validator.validate(value);
       return validation.isValid === false
         ? { isValid: false, error: createError(value, validation.error) }
-        : { isValid: true, value };
+        : { isValid: true, value: validation.value };
     },
   };
 }
@@ -2305,7 +2305,7 @@ export const chain = <T1, T2>(
     const validation = left.validate(value);
     return validation.isValid === false
       ? { isValid: false, error: validation.error }
-      : right.validate(value);
+      : right.validate(validation.value);
   },
 });
 
