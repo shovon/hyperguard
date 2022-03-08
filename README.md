@@ -510,7 +510,6 @@ The definition of a `Validator` is simply:
 
 ```typescript
 export type Validator<T> = {
-  __: T;
   validate: (value: any) => ValidResult<T> | InvalidResult;
 };
 

@@ -24,7 +24,6 @@ SOFTWARE.
  * An object that serves as a validator.
  */
 export type Validator<T> = {
-  __: T;
   validate: (value: any) => ValidationResult<T>;
 };
 
@@ -148,845 +147,14 @@ export class UnexpectedArrayLengthError extends ValidationError {
  * // }
  * ```
  */
-export type InferType<T extends Validator<any>> = T["__"];
+export type InferType<V extends Validator<unknown>> = V extends Validator<
+  infer T
+>
+  ? T
+  : never;
 
-export function either<T0, T1>(
-  a0: Validator<T0>,
-  a1: Validator<T1>
-): Validator<T0 | T1>;
-export function either<T0, T1, T2>(
-  a0: Validator<T0>,
-  a1: Validator<T1>,
-  a2: Validator<T2>
-): Validator<T0 | T1 | T2>;
-export function either<T0, T1, T2, T3>(
-  a0: Validator<T0>,
-  a1: Validator<T1>,
-  a2: Validator<T2>,
-  a3: Validator<T3>
-): Validator<T0 | T1 | T2 | T3>;
-export function either<T0, T1, T2, T3, T4>(
-  a0: Validator<T0>,
-  a1: Validator<T1>,
-  a2: Validator<T2>,
-  a3: Validator<T3>,
-  a4: Validator<T4>
-): Validator<T0 | T1 | T2 | T3 | T4>;
-export function either<T0, T1, T2, T3, T4, T5>(
-  a0: Validator<T0>,
-  a1: Validator<T1>,
-  a2: Validator<T2>,
-  a3: Validator<T3>,
-  a4: Validator<T4>,
-  a5: Validator<T5>
-): Validator<T0 | T1 | T2 | T3 | T4 | T5>;
-export function either<T0, T1, T2, T3, T4, T5, T6>(
-  a0: Validator<T0>,
-  a1: Validator<T1>,
-  a2: Validator<T2>,
-  a3: Validator<T3>,
-  a4: Validator<T4>,
-  a5: Validator<T5>,
-  a6: Validator<T6>
-): Validator<T0 | T1 | T2 | T3 | T4 | T5 | T6>;
-export function either<T0, T1, T2, T3, T4, T5, T6, T7>(
-  a0: Validator<T0>,
-  a1: Validator<T1>,
-  a2: Validator<T2>,
-  a3: Validator<T3>,
-  a4: Validator<T4>,
-  a5: Validator<T5>,
-  a6: Validator<T6>,
-  a7: Validator<T7>
-): Validator<T0 | T1 | T2 | T3 | T4 | T5 | T6 | T7>;
-export function either<T0, T1, T2, T3, T4, T5, T6, T7, T8>(
-  a0: Validator<T0>,
-  a1: Validator<T1>,
-  a2: Validator<T2>,
-  a3: Validator<T3>,
-  a4: Validator<T4>,
-  a5: Validator<T5>,
-  a6: Validator<T6>,
-  a7: Validator<T7>,
-  a8: Validator<T8>
-): Validator<T0 | T1 | T2 | T3 | T4 | T5 | T6 | T7 | T8>;
-export function either<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(
-  a0: Validator<T0>,
-  a1: Validator<T1>,
-  a2: Validator<T2>,
-  a3: Validator<T3>,
-  a4: Validator<T4>,
-  a5: Validator<T5>,
-  a6: Validator<T6>,
-  a7: Validator<T7>,
-  a8: Validator<T8>,
-  a9: Validator<T9>
-): Validator<T0 | T1 | T2 | T3 | T4 | T5 | T6 | T7 | T8 | T9>;
-export function either<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(
-  a0: Validator<T0>,
-  a1: Validator<T1>,
-  a2: Validator<T2>,
-  a3: Validator<T3>,
-  a4: Validator<T4>,
-  a5: Validator<T5>,
-  a6: Validator<T6>,
-  a7: Validator<T7>,
-  a8: Validator<T8>,
-  a9: Validator<T9>,
-  a10: Validator<T10>
-): Validator<T0 | T1 | T2 | T3 | T4 | T5 | T6 | T7 | T8 | T9 | T10>;
-export function either<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(
-  a0: Validator<T0>,
-  a1: Validator<T1>,
-  a2: Validator<T2>,
-  a3: Validator<T3>,
-  a4: Validator<T4>,
-  a5: Validator<T5>,
-  a6: Validator<T6>,
-  a7: Validator<T7>,
-  a8: Validator<T8>,
-  a9: Validator<T9>,
-  a10: Validator<T10>,
-  a11: Validator<T11>
-): Validator<T0 | T1 | T2 | T3 | T4 | T5 | T6 | T7 | T8 | T9 | T10 | T11>;
-export function either<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(
-  a0: Validator<T0>,
-  a1: Validator<T1>,
-  a2: Validator<T2>,
-  a3: Validator<T3>,
-  a4: Validator<T4>,
-  a5: Validator<T5>,
-  a6: Validator<T6>,
-  a7: Validator<T7>,
-  a8: Validator<T8>,
-  a9: Validator<T9>,
-  a10: Validator<T10>,
-  a11: Validator<T11>,
-  a12: Validator<T12>
-): Validator<T0 | T1 | T2 | T3 | T4 | T5 | T6 | T7 | T8 | T9 | T10 | T11 | T12>;
-export function either<
-  T0,
-  T1,
-  T2,
-  T3,
-  T4,
-  T5,
-  T6,
-  T7,
-  T8,
-  T9,
-  T10,
-  T11,
-  T12,
-  T13
->(
-  a0: Validator<T0>,
-  a1: Validator<T1>,
-  a2: Validator<T2>,
-  a3: Validator<T3>,
-  a4: Validator<T4>,
-  a5: Validator<T5>,
-  a6: Validator<T6>,
-  a7: Validator<T7>,
-  a8: Validator<T8>,
-  a9: Validator<T9>,
-  a10: Validator<T10>,
-  a11: Validator<T11>,
-  a12: Validator<T12>,
-  a13: Validator<T13>
-): Validator<
-  T0 | T1 | T2 | T3 | T4 | T5 | T6 | T7 | T8 | T9 | T10 | T11 | T12 | T13
->;
-export function either<
-  T0,
-  T1,
-  T2,
-  T3,
-  T4,
-  T5,
-  T6,
-  T7,
-  T8,
-  T9,
-  T10,
-  T11,
-  T12,
-  T13,
-  T14
->(
-  a0: Validator<T0>,
-  a1: Validator<T1>,
-  a2: Validator<T2>,
-  a3: Validator<T3>,
-  a4: Validator<T4>,
-  a5: Validator<T5>,
-  a6: Validator<T6>,
-  a7: Validator<T7>,
-  a8: Validator<T8>,
-  a9: Validator<T9>,
-  a10: Validator<T10>,
-  a11: Validator<T11>,
-  a12: Validator<T12>,
-  a13: Validator<T13>,
-  a14: Validator<T14>
-): Validator<
-  T0 | T1 | T2 | T3 | T4 | T5 | T6 | T7 | T8 | T9 | T10 | T11 | T12 | T13 | T14
->;
-export function either<
-  T0,
-  T1,
-  T2,
-  T3,
-  T4,
-  T5,
-  T6,
-  T7,
-  T8,
-  T9,
-  T10,
-  T11,
-  T12,
-  T13,
-  T14,
-  T15
->(
-  a0: Validator<T0>,
-  a1: Validator<T1>,
-  a2: Validator<T2>,
-  a3: Validator<T3>,
-  a4: Validator<T4>,
-  a5: Validator<T5>,
-  a6: Validator<T6>,
-  a7: Validator<T7>,
-  a8: Validator<T8>,
-  a9: Validator<T9>,
-  a10: Validator<T10>,
-  a11: Validator<T11>,
-  a12: Validator<T12>,
-  a13: Validator<T13>,
-  a14: Validator<T14>,
-  a15: Validator<T15>
-): Validator<
-  | T0
-  | T1
-  | T2
-  | T3
-  | T4
-  | T5
-  | T6
-  | T7
-  | T8
-  | T9
-  | T10
-  | T11
-  | T12
-  | T13
-  | T14
-  | T15
->;
-export function either<
-  T0,
-  T1,
-  T2,
-  T3,
-  T4,
-  T5,
-  T6,
-  T7,
-  T8,
-  T9,
-  T10,
-  T11,
-  T12,
-  T13,
-  T14,
-  T15,
-  T16
->(
-  a0: Validator<T0>,
-  a1: Validator<T1>,
-  a2: Validator<T2>,
-  a3: Validator<T3>,
-  a4: Validator<T4>,
-  a5: Validator<T5>,
-  a6: Validator<T6>,
-  a7: Validator<T7>,
-  a8: Validator<T8>,
-  a9: Validator<T9>,
-  a10: Validator<T10>,
-  a11: Validator<T11>,
-  a12: Validator<T12>,
-  a13: Validator<T13>,
-  a14: Validator<T14>,
-  a15: Validator<T15>,
-  a16: Validator<T16>
-): Validator<
-  | T0
-  | T1
-  | T2
-  | T3
-  | T4
-  | T5
-  | T6
-  | T7
-  | T8
-  | T9
-  | T10
-  | T11
-  | T12
-  | T13
-  | T14
-  | T15
-  | T16
->;
-export function either<
-  T0,
-  T1,
-  T2,
-  T3,
-  T4,
-  T5,
-  T6,
-  T7,
-  T8,
-  T9,
-  T10,
-  T11,
-  T12,
-  T13,
-  T14,
-  T15,
-  T16,
-  T17
->(
-  a0: Validator<T0>,
-  a1: Validator<T1>,
-  a2: Validator<T2>,
-  a3: Validator<T3>,
-  a4: Validator<T4>,
-  a5: Validator<T5>,
-  a6: Validator<T6>,
-  a7: Validator<T7>,
-  a8: Validator<T8>,
-  a9: Validator<T9>,
-  a10: Validator<T10>,
-  a11: Validator<T11>,
-  a12: Validator<T12>,
-  a13: Validator<T13>,
-  a14: Validator<T14>,
-  a15: Validator<T15>,
-  a16: Validator<T16>,
-  a17: Validator<T17>
-): Validator<
-  | T0
-  | T1
-  | T2
-  | T3
-  | T4
-  | T5
-  | T6
-  | T7
-  | T8
-  | T9
-  | T10
-  | T11
-  | T12
-  | T13
-  | T14
-  | T15
-  | T16
-  | T17
->;
-export function either<
-  T0,
-  T1,
-  T2,
-  T3,
-  T4,
-  T5,
-  T6,
-  T7,
-  T8,
-  T9,
-  T10,
-  T11,
-  T12,
-  T13,
-  T14,
-  T15,
-  T16,
-  T17,
-  T18
->(
-  a0: Validator<T0>,
-  a1: Validator<T1>,
-  a2: Validator<T2>,
-  a3: Validator<T3>,
-  a4: Validator<T4>,
-  a5: Validator<T5>,
-  a6: Validator<T6>,
-  a7: Validator<T7>,
-  a8: Validator<T8>,
-  a9: Validator<T9>,
-  a10: Validator<T10>,
-  a11: Validator<T11>,
-  a12: Validator<T12>,
-  a13: Validator<T13>,
-  a14: Validator<T14>,
-  a15: Validator<T15>,
-  a16: Validator<T16>,
-  a17: Validator<T17>,
-  a18: Validator<T18>
-): Validator<
-  | T0
-  | T1
-  | T2
-  | T3
-  | T4
-  | T5
-  | T6
-  | T7
-  | T8
-  | T9
-  | T10
-  | T11
-  | T12
-  | T13
-  | T14
-  | T15
-  | T16
-  | T17
-  | T18
->;
-export function either<
-  T0,
-  T1,
-  T2,
-  T3,
-  T4,
-  T5,
-  T6,
-  T7,
-  T8,
-  T9,
-  T10,
-  T11,
-  T12,
-  T13,
-  T14,
-  T15,
-  T16,
-  T17,
-  T18,
-  T19
->(
-  a0: Validator<T0>,
-  a1: Validator<T1>,
-  a2: Validator<T2>,
-  a3: Validator<T3>,
-  a4: Validator<T4>,
-  a5: Validator<T5>,
-  a6: Validator<T6>,
-  a7: Validator<T7>,
-  a8: Validator<T8>,
-  a9: Validator<T9>,
-  a10: Validator<T10>,
-  a11: Validator<T11>,
-  a12: Validator<T12>,
-  a13: Validator<T13>,
-  a14: Validator<T14>,
-  a15: Validator<T15>,
-  a16: Validator<T16>,
-  a17: Validator<T17>,
-  a18: Validator<T18>,
-  a19: Validator<T19>
-): Validator<
-  | T0
-  | T1
-  | T2
-  | T3
-  | T4
-  | T5
-  | T6
-  | T7
-  | T8
-  | T9
-  | T10
-  | T11
-  | T12
-  | T13
-  | T14
-  | T15
-  | T16
-  | T17
-  | T18
-  | T19
->;
-export function either<
-  T0,
-  T1,
-  T2,
-  T3,
-  T4,
-  T5,
-  T6,
-  T7,
-  T8,
-  T9,
-  T10,
-  T11,
-  T12,
-  T13,
-  T14,
-  T15,
-  T16,
-  T17,
-  T18,
-  T19,
-  T20
->(
-  a0: Validator<T0>,
-  a1: Validator<T1>,
-  a2: Validator<T2>,
-  a3: Validator<T3>,
-  a4: Validator<T4>,
-  a5: Validator<T5>,
-  a6: Validator<T6>,
-  a7: Validator<T7>,
-  a8: Validator<T8>,
-  a9: Validator<T9>,
-  a10: Validator<T10>,
-  a11: Validator<T11>,
-  a12: Validator<T12>,
-  a13: Validator<T13>,
-  a14: Validator<T14>,
-  a15: Validator<T15>,
-  a16: Validator<T16>,
-  a17: Validator<T17>,
-  a18: Validator<T18>,
-  a19: Validator<T19>,
-  a20: Validator<T20>
-): Validator<
-  | T0
-  | T1
-  | T2
-  | T3
-  | T4
-  | T5
-  | T6
-  | T7
-  | T8
-  | T9
-  | T10
-  | T11
-  | T12
-  | T13
-  | T14
-  | T15
-  | T16
-  | T17
-  | T18
-  | T19
-  | T20
->;
-export function either<
-  T0,
-  T1,
-  T2,
-  T3,
-  T4,
-  T5,
-  T6,
-  T7,
-  T8,
-  T9,
-  T10,
-  T11,
-  T12,
-  T13,
-  T14,
-  T15,
-  T16,
-  T17,
-  T18,
-  T19,
-  T20,
-  T21
->(
-  a0: Validator<T0>,
-  a1: Validator<T1>,
-  a2: Validator<T2>,
-  a3: Validator<T3>,
-  a4: Validator<T4>,
-  a5: Validator<T5>,
-  a6: Validator<T6>,
-  a7: Validator<T7>,
-  a8: Validator<T8>,
-  a9: Validator<T9>,
-  a10: Validator<T10>,
-  a11: Validator<T11>,
-  a12: Validator<T12>,
-  a13: Validator<T13>,
-  a14: Validator<T14>,
-  a15: Validator<T15>,
-  a16: Validator<T16>,
-  a17: Validator<T17>,
-  a18: Validator<T18>,
-  a19: Validator<T19>,
-  a20: Validator<T20>,
-  a21: Validator<T21>
-): Validator<
-  | T0
-  | T1
-  | T2
-  | T3
-  | T4
-  | T5
-  | T6
-  | T7
-  | T8
-  | T9
-  | T10
-  | T11
-  | T12
-  | T13
-  | T14
-  | T15
-  | T16
-  | T17
-  | T18
-  | T19
-  | T20
-  | T21
->;
-export function either<
-  T0,
-  T1,
-  T2,
-  T3,
-  T4,
-  T5,
-  T6,
-  T7,
-  T8,
-  T9,
-  T10,
-  T11,
-  T12,
-  T13,
-  T14,
-  T15,
-  T16,
-  T17,
-  T18,
-  T19,
-  T20,
-  T21,
-  T22
->(
-  a0: Validator<T0>,
-  a1: Validator<T1>,
-  a2: Validator<T2>,
-  a3: Validator<T3>,
-  a4: Validator<T4>,
-  a5: Validator<T5>,
-  a6: Validator<T6>,
-  a7: Validator<T7>,
-  a8: Validator<T8>,
-  a9: Validator<T9>,
-  a10: Validator<T10>,
-  a11: Validator<T11>,
-  a12: Validator<T12>,
-  a13: Validator<T13>,
-  a14: Validator<T14>,
-  a15: Validator<T15>,
-  a16: Validator<T16>,
-  a17: Validator<T17>,
-  a18: Validator<T18>,
-  a19: Validator<T19>,
-  a20: Validator<T20>,
-  a21: Validator<T21>,
-  a22: Validator<T22>
-): Validator<
-  | T0
-  | T1
-  | T2
-  | T3
-  | T4
-  | T5
-  | T6
-  | T7
-  | T8
-  | T9
-  | T10
-  | T11
-  | T12
-  | T13
-  | T14
-  | T15
-  | T16
-  | T17
-  | T18
-  | T19
-  | T20
-  | T21
-  | T22
->;
-export function either<
-  T0,
-  T1,
-  T2,
-  T3,
-  T4,
-  T5,
-  T6,
-  T7,
-  T8,
-  T9,
-  T10,
-  T11,
-  T12,
-  T13,
-  T14,
-  T15,
-  T16,
-  T17,
-  T18,
-  T19,
-  T20,
-  T21,
-  T22,
-  T23
->(
-  a0: Validator<T0>,
-  a1: Validator<T1>,
-  a2: Validator<T2>,
-  a3: Validator<T3>,
-  a4: Validator<T4>,
-  a5: Validator<T5>,
-  a6: Validator<T6>,
-  a7: Validator<T7>,
-  a8: Validator<T8>,
-  a9: Validator<T9>,
-  a10: Validator<T10>,
-  a11: Validator<T11>,
-  a12: Validator<T12>,
-  a13: Validator<T13>,
-  a14: Validator<T14>,
-  a15: Validator<T15>,
-  a16: Validator<T16>,
-  a17: Validator<T17>,
-  a18: Validator<T18>,
-  a19: Validator<T19>,
-  a20: Validator<T20>,
-  a21: Validator<T21>,
-  a22: Validator<T22>,
-  a23: Validator<T23>
-): Validator<
-  | T0
-  | T1
-  | T2
-  | T3
-  | T4
-  | T5
-  | T6
-  | T7
-  | T8
-  | T9
-  | T10
-  | T11
-  | T12
-  | T13
-  | T14
-  | T15
-  | T16
-  | T17
-  | T18
-  | T19
-  | T20
-  | T21
-  | T22
-  | T23
->;
-export function either<
-  T0,
-  T1,
-  T2,
-  T3,
-  T4,
-  T5,
-  T6,
-  T7,
-  T8,
-  T9,
-  T10,
-  T11,
-  T12,
-  T13,
-  T14,
-  T15,
-  T16,
-  T17,
-  T18,
-  T19,
-  T20,
-  T21,
-  T22,
-  T23,
-  T24
->(
-  a0: Validator<T0>,
-  a1: Validator<T1>,
-  a2: Validator<T2>,
-  a3: Validator<T3>,
-  a4: Validator<T4>,
-  a5: Validator<T5>,
-  a6: Validator<T6>,
-  a7: Validator<T7>,
-  a8: Validator<T8>,
-  a9: Validator<T9>,
-  a10: Validator<T10>,
-  a11: Validator<T11>,
-  a12: Validator<T12>,
-  a13: Validator<T13>,
-  a14: Validator<T14>,
-  a15: Validator<T15>,
-  a16: Validator<T16>,
-  a17: Validator<T17>,
-  a18: Validator<T18>,
-  a19: Validator<T19>,
-  a20: Validator<T20>,
-  a21: Validator<T21>,
-  a22: Validator<T22>,
-  a23: Validator<T23>,
-  a24: Validator<T24>
-): Validator<
-  | T0
-  | T1
-  | T2
-  | T3
-  | T4
-  | T5
-  | T6
-  | T7
-  | T8
-  | T9
-  | T10
-  | T11
-  | T12
-  | T13
-  | T14
-  | T15
-  | T16
-  | T17
-  | T18
-  | T19
-  | T20
-  | T21
-  | T22
-  | T23
-  | T24
->;
+type ValidatorArrayToValidatorUnion<T extends Validator<unknown>[]> =
+  T extends Validator<infer I>[] ? Validator<I> : never;
 
 /**
  * A validator for validating objects against a list of validators.
@@ -1010,9 +178,10 @@ export function either<
  * @param alts A list of validators that are to be run
  * @returns A validator to validate an object against a set of validators
  */
-export function either<T>(...alts: Validator<T>[]): Validator<T> {
+export function either<T extends Validator<unknown>[]>(
+  ...alts: T
+): ValidatorArrayToValidatorUnion<T> {
   return {
-    __: {} as any,
     validate: (value: any) => {
       const validations = alts.map((validator) => validator.validate(value));
       return validations.some((validation) => validation.isValid)
@@ -1025,10 +194,10 @@ export function either<T>(...alts: Validator<T>[]): Validator<T> {
             error: new EitherError(value, validations),
           };
     },
-  };
+  } as ValidatorArrayToValidatorUnion<T>;
 }
 
-type ValueTupleToValidatorTuple<T extends Validator<unknown>[]> = Validator<{
+type ValidatorTupleToValueTuple<T extends Validator<unknown>[]> = Validator<{
   [P in keyof T]: T[P] extends Validator<infer U> ? U : never;
 }>;
 
@@ -1049,9 +218,8 @@ type ValueTupleToValidatorTuple<T extends Validator<unknown>[]> = Validator<{
  */
 export function tuple<T extends Validator<unknown>[]>(
   t: [...T]
-): ValueTupleToValidatorTuple<T> {
+): ValidatorTupleToValueTuple<T> {
   return {
-    __: {} as any,
     validate: (value: any) => {
       if (!Array.isArray(value)) {
         return {
@@ -1116,7 +284,6 @@ export function except<T, I>(
   invalidator: Validator<I>
 ): Validator<Exclude<T, I>> {
   return {
-    __: {} as Exclude<T, I>,
     validate: (value: any) => {
       const validation = validator.validate(value);
       if (validation.isValid === false) {
@@ -1153,7 +320,6 @@ export class UnexpectedTypeofError extends ValidationError {
  */
 export const string = (): Validator<string> => {
   return {
-    __: "",
     validate: (value: any) =>
       typeof value !== "string"
         ? { isValid: false, error: new UnexpectedTypeofError(value, "string") }
@@ -1182,7 +348,6 @@ class NotExactValueError extends ValidationError {
  */
 export function exact<V extends ExactTypes>(expected: V): Validator<V> {
   return {
-    __: {} as any,
     validate: (value: any) =>
       value !== expected
         ? { isValid: false, error: new NotExactValueError(value, expected) }
@@ -1195,7 +360,6 @@ export function exact<V extends ExactTypes>(expected: V): Validator<V> {
  * @returns A validator to check if the value is of type number
  */
 export const number = (): Validator<number> => ({
-  __: 0,
   validate: (value: any) =>
     typeof value !== "number"
       ? { isValid: false, error: new UnexpectedTypeofError(value, "number") }
@@ -1207,7 +371,6 @@ export const number = (): Validator<number> => ({
  * @returns A validator to check if the value is of type boolean
  */
 export const boolean = (): Validator<boolean> => ({
-  __: false,
   validate: (value: any) =>
     typeof value !== "boolean"
       ? { isValid: false, error: new UnexpectedTypeofError(value, "boolean") }
@@ -1239,7 +402,6 @@ export class ArrayOfInvalidValuesError<T> extends ValidationError {
  */
 export function arrayOf<V>(validator: Validator<V>): Validator<V[]> {
   return {
-    __: [],
     validate: (value: any) => {
       if (!Array.isArray(value)) {
         return { isValid: false, error: new NotAnArrayError(value) };
@@ -1300,7 +462,6 @@ export function objectOf<V>(
   validator: Validator<V>
 ): Validator<{ [keys: string]: V }> {
   return {
-    __: {},
     validate: (value: any) => {
       if (value === undefined) {
         return { isValid: false, error: new ValueIsUndefinedError() };
@@ -1377,7 +538,6 @@ export function object<V extends object>(schema: {
   [key in keyof V]: Validator<V[key]>;
 }): Validator<V> {
   return {
-    __: {} as V,
     validate: (value: any) => {
       if (value === undefined) {
         return { isValid: false, error: new ValueIsUndefinedError() };
@@ -1433,7 +593,6 @@ export function object<V extends object>(schema: {
  */
 export function any(): Validator<any> {
   return {
-    __: "",
     validate: (value: any) => ({ isValid: true, value }),
   };
 }
@@ -1450,7 +609,6 @@ export function lazy<V extends any>(
   schemaFn: () => Validator<V>
 ): Validator<V> {
   return {
-    __: {} as V,
     validate: (value: any) => schemaFn().validate(value),
   };
 }
@@ -1468,7 +626,6 @@ export class TransformError extends ValidationError {
  * @returns A validator to validate the value against
  */
 export const transform = <T>(parse: (value: any) => T): Validator<T> => ({
-  __: {} as any,
   validate(value: any) {
     try {
       return { isValid: true, value: parse(value) };
@@ -1496,7 +653,6 @@ export function predicate<T>(
   pred: (value: T) => boolean
 ): Validator<T> {
   return {
-    __: {} as any,
     validate(value: any): ValidationResult<T> {
       const validation = validator.validate(value);
       return validation.isValid === false
@@ -1521,7 +677,6 @@ export function replaceError<T>(
   createError: (value: any, error: IValidationError) => IValidationError
 ): Validator<T> {
   return {
-    __: {} as any,
     validate(value: any) {
       const validation = validator.validate(value);
       return validation.isValid === false
@@ -1542,7 +697,6 @@ export const chain = <T1, T2>(
   left: Validator<T1>,
   right: Validator<T2>
 ): Validator<T2> => ({
-  __: {} as T2,
   validate(value) {
     const validation = left.validate(value);
     return validation.isValid === false
@@ -1561,7 +715,6 @@ export const fallback = <T1, T2>(
   validator: Validator<T1>,
   getFallback: () => T2
 ): Validator<T1 | T2> => ({
-  __: {} as T2,
   validate(value) {
     const validation = validator.validate(value);
     return validation.isValid === false

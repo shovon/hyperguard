@@ -247,7 +247,7 @@ const assertIncorrect = <T>(
 }
 
 {
-  // alternatives
+  // either
   assertValidator(
     either(number(), string()),
     42,
@@ -284,6 +284,14 @@ const assertIncorrect = <T>(
   const stringresult = either(string(), date()).validate(stringDate);
   assert(stringresult.isValid);
   assert.strictEqual(stringresult.value, stringDate.toString());
+
+  let eitherValidator = either(number(), string(), boolean());
+  let another: Validator<number | string | boolean> = eitherValidator;
+  const validation = another.validate([1, "", false]);
+  assert(validation.isValid);
+  assert.strictEqual(validation.value[0], 1);
+  assert.strictEqual(validation.value[1], "");
+  assert.strictEqual(validation.value[2], false);
 }
 
 {
