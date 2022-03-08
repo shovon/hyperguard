@@ -22,7 +22,18 @@ import {
   chain,
   fallback,
 } from "./lib";
-import { strict as assert } from "assert";
+import { strict as assert, strictEqual } from "assert";
+
+const date = () =>
+  predicate(
+    chain(
+      string(),
+      parser((value) => new Date(value))
+    ),
+    (d) => {
+      return !isNaN(d.getTime());
+    }
+  );
 
 const assertValidator = <T>(v: Validator<T>, value: T, intent: string = "") => {
   const validation = v.validate(value);
@@ -30,8 +41,9 @@ const assertValidator = <T>(v: Validator<T>, value: T, intent: string = "") => {
     validation.isValid,
     `Should have been valid, but was invalid. ${intent}`
   );
-  assert(
-    validation.value === value,
+  assert.deepEqual(
+    validation.value,
+    value,
     `Values do not match. ${value} !== ${validation.value}`
   );
 };
@@ -158,6 +170,25 @@ const assertIncorrect = <T>(
 }
 
 {
+  const objectWithDate = object({
+    cool: string(),
+    nice: number(),
+    whenCreated: date(),
+  });
+
+  const objectUnderTest = {
+    cool: "sweet",
+    nice: 10,
+    whenCreated: new Date().toISOString(),
+  };
+
+  const validation = objectWithDate.validate(objectUnderTest);
+
+  assert(validation.isValid);
+  assert(typeof validation.value.cool === "string");
+  assert(typeof validation.value.nice === "number");
+  assert(validation.value.whenCreated instanceof Date);
+
   // object
   assertValidator(object({}), {}, "An empty object is a valid empty object");
   assertValidator(
@@ -228,9 +259,29 @@ const assertIncorrect = <T>(
     false,
     "A boolean is neither a string nor a number"
   );
+
+  const dateResult = either(number(), date()).validate(
+    new Date().toISOString()
+  );
+  assert(dateResult.isValid);
+  assert(dateResult.value instanceof Date);
+
+  const stringDate = new Date().toISOString();
+  const stringresult = either(string(), date()).validate(stringDate);
+  assert(stringresult.isValid);
+  assert.strictEqual(stringresult.value, stringDate.toString());
 }
 
 {
+  const date = () =>
+    predicate(
+      chain(
+        string(),
+        parser((value) => new Date(value))
+      ),
+      (d) => !isNaN(d.getTime())
+    );
+
   // arrayOf
   assertValidator(
     arrayOf(number()),
@@ -252,6 +303,18 @@ const assertIncorrect = <T>(
     [24, 2, "foo"],
     "An array with two numbers and a string is a valid array of numbers and strings"
   );
+  assertValidator(arrayOf(date()), [], "Should work with empty array");
+
+  const initialDate = new Date();
+  const dates = Array(10)
+    .fill(0)
+    .map((_, i) => new Date(initialDate.getTime() + i));
+
+  const strs = dates.map((d) => d.toISOString());
+  const datesValidation = arrayOf(date()).validate(strs);
+  assert(datesValidation.isValid);
+  assert(datesValidation.value.every((v, i) => strs[i] === v.toISOString()));
+
   assertIncorrect(arrayOf(number()), 2, "A number is not an array");
   assertIncorrect(arrayOf(number()), "nice", "A string is not an array");
   assertIncorrect(
@@ -268,6 +331,7 @@ const assertIncorrect = <T>(
 
 {
   // objectOf
+
   assertValidator(
     objectOf(number()),
     { a: 42 },
@@ -296,6 +360,36 @@ const assertIncorrect = <T>(
     },
     "An object of numbers and strings is not an object of numbers"
   );
+
+  const obj = {
+    a: "2022-03-08T04:53:34.447Z",
+    b: "2022-03-08T04:53:35.447Z",
+    c: "2022-03-08T04:53:36.447Z",
+    d: "2022-03-08T04:53:37.447Z",
+    e: "2022-03-08T04:53:38.447Z",
+    f: "2022-03-08T04:53:39.447Z",
+    g: "2022-03-08T04:53:40.447Z",
+    h: "2022-03-08T04:53:41.447Z",
+    i: "2022-03-08T04:53:42.447Z",
+    j: "2022-03-08T04:53:43.447Z",
+  };
+
+  const date = () =>
+    predicate(
+      chain(
+        string(),
+        parser((value) => new Date(value))
+      ),
+      (d) => {
+        return !isNaN(d.getTime());
+      }
+    );
+
+  const validation = objectOf(date()).validate(obj);
+  assert(validation.isValid);
+  Object.keys(validation.value).map((key) =>
+    assert(validation.value[key] instanceof Date)
+  );
 }
 
 {
@@ -310,6 +404,15 @@ const assertIncorrect = <T>(
     [1, "1"],
     "An array with a string and then a number is not an array with a number and then a string"
   );
+
+  const dateToTest = new Date();
+
+  const toTest = [1, new Date().toISOString()];
+
+  const validation = tuple([number(), date()]).validate(toTest);
+  assert(validation.isValid);
+  assert.strictEqual(validation.value[0], 1);
+  assert(validation.value[1] instanceof Date);
 }
 
 {
@@ -505,6 +608,8 @@ const assertIncorrect = <T>(
     "Expected that the string 'Vancouver' be evaluated not have a length of at least 10",
     predicateError()
   );
+
+  // TODO
 }
 
 {

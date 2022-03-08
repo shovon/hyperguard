@@ -89,10 +89,12 @@ export function either(...alts) {
         validate: (value) => {
             const validations = alts.map((validator) => validator.validate(value));
             return validations.some((validation) => validation.isValid)
-                ? { isValid: true, value, __: value }
+                ? {
+                    isValid: true,
+                    value: validations.filter((v) => v.isValid)[0].value,
+                }
                 : {
                     isValid: false,
-                    __: value,
                     error: new EitherError(value, validations),
                 };
         },
@@ -131,7 +133,7 @@ export function tuple(t) {
             }
             const validations = t.map((validator, i) => validator.validate(value[i]));
             return validations.every((validation) => validation.isValid)
-                ? { isValid: true, value }
+                ? { isValid: true, value: validations.map((v) => v.isValid && v.value) }
                 : {
                     isValid: false,
                     error: new TupleError(value, validations.filter((validation) => !validation.isValid)),
@@ -175,9 +177,8 @@ export function except(validator, invalidator) {
             if (validation.isValid === false) {
                 return { isValid: false, error: validation.error };
             }
-            return validator.validate(value).isValid &&
-                !invalidator.validate(value).isValid
-                ? { isValid: true, value }
+            return validation.isValid && !invalidator.validate(value).isValid
+                ? { isValid: true, value: validation.value }
                 : { isValid: false, error: new UnexpectedValueError(value) };
         },
     };
@@ -268,7 +269,10 @@ export function arrayOf(validator) {
             }
             const validations = value.map((v) => validator.validate(v));
             return validations.every(({ isValid }) => isValid)
-                ? { value, isValid: true }
+                ? {
+                    value: validations.map((validation) => validation.value),
+                    isValid: true,
+                }
                 : {
                     isValid: false,
                     error: new ArrayOfInvalidValuesError(value, validations
@@ -324,7 +328,14 @@ export function objectOf(validator) {
                 validation: validator.validate(value[key]),
             }));
             return fields.every(({ validation }) => validation.isValid)
-                ? { value, isValid: true }
+                ? {
+                    value: fields
+                        .map(({ key, validation }) => ({
+                        [key]: validation.value,
+                    }))
+                        .reduce((prev, next) => Object.assign(prev, next), {}),
+                    isValid: true,
+                }
                 : {
                     isValid: false,
                     error: new BadObjectError(value, mergeObjects(fields
@@ -333,11 +344,6 @@ export function objectOf(validator) {
                 };
         },
     };
-}
-function validValidator(value) {
-    return value && typeof value.validate === "function"
-        ? { valid: true, validator: value }
-        : { valid: false };
 }
 export class ValueIsUndefinedError extends ValidationError {
     constructor() {
@@ -379,7 +385,15 @@ export function object(schema) {
                 validation: schema[key].validate(value[key]),
             }));
             return fields.every(({ validation }) => validation.isValid)
-                ? { value, isValid: true }
+                ? {
+                    value: Object.assign({ ...value }, fields
+                        .filter(({ validation }) => !!validation.value)
+                        .map(({ key, validation }) => ({
+                        [key]: validation.value,
+                    }))
+                        .reduce((prev, next) => Object.assign(prev, next), {})),
+                    isValid: true,
+                }
                 : {
                     isValid: false,
                     error: new BadObjectError(value, mergeObjects(fields
@@ -456,7 +470,7 @@ export function predicate(validator, pred) {
             const validation = validator.validate(value);
             return validation.isValid === false
                 ? validation
-                : pred(value)
+                : pred(validation.value)
                     ? { isValid: true, value: validation.value }
                     : { isValid: false, error: new PredicateError(value) };
         },
@@ -466,7 +480,9 @@ export function predicate(validator, pred) {
  * A Validator creator that substitutes the error from one validator, to another
  * error for that validator.
  * @param validator The validator for which to have the error substituted
- * @param error An error function that will return the appropriate error object
+ * @param createError An error function that will return the appropriate error
+ *   object
+ * @returns A validator
  */
 export function replaceError(validator, createError) {
     return {
@@ -474,7 +490,7 @@ export function replaceError(validator, createError) {
         validate(value) {
             const validation = validator.validate(value);
             return validation.isValid === false
-                ? { isValid: false, error: createError(value) }
+                ? { isValid: false, error: createError(value, validation.error) }
                 : { isValid: true, value };
         },
     };

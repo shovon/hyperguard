@@ -1016,10 +1016,12 @@ export function either<T>(...alts: Validator<T>[]): Validator<T> {
     validate: (value: any) => {
       const validations = alts.map((validator) => validator.validate(value));
       return validations.some((validation) => validation.isValid)
-        ? { isValid: true, value, __: value }
+        ? {
+            isValid: true,
+            value: (validations.filter((v) => v.isValid)[0] as any).value,
+          }
         : {
             isValid: false,
-            __: value,
             error: new EitherError(value, validations),
           };
     },
@@ -1826,7 +1828,7 @@ export function tuple(t: Validator<any>[]): Validator<any[]> {
       }
       const validations = t.map((validator, i) => validator.validate(value[i]));
       return validations.every((validation) => validation.isValid)
-        ? { isValid: true, value }
+        ? { isValid: true, value: validations.map((v) => v.isValid && v.value) }
         : {
             isValid: false,
             error: new TupleError(
@@ -1878,9 +1880,8 @@ export function except<T, I>(
       if (validation.isValid === false) {
         return { isValid: false, error: validation.error };
       }
-      return validator.validate(value).isValid &&
-        !invalidator.validate(value).isValid
-        ? { isValid: true, value }
+      return validation.isValid && !invalidator.validate(value).isValid
+        ? { isValid: true, value: validation.value as Exclude<T, I> }
         : { isValid: false, error: new UnexpectedValueError(value) };
     },
   };
@@ -2003,7 +2004,10 @@ export function arrayOf<V>(validator: Validator<V>): Validator<V[]> {
       }
       const validations = value.map((v) => validator.validate(v));
       return validations.every(({ isValid }) => isValid)
-        ? { value, isValid: true }
+        ? {
+            value: validations.map((validation) => (validation as any).value),
+            isValid: true,
+          }
         : {
             isValid: false,
             error: new ArrayOfInvalidValuesError(
@@ -2075,7 +2079,14 @@ export function objectOf<V>(
       }));
 
       return fields.every(({ validation }) => validation.isValid)
-        ? { value, isValid: true }
+        ? ({
+            value: fields
+              .map(({ key, validation }) => ({
+                [key]: (validation as any).value,
+              }))
+              .reduce((prev, next) => Object.assign(prev, next), {}),
+            isValid: true,
+          } as ValidationResult<{ [key: string]: V }>)
         : {
             isValid: false,
             error: new BadObjectError(
@@ -2089,14 +2100,6 @@ export function objectOf<V>(
           };
     },
   };
-}
-
-function validValidator<V>(
-  value: any
-): { valid: false } | { valid: true; validator: Validator<V> } {
-  return value && typeof value.validate === "function"
-    ? { valid: true, validator: value }
-    : { valid: false };
 }
 
 export class ValueIsUndefinedError extends ValidationError {
@@ -2146,7 +2149,6 @@ export function object<V extends object>(schema: {
           error: new UnexpectedTypeofError(value, "object"),
         };
       }
-
       const fields = Object.keys(schema).map((key) => ({
         key,
         validation: ((schema as any)[key] as Validator<any>).validate(
@@ -2155,7 +2157,18 @@ export function object<V extends object>(schema: {
       }));
 
       return fields.every(({ validation }) => validation.isValid)
-        ? { value, isValid: true }
+        ? {
+            value: Object.assign(
+              { ...value },
+              fields
+                .filter(({ validation }) => !!(validation as any).value)
+                .map(({ key, validation }) => ({
+                  [key]: (validation as any).value,
+                }))
+                .reduce((prev, next) => Object.assign(prev, next), {}) as V
+            ),
+            isValid: true,
+          }
         : {
             isValid: false,
             error: new BadObjectError(
@@ -2246,7 +2259,7 @@ export function predicate<T>(
       const validation = validator.validate(value);
       return validation.isValid === false
         ? validation
-        : pred(value as T)
+        : pred(validation.value)
         ? { isValid: true, value: validation.value }
         : { isValid: false, error: new PredicateError(value) };
     },

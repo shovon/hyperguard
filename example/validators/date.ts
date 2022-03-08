@@ -24,7 +24,7 @@ export const date = () =>
         string(),
         parser((value) => new Date(value))
       ),
-      (d) => isNaN(d.getTime())
+      (d) => !isNaN(d.getTime())
     ),
     (value) => new DateError(value)
   );
@@ -36,7 +36,7 @@ export const date = () =>
 // string()
 //   |> chain(%, parser(value => new Date(value)))
 //   |> predicate(%, value => isNaN(d.getTime()))
-//   |> replaceError(%, (value) => new DateError(value))
+//   |> replaceError(%, value => new DateError(value))
 // ```
 //
 // With athat said, you can still achieve a semantic similar to the above by
