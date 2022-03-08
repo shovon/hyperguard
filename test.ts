@@ -82,6 +82,8 @@ const assertIncorrect = <T>(
 };
 
 {
+  // chain
+
   const dateParse = () =>
     chain(
       transform((value) => new Date(value)),
@@ -96,6 +98,8 @@ const assertIncorrect = <T>(
 }
 
 {
+  // exact
+
   const notExactErrorSchema = (validator: Validator<ExactTypes>) =>
     object({
       type: string(),
@@ -104,7 +108,6 @@ const assertIncorrect = <T>(
       expectedValue: validator,
     });
 
-  // exact
   assertValidator(exact("hello"), "hello", "Exact 'hello'");
   assertIncorrect(
     exact("hello"),
@@ -171,19 +174,50 @@ const assertIncorrect = <T>(
 
 {
   // boolean
+
+  const unexpectedTypeofErrorSchema = (validator: PossibleTypeof) =>
+    object({
+      type: string(),
+      errorMessage: string(),
+      value: any(),
+      expectedType: exact(validator),
+    });
+
   assertValidator(boolean(), true, "the boolean 'true' is a boolean");
   assertValidator(boolean(), true, "the boolean 'false' is a boolean");
-  assertIncorrect(boolean(), 10, "a number is not a boolean");
+  assertIncorrect(
+    boolean(),
+    10,
+    "a number is not a boolean",
+    unexpectedTypeofErrorSchema("boolean")
+  );
 }
 
 {
   // number
+
+  const unexpectedTypeofErrorSchema = (validator: PossibleTypeof) =>
+    object({
+      type: string(),
+      errorMessage: string(),
+      value: any(),
+      expectedType: exact(validator),
+    });
+
   assertValidator(number(), 42, "A number should be a valid number");
   assertValidator(number(), 24, "A number should be a valid nubmer");
   assertIncorrect(number(), "Sweet", "A string is not a valid number");
+  assertIncorrect(
+    boolean(),
+    10,
+    "a number is not a boolean",
+    unexpectedTypeofErrorSchema("boolean")
+  );
 }
 
 {
+  // object
+
   const objectWithDate = object({
     cool: string(),
     nice: number(),
@@ -203,7 +237,6 @@ const assertIncorrect = <T>(
   assert(typeof validation.value.nice === "number");
   assert(validation.value.whenCreated instanceof Date);
 
-  // object
   assertValidator(object({}), {}, "An empty object is a valid empty object");
   assertValidator(
     object({ sweet: number() }),
@@ -287,14 +320,14 @@ const assertIncorrect = <T>(
 
   let eitherValidator = either(number(), string(), boolean());
   let another: Validator<number | string | boolean> = eitherValidator;
-  const validation = another.validate([1, "", false]);
-  assert(validation.isValid);
-  assert.strictEqual(validation.value[0], 1);
-  assert.strictEqual(validation.value[1], "");
-  assert.strictEqual(validation.value[2], false);
+  assert(another.validate(1).isValid);
+  assert(another.validate("").isValid);
+  assert(another.validate(false).isValid);
 }
 
 {
+  // arrayOf
+
   const date = () =>
     predicate(
       chain(
@@ -304,7 +337,6 @@ const assertIncorrect = <T>(
       (d) => !isNaN(d.getTime())
     );
 
-  // arrayOf
   assertValidator(
     arrayOf(number()),
     [42],
@@ -593,6 +625,8 @@ const assertIncorrect = <T>(
 }
 
 {
+  // transform
+
   const notExactErrorSchema = () =>
     object({
       type: string(),
@@ -696,6 +730,8 @@ const assertIncorrect = <T>(
 }
 
 {
+  // chain
+
   const assertDateEqual = (
     v: Validator<Date>,
     value: string,
@@ -725,6 +761,8 @@ const assertIncorrect = <T>(
 }
 
 {
+  // fallback
+
   const assertFallbackEqual = <T>(
     v: Validator<T>,
     incorrectValue: any,
