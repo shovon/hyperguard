@@ -405,7 +405,7 @@ For instance, the JSON standard does not have a data type for `Date`s. You can c
 ```typescript
 import {
   chain,
-  parser,
+  transform,
   predicate,
   replaceError,
   string,
@@ -427,7 +427,7 @@ export const date = () =>
     predicate(
       chain(
         string(),
-        parser((value) => new Date(value))
+        transform((value) => new Date(value))
       ),
       (d) => isNaN(d.getTime())
     ),
