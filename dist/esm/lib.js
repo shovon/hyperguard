@@ -100,6 +100,773 @@ export function either(...alts) {
         },
     };
 }
+// export function tuple(t: []): Validator<[]>;
+// export function tuple<T0>(t: [Validator<T0>]): Validator<[T0]>;
+// export function tuple<T0, T1>(
+//   t: [Validator<T0>, Validator<T1>]
+// ): Validator<[T0, T1]>;
+// export function tuple<T0, T1, T2>(
+//   t: [Validator<T0>, Validator<T1>, Validator<T2>]
+// ): Validator<[T0, T1, T2]>;
+// export function tuple<T0, T1, T2, T3>(
+//   t: [Validator<T0>, Validator<T1>, Validator<T2>, Validator<T3>]
+// ): Validator<[T0, T1, T2, T3]>;
+// export function tuple<T0, T1, T2, T3, T4>(
+//   t: [Validator<T0>, Validator<T1>, Validator<T2>, Validator<T3>, Validator<T4>]
+// ): Validator<[T0, T1, T2, T3, T4]>;
+// export function tuple<T0, T1, T2, T3, T4, T5>(
+//   t: [
+//     Validator<T0>,
+//     Validator<T1>,
+//     Validator<T2>,
+//     Validator<T3>,
+//     Validator<T4>,
+//     Validator<T5>
+//   ]
+// ): Validator<[T0, T1, T2, T3, T4, T5]>;
+// export function tuple<T0, T1, T2, T3, T4, T5, T6>(
+//   t: [
+//     Validator<T0>,
+//     Validator<T1>,
+//     Validator<T2>,
+//     Validator<T3>,
+//     Validator<T4>,
+//     Validator<T5>,
+//     Validator<T6>
+//   ]
+// ): Validator<[T0, T1, T2, T3, T4, T5, T6]>;
+// export function tuple<T0, T1, T2, T3, T4, T5, T6, T7>(
+//   t: [
+//     Validator<T0>,
+//     Validator<T1>,
+//     Validator<T2>,
+//     Validator<T3>,
+//     Validator<T4>,
+//     Validator<T5>,
+//     Validator<T6>,
+//     Validator<T7>
+//   ]
+// ): Validator<[T0, T1, T2, T3, T4, T5, T6, T7]>;
+// export function tuple<T0, T1, T2, T3, T4, T5, T6, T7, T8>(
+//   t: [
+//     Validator<T0>,
+//     Validator<T1>,
+//     Validator<T2>,
+//     Validator<T3>,
+//     Validator<T4>,
+//     Validator<T5>,
+//     Validator<T6>,
+//     Validator<T7>,
+//     Validator<T8>
+//   ]
+// ): Validator<[T0, T1, T2, T3, T4, T5, T6, T7, T8]>;
+// export function tuple<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(
+//   t: [
+//     Validator<T0>,
+//     Validator<T1>,
+//     Validator<T2>,
+//     Validator<T3>,
+//     Validator<T4>,
+//     Validator<T5>,
+//     Validator<T6>,
+//     Validator<T7>,
+//     Validator<T8>,
+//     Validator<T9>
+//   ]
+// ): Validator<[T0, T1, T2, T3, T4, T5, T6, T7, T8, T9]>;
+// export function tuple<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(
+//   t: [
+//     Validator<T0>,
+//     Validator<T1>,
+//     Validator<T2>,
+//     Validator<T3>,
+//     Validator<T4>,
+//     Validator<T5>,
+//     Validator<T6>,
+//     Validator<T7>,
+//     Validator<T8>,
+//     Validator<T9>,
+//     Validator<T10>
+//   ]
+// ): Validator<[T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]>;
+// export function tuple<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(
+//   t: [
+//     Validator<T0>,
+//     Validator<T1>,
+//     Validator<T2>,
+//     Validator<T3>,
+//     Validator<T4>,
+//     Validator<T5>,
+//     Validator<T6>,
+//     Validator<T7>,
+//     Validator<T8>,
+//     Validator<T9>,
+//     Validator<T10>,
+//     Validator<T11>
+//   ]
+// ): Validator<[T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11]>;
+// export function tuple<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(
+//   t: [
+//     Validator<T0>,
+//     Validator<T1>,
+//     Validator<T2>,
+//     Validator<T3>,
+//     Validator<T4>,
+//     Validator<T5>,
+//     Validator<T6>,
+//     Validator<T7>,
+//     Validator<T8>,
+//     Validator<T9>,
+//     Validator<T10>,
+//     Validator<T11>,
+//     Validator<T12>
+//   ]
+// ): Validator<[T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12]>;
+// export function tuple<
+//   T0,
+//   T1,
+//   T2,
+//   T3,
+//   T4,
+//   T5,
+//   T6,
+//   T7,
+//   T8,
+//   T9,
+//   T10,
+//   T11,
+//   T12,
+//   T13
+// >(
+//   t: [
+//     Validator<T0>,
+//     Validator<T1>,
+//     Validator<T2>,
+//     Validator<T3>,
+//     Validator<T4>,
+//     Validator<T5>,
+//     Validator<T6>,
+//     Validator<T7>,
+//     Validator<T8>,
+//     Validator<T9>,
+//     Validator<T10>,
+//     Validator<T11>,
+//     Validator<T12>,
+//     Validator<T13>
+//   ]
+// ): Validator<[T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13]>;
+// export function tuple<
+//   T0,
+//   T1,
+//   T2,
+//   T3,
+//   T4,
+//   T5,
+//   T6,
+//   T7,
+//   T8,
+//   T9,
+//   T10,
+//   T11,
+//   T12,
+//   T13,
+//   T14
+// >(
+//   t: [
+//     Validator<T0>,
+//     Validator<T1>,
+//     Validator<T2>,
+//     Validator<T3>,
+//     Validator<T4>,
+//     Validator<T5>,
+//     Validator<T6>,
+//     Validator<T7>,
+//     Validator<T8>,
+//     Validator<T9>,
+//     Validator<T10>,
+//     Validator<T11>,
+//     Validator<T12>,
+//     Validator<T13>,
+//     Validator<T14>
+//   ]
+// ): Validator<[T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14]>;
+// export function tuple<
+//   T0,
+//   T1,
+//   T2,
+//   T3,
+//   T4,
+//   T5,
+//   T6,
+//   T7,
+//   T8,
+//   T9,
+//   T10,
+//   T11,
+//   T12,
+//   T13,
+//   T14,
+//   T15
+// >(
+//   t: [
+//     Validator<T0>,
+//     Validator<T1>,
+//     Validator<T2>,
+//     Validator<T3>,
+//     Validator<T4>,
+//     Validator<T5>,
+//     Validator<T6>,
+//     Validator<T7>,
+//     Validator<T8>,
+//     Validator<T9>,
+//     Validator<T10>,
+//     Validator<T11>,
+//     Validator<T12>,
+//     Validator<T13>,
+//     Validator<T14>,
+//     Validator<T15>
+//   ]
+// ): Validator<
+//   [T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15]
+// >;
+// export function tuple<
+//   T0,
+//   T1,
+//   T2,
+//   T3,
+//   T4,
+//   T5,
+//   T6,
+//   T7,
+//   T8,
+//   T9,
+//   T10,
+//   T11,
+//   T12,
+//   T13,
+//   T14,
+//   T15,
+//   T16
+// >(
+//   t: [
+//     Validator<T0>,
+//     Validator<T1>,
+//     Validator<T2>,
+//     Validator<T3>,
+//     Validator<T4>,
+//     Validator<T5>,
+//     Validator<T6>,
+//     Validator<T7>,
+//     Validator<T8>,
+//     Validator<T9>,
+//     Validator<T10>,
+//     Validator<T11>,
+//     Validator<T12>,
+//     Validator<T13>,
+//     Validator<T14>,
+//     Validator<T15>,
+//     Validator<T16>
+//   ]
+// ): Validator<
+//   [T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16]
+// >;
+// export function tuple<
+//   T0,
+//   T1,
+//   T2,
+//   T3,
+//   T4,
+//   T5,
+//   T6,
+//   T7,
+//   T8,
+//   T9,
+//   T10,
+//   T11,
+//   T12,
+//   T13,
+//   T14,
+//   T15,
+//   T16,
+//   T17
+// >(
+//   t: [
+//     Validator<T0>,
+//     Validator<T1>,
+//     Validator<T2>,
+//     Validator<T3>,
+//     Validator<T4>,
+//     Validator<T5>,
+//     Validator<T6>,
+//     Validator<T7>,
+//     Validator<T8>,
+//     Validator<T9>,
+//     Validator<T10>,
+//     Validator<T11>,
+//     Validator<T12>,
+//     Validator<T13>,
+//     Validator<T14>,
+//     Validator<T15>,
+//     Validator<T16>,
+//     Validator<T17>
+//   ]
+// ): Validator<
+//   [
+//     T0,
+//     T1,
+//     T2,
+//     T3,
+//     T4,
+//     T5,
+//     T6,
+//     T7,
+//     T8,
+//     T9,
+//     T10,
+//     T11,
+//     T12,
+//     T13,
+//     T14,
+//     T15,
+//     T16,
+//     T17
+//   ]
+// >;
+// export function tuple<
+//   T0,
+//   T1,
+//   T2,
+//   T3,
+//   T4,
+//   T5,
+//   T6,
+//   T7,
+//   T8,
+//   T9,
+//   T10,
+//   T11,
+//   T12,
+//   T13,
+//   T14,
+//   T15,
+//   T16,
+//   T17,
+//   T18
+// >(
+//   t: [
+//     Validator<T0>,
+//     Validator<T1>,
+//     Validator<T2>,
+//     Validator<T3>,
+//     Validator<T4>,
+//     Validator<T5>,
+//     Validator<T6>,
+//     Validator<T7>,
+//     Validator<T8>,
+//     Validator<T9>,
+//     Validator<T10>,
+//     Validator<T11>,
+//     Validator<T12>,
+//     Validator<T13>,
+//     Validator<T14>,
+//     Validator<T15>,
+//     Validator<T16>,
+//     Validator<T17>,
+//     Validator<T18>
+//   ]
+// ): Validator<
+//   [
+//     T0,
+//     T1,
+//     T2,
+//     T3,
+//     T4,
+//     T5,
+//     T6,
+//     T7,
+//     T8,
+//     T9,
+//     T10,
+//     T11,
+//     T12,
+//     T13,
+//     T14,
+//     T15,
+//     T16,
+//     T17,
+//     T18
+//   ]
+// >;
+// export function tuple<
+//   T0,
+//   T1,
+//   T2,
+//   T3,
+//   T4,
+//   T5,
+//   T6,
+//   T7,
+//   T8,
+//   T9,
+//   T10,
+//   T11,
+//   T12,
+//   T13,
+//   T14,
+//   T15,
+//   T16,
+//   T17,
+//   T18,
+//   T19
+// >(
+//   t: [
+//     Validator<T0>,
+//     Validator<T1>,
+//     Validator<T2>,
+//     Validator<T3>,
+//     Validator<T4>,
+//     Validator<T5>,
+//     Validator<T6>,
+//     Validator<T7>,
+//     Validator<T8>,
+//     Validator<T9>,
+//     Validator<T10>,
+//     Validator<T11>,
+//     Validator<T12>,
+//     Validator<T13>,
+//     Validator<T14>,
+//     Validator<T15>,
+//     Validator<T16>,
+//     Validator<T17>,
+//     Validator<T18>,
+//     Validator<T19>
+//   ]
+// ): Validator<
+//   [
+//     T0,
+//     T1,
+//     T2,
+//     T3,
+//     T4,
+//     T5,
+//     T6,
+//     T7,
+//     T8,
+//     T9,
+//     T10,
+//     T11,
+//     T12,
+//     T13,
+//     T14,
+//     T15,
+//     T16,
+//     T17,
+//     T18,
+//     T19
+//   ]
+// >;
+// export function tuple<
+//   T0,
+//   T1,
+//   T2,
+//   T3,
+//   T4,
+//   T5,
+//   T6,
+//   T7,
+//   T8,
+//   T9,
+//   T10,
+//   T11,
+//   T12,
+//   T13,
+//   T14,
+//   T15,
+//   T16,
+//   T17,
+//   T18,
+//   T19,
+//   T20
+// >(
+//   t: [
+//     Validator<T0>,
+//     Validator<T1>,
+//     Validator<T2>,
+//     Validator<T3>,
+//     Validator<T4>,
+//     Validator<T5>,
+//     Validator<T6>,
+//     Validator<T7>,
+//     Validator<T8>,
+//     Validator<T9>,
+//     Validator<T10>,
+//     Validator<T11>,
+//     Validator<T12>,
+//     Validator<T13>,
+//     Validator<T14>,
+//     Validator<T15>,
+//     Validator<T16>,
+//     Validator<T17>,
+//     Validator<T18>,
+//     Validator<T19>,
+//     Validator<T20>
+//   ]
+// ): Validator<
+//   [
+//     T0,
+//     T1,
+//     T2,
+//     T3,
+//     T4,
+//     T5,
+//     T6,
+//     T7,
+//     T8,
+//     T9,
+//     T10,
+//     T11,
+//     T12,
+//     T13,
+//     T14,
+//     T15,
+//     T16,
+//     T17,
+//     T18,
+//     T19,
+//     T20
+//   ]
+// >;
+// export function tuple<
+//   T0,
+//   T1,
+//   T2,
+//   T3,
+//   T4,
+//   T5,
+//   T6,
+//   T7,
+//   T8,
+//   T9,
+//   T10,
+//   T11,
+//   T12,
+//   T13,
+//   T14,
+//   T15,
+//   T16,
+//   T17,
+//   T18,
+//   T19,
+//   T20,
+//   T21
+// >(
+//   t: [
+//     Validator<T0>,
+//     Validator<T1>,
+//     Validator<T2>,
+//     Validator<T3>,
+//     Validator<T4>,
+//     Validator<T5>,
+//     Validator<T6>,
+//     Validator<T7>,
+//     Validator<T8>,
+//     Validator<T9>,
+//     Validator<T10>,
+//     Validator<T11>,
+//     Validator<T12>,
+//     Validator<T13>,
+//     Validator<T14>,
+//     Validator<T15>,
+//     Validator<T16>,
+//     Validator<T17>,
+//     Validator<T18>,
+//     Validator<T19>,
+//     Validator<T20>,
+//     Validator<T21>
+//   ]
+// ): Validator<
+//   [
+//     T0,
+//     T1,
+//     T2,
+//     T3,
+//     T4,
+//     T5,
+//     T6,
+//     T7,
+//     T8,
+//     T9,
+//     T10,
+//     T11,
+//     T12,
+//     T13,
+//     T14,
+//     T15,
+//     T16,
+//     T17,
+//     T18,
+//     T19,
+//     T20,
+//     T21
+//   ]
+// >;
+// export function tuple<
+//   T0,
+//   T1,
+//   T2,
+//   T3,
+//   T4,
+//   T5,
+//   T6,
+//   T7,
+//   T8,
+//   T9,
+//   T10,
+//   T11,
+//   T12,
+//   T13,
+//   T14,
+//   T15,
+//   T16,
+//   T17,
+//   T18,
+//   T19,
+//   T20,
+//   T21,
+//   T22
+// >(
+//   t: [
+//     Validator<T0>,
+//     Validator<T1>,
+//     Validator<T2>,
+//     Validator<T3>,
+//     Validator<T4>,
+//     Validator<T5>,
+//     Validator<T6>,
+//     Validator<T7>,
+//     Validator<T8>,
+//     Validator<T9>,
+//     Validator<T10>,
+//     Validator<T11>,
+//     Validator<T12>,
+//     Validator<T13>,
+//     Validator<T14>,
+//     Validator<T15>,
+//     Validator<T16>,
+//     Validator<T17>,
+//     Validator<T18>,
+//     Validator<T19>,
+//     Validator<T20>,
+//     Validator<T21>,
+//     Validator<T22>
+//   ]
+// ): Validator<
+//   [
+//     T0,
+//     T1,
+//     T2,
+//     T3,
+//     T4,
+//     T5,
+//     T6,
+//     T7,
+//     T8,
+//     T9,
+//     T10,
+//     T11,
+//     T12,
+//     T13,
+//     T14,
+//     T15,
+//     T16,
+//     T17,
+//     T18,
+//     T19,
+//     T20,
+//     T21,
+//     T22
+//   ]
+// >;
+// export function tuple<
+//   T0,
+//   T1,
+//   T2,
+//   T3,
+//   T4,
+//   T5,
+//   T6,
+//   T7,
+//   T8,
+//   T9,
+//   T10,
+//   T11,
+//   T12,
+//   T13,
+//   T14,
+//   T15,
+//   T16,
+//   T17,
+//   T18,
+//   T19,
+//   T20,
+//   T21,
+//   T22,
+//   T23
+// >(
+//   t: [
+//     Validator<T0>,
+//     Validator<T1>,
+//     Validator<T2>,
+//     Validator<T3>,
+//     Validator<T4>,
+//     Validator<T5>,
+//     Validator<T6>,
+//     Validator<T7>,
+//     Validator<T8>,
+//     Validator<T9>,
+//     Validator<T10>,
+//     Validator<T11>,
+//     Validator<T12>,
+//     Validator<T13>,
+//     Validator<T14>,
+//     Validator<T15>,
+//     Validator<T16>,
+//     Validator<T17>,
+//     Validator<T18>,
+//     Validator<T19>,
+//     Validator<T20>,
+//     Validator<T21>,
+//     Validator<T22>,
+//     Validator<T23>
+//   ]
+// ): Validator<
+//   [
+//     T0,
+//     T1,
+//     T2,
+//     T3,
+//     T4,
+//     T5,
+//     T6,
+//     T7,
+//     T8,
+//     T9,
+//     T10,
+//     T11,
+//     T12,
+//     T13,
+//     T14,
+//     T15,
+//     T16,
+//     T17,
+//     T18,
+//     T19,
+//     T20,
+//     T21,
+//     T22,
+//     T23
+//   ]
+// >;
 /**
  * Used to validate a tuple against the individual values in an array.
  *
@@ -133,7 +900,10 @@ export function tuple(t) {
             }
             const validations = t.map((validator, i) => validator.validate(value[i]));
             return validations.every((validation) => validation.isValid)
-                ? { isValid: true, value: validations.map((v) => v.isValid && v.value) }
+                ? {
+                    isValid: true,
+                    value: validations.map((v) => v.isValid && v.value),
+                }
                 : {
                     isValid: false,
                     error: new TupleError(value, validations.filter((validation) => !validation.isValid)),

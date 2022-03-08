@@ -484,7 +484,7 @@ type CustomDate = InferType<typeof dateSchema>;
 >
 > The above would have been a perfectly valid error object.
 >
-> With that said, using `ValidationError` provides the added advantage of capturing the call stack, allowing for easier debuggability, or even observability (you can `JSON.stringify` the error, and all fields will be available in the resulting JSON, which you can log to a remote server, for further investigation)
+> With that said, using `ValidationError` provides the added advantage of capturing the call stack, allowing for easier debuggability, or even observability (if you were to also serialize the call stack that is, by getting it from error.stack).
 
 ## Design Philosophy
 

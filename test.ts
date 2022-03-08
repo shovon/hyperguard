@@ -419,14 +419,18 @@ const assertIncorrect = <T>(
     "An array with a string and then a number is not an array with a number and then a string"
   );
 
-  const dateToTest = new Date();
-
   const toTest = [1, new Date().toISOString()];
 
   const validation = tuple([number(), date()]).validate(toTest);
   assert(validation.isValid);
   assert.strictEqual(validation.value[0], 1);
   assert(validation.value[1] instanceof Date);
+
+  let result: [string, number, boolean];
+
+  const v = tuple([string(), number(), boolean()]).validate(["", 0, false]);
+  assert(v.isValid);
+  result = v.value;
 }
 
 {
