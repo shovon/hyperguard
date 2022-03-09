@@ -27,12 +27,13 @@ export type Validator<T> = {
   validate: (value: any) => ValidationResult<T>;
 };
 
+export type ValidationFailure = { isValid: false; error: IValidationError };
+export type ValidationSuccess<T> = { value: T; isValid: true };
+
 /**
  * An object that represents the result of a validation check.
  */
-export type ValidationResult<T> =
-  | { isValid: false; error: IValidationError }
-  | { value: T; isValid: true };
+export type ValidationResult<T> = ValidationFailure | ValidationSuccess<T>;
 
 /**
  * An object that represents a validation error.
