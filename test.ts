@@ -150,6 +150,13 @@ const assertIncorrect = <T>(
     "'true' should not match 'false'",
     notExactErrorSchema(exact(true))
   );
+  assertValidator(exact(NaN), NaN, "NaN should equal to NaN");
+  assertIncorrect(
+    exact(NaN),
+    1,
+    "NaN and 1 are not equal",
+    notExactErrorSchema(exact(NaN))
+  );
 }
 
 {

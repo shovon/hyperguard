@@ -219,9 +219,9 @@ class NotExactValueError extends ValidationError {
  */
 export function exact(expected) {
     return {
-        validate: (value) => value !== expected
-            ? { isValid: false, error: new NotExactValueError(value, expected) }
-            : { value, isValid: true },
+        validate: (value) => Object.is(value, expected)
+            ? { value, isValid: true }
+            : { isValid: false, error: new NotExactValueError(value, expected) },
     };
 }
 /**
