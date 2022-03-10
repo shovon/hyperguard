@@ -811,7 +811,7 @@ const assertIncorrect = <T>(
 
   let failed = false;
   try {
-    const result = validate(schema, 1);
+    validate(schema, 1);
   } catch (e) {
     failed = true;
   }
