@@ -512,4 +512,18 @@ export const fallback = (validator, getFallback) => ({
             : validation;
     },
 });
+/**
+ * This function validates and returns the parsed value. If validation failed,
+ * it will throw a runtime exception
+ * @param validator A validator to run the validation against the supplied value
+ * @param value The value to run the validation against
+ * @returns The outcome of the validation
+ */
+export const validate = (validator, value) => {
+    const result = validator.validate(value);
+    if (result.isValid === false) {
+        throw result.error;
+    }
+    return result.value;
+};
 //# sourceMappingURL=lib.js.map

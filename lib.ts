@@ -723,3 +723,18 @@ export const fallback = <T1, T2>(
       : validation;
   },
 });
+
+/**
+ * This function validates and returns the parsed value. If validation failed,
+ * it will throw a runtime exception
+ * @param validator A validator to run the validation against the supplied value
+ * @param value The value to run the validation against
+ * @returns The outcome of the validation
+ */
+export const validate = <T>(validator: Validator<T>, value: any): T => {
+  const result = validator.validate(value);
+  if (result.isValid === false) {
+    throw result.error;
+  }
+  return result.value;
+};

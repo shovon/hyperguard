@@ -21,6 +21,7 @@ import {
   ValidationError,
   chain,
   fallback,
+  validate,
 } from "./lib";
 import { strict as assert } from "assert";
 
@@ -801,4 +802,19 @@ const assertIncorrect = <T>(
 
   assert(validation.isValid);
   assert(validation.value instanceof Date);
+}
+
+{
+  // Validate
+
+  const schema = string();
+
+  let failed = false;
+  try {
+    const result = validate(schema, 1);
+  } catch (e) {
+    failed = true;
+  }
+
+  assert(failed);
 }
