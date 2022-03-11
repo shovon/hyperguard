@@ -52,11 +52,6 @@ export abstract class ValidationError
   implements IValidationError
 {
   /**
-   * Represents the call stack of the validation.
-   */
-  public fullStack?: string;
-
-  /**
    *
    * @param type A string representing what type of validation error that the
    *   error represents
@@ -69,8 +64,6 @@ export abstract class ValidationError
     public value: any
   ) {
     super(errorMessage);
-
-    this.fullStack = this.stack;
   }
 }
 
@@ -703,6 +696,31 @@ export const chain = <T1, T2>(
     return validation.isValid === false
       ? { isValid: false, error: validation.error }
       : right.validate(validation.value);
+  },
+});
+
+/**
+ * Gets the intersection of two validators
+ * @param a The first validator to validate the object against
+ * @param b The second validator to validate the object against
+ * @returns A validator that is the intersection of the types represented by
+ *   validators a and b
+ */
+export const intersection = <T1, T2>(
+  a: Validator<T1>,
+  b: Validator<T2>
+): Validator<T1 & T2> => ({
+  validate(value) {
+    const validation1 = a.validate(value);
+    if (validation1.isValid === false) {
+      return { isValid: false, error: validation1.error };
+    }
+    const validation2 = b.validate(validation1.value);
+    return (
+      validation2.isValid === false
+        ? { isValid: false, error: validation2.error }
+        : { isValid: true, value: validation2.value }
+    ) as ValidationResult<T1 & T2>;
   },
 });
 

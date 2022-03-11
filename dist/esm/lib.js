@@ -35,7 +35,6 @@ export class ValidationError extends Error {
         this.type = type;
         this.errorMessage = errorMessage;
         this.value = value;
-        this.fullStack = this.stack;
     }
 }
 export class EitherError extends ValidationError {
@@ -496,6 +495,25 @@ export const chain = (left, right) => ({
         return validation.isValid === false
             ? { isValid: false, error: validation.error }
             : right.validate(validation.value);
+    },
+});
+/**
+ * Gets the intersection of two validators
+ * @param a The first validator to validate the object against
+ * @param b The second validator to validate the object against
+ * @returns A validator that is the intersection of the types represented by
+ *   validators a and b
+ */
+export const intersection = (a, b) => ({
+    validate(value) {
+        const validation1 = a.validate(value);
+        if (validation1.isValid === false) {
+            return { isValid: false, error: validation1.error };
+        }
+        const validation2 = b.validate(validation1.value);
+        return (validation2.isValid === false
+            ? { isValid: false, error: validation2.error }
+            : { isValid: true, value: validation2.value });
     },
 });
 /**

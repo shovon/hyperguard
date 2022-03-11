@@ -22,6 +22,7 @@ import {
   chain,
   fallback,
   validate,
+  intersection,
 } from "./lib";
 import { strict as assert } from "assert";
 
@@ -817,4 +818,71 @@ const assertIncorrect = <T>(
   }
 
   assert(failed);
+}
+
+{
+  // intersection
+
+  const date1 = new Date(Date.now()).toISOString();
+  const date2 = new Date(Date.now() + 1000).toISOString();
+
+  // Objects
+
+  const a = object({
+    hello: string(),
+    foo: number(),
+    whenCreated: date(),
+  });
+
+  const b = object({
+    hi: string(),
+    bar: boolean(),
+    whenUpdated: date(),
+  });
+
+  const valueA = {
+    hello: "world",
+    foo: 10,
+    whenCreated: date1,
+  };
+
+  const valueB = {
+    hi: "sweet",
+    bar: false,
+    whenUpdated: date2,
+  };
+
+  const combined = { ...valueA, ...valueB };
+
+  const partialExpected = object({
+    hello: string(),
+    foo: number(),
+    hi: string(),
+    bar: boolean(),
+  });
+
+  const validation = intersection(a, b).validate(combined);
+
+  assert(validation.isValid);
+
+  const partialExpectedValidation = partialExpected.validate(validation.value);
+
+  assert(partialExpectedValidation.isValid);
+
+  assert(validation.value.whenCreated instanceof Date);
+  assert(validation.value.whenUpdated instanceof Date);
+
+  // Unions
+
+  const abcd = either(exact("a"), exact("b"), exact("c"), exact("d"));
+  const cdef = either(exact("c"), exact("d"), exact("e"), exact("f"));
+
+  const cd = intersection(abcd, cdef);
+
+  assert(!cd.validate("a").isValid);
+  assert(!cd.validate("b").isValid);
+  assert(cd.validate("c").isValid);
+  assert(cd.validate("d").isValid);
+  assert(!cd.validate("e").isValid);
+  assert(!cd.validate("f").isValid);
 }
