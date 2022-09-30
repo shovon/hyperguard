@@ -1,10 +1,8 @@
-# Valentina: JavaScript object validation
+# Ninazu: JavaScript object validation
 
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/shovon/valentina/blob/main/LICENSE) [![npm version](https://badge.fury.io/js/valentina.svg)](https://badge.fury.io/js/valentina) [![CircleCI](https://circleci.com/gh/shovon/valentina/tree/main.svg?style=svg)](https://circleci.com/gh/shovon/valentina/tree/main) [![Gitter](https://badges.gitter.im/valentina-validation/community.svg)](https://gitter.im/valentina-validation/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-_Valentina_ is a tiny library for validating JavaScript values. Whether they be primitives, such as strings and numbers, or modelling more complex objects, Valentina will empower you to express your data validation rules, your way.
-
-**[Try Valentina now](https://replit.com/@shovon1/typescript-valentina#index.ts)**
+_ninazu_ is a tiny library for validating JavaScript values. Whether they be primitives, such as strings and numbers, or modelling more complex objects, Ninazu will empower you to express your data validation rules, your way.
 
 **Killer Features:**
 
@@ -18,7 +16,7 @@ _Valentina_ is a tiny library for validating JavaScript values. Whether they be 
 
 ## Getting Started
 
-Schema creation is done by creating a validator. Valentina has simple creators, that will allow you to define your overall schema.
+Schema creation is done by creating a validator. Ninazu has simple creators, that will allow you to define your overall schema.
 
 ```typescript
 import {
@@ -28,7 +26,7 @@ import {
   InferType,
   either,
   Validator,
-} from "valentina";
+} from "ninazu";
 
 // Create a validator that allows for values to be set to `undefined`
 const optional = <T>(validator: Validator<T>) =>
@@ -127,7 +125,7 @@ These are the very basics that you can go off of, and start validating your data
 
 ## Usage Guide
 
-The Valentina library was designed to be used for the purposes of validating incoming JSON data, whether they be from an HTTP request, an AJAX response, a WebSocket payload, etc.
+The Ninazu library was designed to be used for the purposes of validating incoming JSON data, whether they be from an HTTP request, an AJAX response, a WebSocket payload, etc.
 
 ```typescript
 const data = await fetch(url).then((response) => response.json());
@@ -139,30 +137,30 @@ if (validation.isValid) {
 }
 ```
 
-Valentina becomes especially powerful when larger `Validator`s are comprised from smaller reusable validators, that serve their own purpose. These validators can then be used across multiple larger validators.
+Ninazu becomes especially powerful when larger `Validator`s are comprised from smaller reusable validators, that serve their own purpose. These validators can then be used across multiple larger validators.
 
 ### Installing
 
-By design, Valentina places you under **no obligation** to use any package manager; you most certainly can copy and paste either [`lib.ts`](https://github.com/shovon/valentina/blob/main/lib.ts) for TypeScript, [`dist/lib.js`](https://github.com/shovon/valentina/blob/main/dist/lib.js) for CommonJS (require), or [`dist/esm/lib.js`](https://github.com/shovon/valentina/blob/main/dist/esm/lib.js) for importing via the `import` statement.
+By design, Ninazu places you under **no obligation** to use any package manager; you most certainly can copy and paste either [`lib.ts`](https://github.com/shovon/ninazu/blob/main/lib.ts) for TypeScript, [`dist/lib.js`](https://github.com/shovon/valentina/blob/main/dist/lib.js) for CommonJS (require), or [`dist/esm/lib.js`](https://github.com/shovon/ninazu/blob/main/dist/esm/lib.js) for importing via the `import` statement.
 
 With that said, you are certainly more than welcomed to use a package manager, especially since it will allow you to easily upgrade, without the possibility of errors while copying and pasting.
 
 #### npm (Node.js, Webpack, Vite, Browserify, or any other that use npm)
 
-If you are using Node.js or a bundler that uses npm, Valentina has been published to npm for your convenience. You can install using your preferred package manager. For example:
+If you are using Node.js or a bundler that uses npm, Ninazu has been published to npm for your convenience. You can install using your preferred package manager. For example:
 
-- npm: `npm install valentina`
-- Yarn: `yarn add valentina`
-- pnpm: `pnpm add valentina`
+- npm: `npm install ninazu`
+- Yarn: `yarn add ninazu`
+- pnpm: `pnpm add ninazu`
 
-Additional, for the JavaScript CommonJS code, transpilers should not be needed. However if you are having trouble importing Valentina into your bundler (Webpack, Vite, Browserify, etc.), then please do [open a new issue](https://github.com/shovon/valentina/issues), and I will investigate.
+Additional, for the JavaScript CommonJS code, transpilers should not be needed. However if you are having trouble importing Ninazu into your bundler (Webpack, Vite, Browserify, etc.), then please do [open a new issue](https://github.com/shovon/ninazu/issues), and I will investigate.
 
 ##### Importing via CommonJS `require`
 
 Once installed, you should be able to import the module via CommonJS `require`, like so:
 
 ```javascript
-const valentina = require("valentina");
+const parseValidate = require("ninazu");
 ```
 
 ##### Importing via Node.js' ECMAScript module (`import` statement)
@@ -170,7 +168,7 @@ const valentina = require("valentina");
 In a Node.js `mjs` file, you can simply import using the `import` syntax.
 
 ```javascript
-import * as valentina from "valentina";
+import * as parseValidate from "ninazu";
 ```
 
 #### Deno
@@ -178,7 +176,7 @@ import * as valentina from "valentina";
 With Deno, you can directly import the `lib.ts` file from GitHub.
 
 ```typescript
-import * as Valentina from "https://raw.githubusercontent.com/shovon/valentina/main/lib.ts";
+import * as parseValidate from "https://raw.githubusercontent.com/shovon/ninazu/main/lib.ts";
 ```
 
 #### Browser via `import` statement (dist/esm/lib.js)
@@ -196,7 +194,7 @@ Download or copy & paste the ECMAScript module located in [`dist/esm/lib.js`]().
 ```html
 <!-- Minified -->
 <script type="module">
-  import * as valentina from "/path/to/valentina/lib.js";
+  import * as parseValidate from "/path/to/ninazu/lib.js";
 </script>
 ```
 
@@ -204,7 +202,7 @@ Download or copy & paste the ECMAScript module located in [`dist/esm/lib.js`]().
 >
 > If you want a minified version, you can download it from this URL:
 >
-> https://cdn.jsdelivr.net/npm/valentina@latest/dist/esm/lib.min.js
+> https://cdn.jsdelivr.net/npm/ninazu@latest/dist/esm/lib.min.js
 
 **Option 2: Importing from npm (via jsDelivr)**
 
@@ -212,7 +210,7 @@ If you don't want to download, and you just want to give the library a try, then
 
 ```html
 <script type="module">
-  import * as valentina from "https://cdn.jsdelivr.net/npm/valentina@latest/dist/esm/lib.js";
+  import * as valentina from "https://cdn.jsdelivr.net/npm/ninazu@latest/dist/esm/lib.js";
 </script>
 ```
 
@@ -220,7 +218,7 @@ Alternatively, if you want the minified version, you can simply add a `.min` aft
 
 ```html
 <script type="module">
-  import * as valentina from "https://cdn.jsdelivr.net/npm/valentina@latest/dist/esm/lib.min.js";
+  import * as valentina from "https://cdn.jsdelivr.net/npm/ninazu@latest/dist/esm/lib.min.js";
 </script>
 ```
 
@@ -338,11 +336,11 @@ function handleMessage(value: Event) {
 }
 ```
 
-For a full example, take a look at the [example project](https://github.com/shovon/valentina/tree/main/example).
+For a full example, take a look at the [example project](https://github.com/shovon/ninazu/tree/main/example).
 
 ### Tips and tricks
 
-Below are some tricks you can use to make Valentina an even more powerful validation tool.
+Below are some tricks you can use to make Ninazu an even more powerful validation tool.
 
 #### Recursive types
 
@@ -366,7 +364,7 @@ const nodeSchema: Validator<Node> = lazy<Node>(() => {
 
 #### Create custom validators by composing other validators
 
-Valentina offers some basic validator creators, such as for strings, numbers, and booleans. But, if you wanted to create your own validator creator for other purposes, you certainly can. Here's an example: optional values.
+Ninazu offers some basic validator creators, such as for strings, numbers, and booleans. But, if you wanted to create your own validator creator for other purposes, you certainly can. Here's an example: optional values.
 
 So let's say you wanted validation for an object with string fields that can be set to `undefined`, then a validator for that would look like so:
 
@@ -410,7 +408,7 @@ import {
   replaceError,
   string,
   ValidationError,
-} from "valentina";
+} from "ninazu";
 
 class DateError extends ValidationError {
   constructor(value: string) {
@@ -464,7 +462,7 @@ type CustomDate = InferType<typeof dateSchema>;
 
 > **Note**
 >
-> In the above example, we created a custom error class called `DateError`, by deriving Valentina's `ValidationError` class.
+> In the above example, we created a custom error class called `DateError`, by deriving ninazu's `ValidationError` class.
 >
 > By the definition of the `error` field in `ValidationResult<T>`, you don't have to use a class. You can simply initialize an object with the appropriate fileds.
 >
@@ -488,7 +486,7 @@ type CustomDate = InferType<typeof dateSchema>;
 
 ## Design Philosophy
 
-Valentina is written with five principles in mind:
+Ninazu is written with five principles in mind:
 
 - Atomic validators
 - Validator composition
@@ -504,25 +502,25 @@ Valentina is written with five principles in mind:
 >
 > of or forming a single irreducible unit or component in a larger system.
 
-The central idea is that complex validation rules can be built from the ground up out of [atomic](https://spin.atomicobject.com/2016/01/06/defining-atomic-object/) elements. Schema construction will happen through the _composition_ of one or more of these "atoms". The Valentina library's `Validator` is the type definition that serves as the "atom".
+The central idea is that complex validation rules can be built from the ground up out of [atomic](https://spin.atomicobject.com/2016/01/06/defining-atomic-object/) elements. Schema construction will happen through the _composition_ of one or more of these "atoms". The Ninazu library's `Validator` is the type definition that serves as the "atom".
 
 The definition of a `Validator` is simply:
 
 ```typescript
 export type Validator<T> = {
-  validate: (value: any) => ValidResult<T> | InvalidResult;
+	validate: (value: any) => ValidationResult<T>;
 };
 
-type ValidResult<T> = { value: T; isValid: true };
+export type ValidationFailure = { isValid: false; error: IValidationError };
+export type ValidationSuccess<T> = { value: T; isValid: true };
 
-type InvalidResult = {
-  isValid: false;
-  error: {
-    readonly type: string;
-    readonly errorMessage: string;
-    readonly value: any;
-  } & { [key: string]: any };
-};
+export type ValidationResult<T> = ValidationFailure | ValidationSuccess<T>;
+
+export type IValidationError = {
+	readonly type: string;
+	readonly errorMessage: string;
+	readonly value: any;
+} & { [key: string]: any };
 ```
 
 Any object of type `Validator` can implement the `validate` method in their own way. It can even invoke the `validate` method from another `Validator`.
@@ -531,7 +529,7 @@ In fact, as far as this library is concerned, you can define your `Validator`s n
 
 ### Composition
 
-Rather than relying on—arguably—complex configurations and validation engines, Valentina empowers you to define schemas by composing smaller validators.
+Rather than relying on—arguably—complex configurations and validation engines, Ninazu empowers you to define schemas by composing smaller validators.
 
 Additionally, you can easily re-use smaller validators across larger schemas.
 
@@ -586,33 +584,32 @@ None of the schema components are represented as a small part of a larger config
 
 Traditionally, validation libraries often resorted to abstracting away the minutiae behind JavaScript. According to those libraries, the idea is that JavaScript as a language is flawed, and those flaws need to be abstracted away.
 
-**Valentina, on the other hand, embraces JavaScript.**
+**Ninazu, on the other hand, embraces JavaScript.**
 
-At it's core, the power of Valentina is all encompassed by the following type definitions:
+At it's core, the power of Ninazu is all encompassed by the following type definitions:
 
 ```typescript
 export type Validator<T> = {
-  __: T;
-  validate: (value: any) => ValidResult<T> | InvalidResult;
+	validate: (value: any) => ValidationResult<T>;
 };
 
-type ValidResult<T> = { value: T; isValid: true };
+export type ValidationFailure = { isValid: false; error: IValidationError };
+export type ValidationSuccess<T> = { value: T; isValid: true };
 
-type InvalidResult = {
-  isValid: false;
-  error: {
-    readonly type: string;
-    readonly errorMessage: string;
-    readonly value: any;
-  } & { [key: string]: any };
-};
+export type ValidationResult<T> = ValidationFailure | ValidationSuccess<T>;
+
+export type IValidationError = {
+	readonly type: string;
+	readonly errorMessage: string;
+	readonly value: any;
+} & { [key: string]: any };
 ```
 
 > The `__` is only used for TypeScript type casting. You don't actually need \*\* in the actual JavaScript Validator object
 
-You don't even need to use Valentina. As long as you can define your own Validator, you can perform validations as you would with Valentina.
+You don't even need to use Ninazu. As long as you can define your own Validator, you can perform validations as you would with Ninazu.
 
-Alternatively, you can even write your own `Validator`s, and they will be 100% compatible with Valentina.
+Alternatively, you can even write your own `Validator`s, and they will be 100% compatible with Ninazu.
 
 ### Clarity and transparency
 
@@ -624,14 +621,14 @@ Additionally, results from validation will be easily inspectable, and serializab
 
 ### Power to the client
 
-Want to go beyond what this library has to offer? You're in luck. Valentina won't lock you into using a quazi-proprietary `addMethod` function. You are free to create your own validators.
+Want to go beyond what this library has to offer? You're in luck. Ninazu won't lock you into using a quazi-proprietary `addMethod` function. You are free to create your own validators.
 
 Better yet, these validators can be used beyond just validation; but also data transformation.
 
 For instance, if you have a string that represents a timestamp, you can convert the string to a JavaScript `Date`.
 
 ```typescript
-import { ValidationError } from "valentina";
+import { ValidationError } from "ninazu";
 
 class DateError extends ValidationError {
   constructor(value: string) {
@@ -1028,4 +1025,4 @@ const nodeSchema: Validator<Node> = lazy<Node>(() => {
 
 ## Similar libraries
 
-Valentina was inspired by [yup.js](https://github.com/jquense/yup). It's a good library, but Valentina's purpose is to limit the number of dependencies that JavaScript projects rely on
+Ninazu was inspired by [yup.js](https://github.com/jquense/yup). It's a good library, but Ninazu's purpose is to limit the number of dependencies that JavaScript projects rely on
