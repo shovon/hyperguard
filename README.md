@@ -1023,6 +1023,94 @@ const nodeSchema: Validator<Node> = lazy<Node>(() => {
 });
 ```
 
+### `transform<T>(parse: (value: any) => T): Validator<T>`
+
+Given a parser function, parses the input object into an output object.
+
+```typescript
+const json = transform<any>(JSON.parse.bind(JSON));
+
+const result1 = json.validate("1");
+if (result1.isValid) {
+  // We get the JavaScript Number `1`
+  result1.value;
+}
+
+const emptyStr = json.validate("\"\"");
+if (emptyStr.isValid) {
+  // We get the JavaScript string `""`
+  emptyStr.value;
+}
+```
+
+#### Motivation and usage
+
+The core of Ninazu's philosophy is that not only should we validate inputs, but also apply necessary transformations from them.
+
+In this case, not only are we expecting a string, but the string should also be a valid JSON string. From which, we should be able to parse it into a JavaScript object.
+
+This pattern is especially powerful when combined with the `chain` validator.
+
+### `chain<T1, T2>(left: Validator<T1>, right: Validator<T2>): Validator<T2>`
+
+Takes two other validators, to create a new validator where the left validation is run, then the right one shortly afterwards.
+
+```typescript
+const date = chain(
+  either(string(), number()),
+  transform((value) => new Date(value))
+);
+
+// ✅ Evaluates to true
+date.validate('2020-10-10').isValid
+
+// ✅ Evaluates to true
+date.validate(10).isValid
+```
+
+### `fallback<T1, T2>(validator: Validator<T1>, getFallback: () => T2)`
+
+Takes a validator, and a function to return a default fallback value, and gives a validator that will never fail.
+
+
+```typescript
+const alwaysNumber = fallback(number(), () => 42);
+
+// ✅ Evaluates to true
+fallback.validate(10); 
+
+const fallbackValidation = fallback.validate("10");
+
+// ✅ Evaluates to true, even if the supplied input is a string
+if (fallbackValidation.isValid) {
+
+  // Will evaluate to `42`, since `"10"` is a string, not a number/
+  fallbackValidation.value;
+}
+```
+
+#### Motivation and usage
+
+In many instances, you just don't want validations to fail, and bite the bullet and just set a default value.
+
+
+### `predicate<T>(validator: Validator<T>, pred: (value: T) => boolean)`
+
+Accepts a validator, and a predicate function. Validation will first run the input against the validator, then check against the predicate. If the predicate fails, then, we will get a failed validation.
+
+```typescript
+const even = predicate(number(), (value) => value % 2 === 0);
+
+// ✅ Evaluates to true
+even.validate(2).isValid;
+
+// ✅ Evaluates to true
+even.validate(4).isValid;
+
+// ❌ Evaluates to false
+even.validate(3).isValid;
+```
+
 ## Similar libraries
 
 Ninazu was inspired by [yup.js](https://github.com/jquense/yup). It's a good library, but Ninazu's purpose is to limit the number of dependencies that JavaScript projects rely on
