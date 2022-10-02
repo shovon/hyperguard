@@ -1111,6 +1111,23 @@ even.validate(4).isValid;
 even.validate(3).isValid;
 ```
 
+### `replaceError<T>(validator: Validator<T>, createError: (value: any, error: IValidationError) => IValidationError): Validator<T>`
+
+Given the original validator, whatever error is emitted by it, replace by the error as returned by the `createError` callback function.
+
+```typescript
+const withDifferentError = replaceError(string(), (value) => ({
+  type: 'Custom error',
+  errorMessage: 'Some custom error',
+  value
+}));
+
+if (!validator.validate(10).isValid) {
+  // This is where the error will be.
+  validator.error;
+}
+```
+
 ## Similar libraries
 
 Ninazu was inspired by [yup.js](https://github.com/jquense/yup). It's a good library, but Ninazu's purpose is to limit the number of dependencies that JavaScript projects rely on
