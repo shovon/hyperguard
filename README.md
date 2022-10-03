@@ -1130,4 +1130,6 @@ if (!validator.validate(10).isValid) {
 
 ## Similar libraries
 
-Ninazu was inspired by [yup.js](https://github.com/jquense/yup). It's a good library, but Ninazu's purpose is to limit the number of dependencies that JavaScript projects rely on
+- [yup.js](https://github.com/jquense/yup)
+- [zod](https://github.com/colinhacks/zod)
+- [iots](https://github.com/gcanti/io-ts)
