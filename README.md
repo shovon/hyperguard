@@ -1,6 +1,6 @@
 # Type Guardian: TypeScript object validation
 
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/shovon/valentina/blob/main/LICENSE) [![npm version](https://badge.fury.io/js/ninazu.svg)](https://badge.fury.io/js/ninazu) [![CircleCI](https://circleci.com/gh/shovon/ninazu/tree/main.svg?style=svg)](https://circleci.com/gh/shovon/valentina/tree/main) [![Gitter](https://badges.gitter.im/valentina-validation/community.svg)](https://gitter.im/valentina-validation/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/shovon/valentina/blob/main/LICENSE) [![npm version](https://badge.fury.io/js/type-guardian.svg)](https://badge.fury.io/js/type-guardian) [![CircleCI](https://circleci.com/gh/shovon/type-guardian/tree/main.svg?style=svg)](https://circleci.com/gh/shovon/valentina/tree/main) [![Gitter](https://badges.gitter.im/valentina-validation/community.svg)](https://gitter.im/valentina-validation/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 _ninazu_ is a tiny library for validating JavaScript values. Whether they be primitives, such as strings and numbers, or modelling more complex objects, Ninazu will empower you to express your data validation rules, your way.
 
@@ -26,7 +26,7 @@ import {
   InferType,
   either,
   Validator,
-} from "ninazu";
+} from "type-guardian";
 
 // Create a validator that allows for values to be set to `undefined`
 const optional = <T>(validator: Validator<T>) =>
@@ -87,7 +87,7 @@ These are the very basics that you can go off of, and start validating your data
 
 ## Table of Contents
 
-* [Ninazu: JavaScript object validation](#ninazu-javascript-object-validation)
+* [Ninazu: JavaScript object validation](#type-guardian-javascript-object-validation)
    * [Getting Started](#getting-started)
    * [Table of Contents](#table-of-contents)
    * [Usage Guide](#usage-guide)
@@ -152,7 +152,7 @@ Ninazu becomes especially powerful when larger `Validator`s are comprised from s
 
 ### Installing
 
-By design, Ninazu places you under **no obligation** to use any package manager; you most certainly can copy and paste either [`lib.ts`](https://github.com/shovon/ninazu/blob/main/lib.ts) for TypeScript, [`dist/lib.js`](https://github.com/shovon/valentina/blob/main/dist/lib.js) for CommonJS (require), or [`dist/esm/lib.js`](https://github.com/shovon/ninazu/blob/main/dist/esm/lib.js) for importing via the `import` statement.
+By design, Ninazu places you under **no obligation** to use any package manager; you most certainly can copy and paste either [`lib.ts`](https://github.com/shovon/type-guardian/blob/main/lib.ts) for TypeScript, [`dist/lib.js`](https://github.com/shovon/valentina/blob/main/dist/lib.js) for CommonJS (require), or [`dist/esm/lib.js`](https://github.com/shovon/type-guardian/blob/main/dist/esm/lib.js) for importing via the `import` statement.
 
 With that said, you are certainly more than welcomed to use a package manager, especially since it will allow you to easily upgrade, without the possibility of errors while copying and pasting.
 
@@ -160,18 +160,18 @@ With that said, you are certainly more than welcomed to use a package manager, e
 
 If you are using Node.js or a bundler that uses npm, Ninazu has been published to npm for your convenience. You can install using your preferred package manager. For example:
 
-- npm: `npm install ninazu`
-- Yarn: `yarn add ninazu`
-- pnpm: `pnpm add ninazu`
+- npm: `npm install type-guardian`
+- Yarn: `yarn add type-guardian`
+- pnpm: `pnpm add type-guardian`
 
-Additional, for the JavaScript CommonJS code, transpilers should not be needed. However if you are having trouble importing Ninazu into your bundler (Webpack, Vite, Browserify, etc.), then please do [open a new issue](https://github.com/shovon/ninazu/issues), and I will investigate.
+Additional, for the JavaScript CommonJS code, transpilers should not be needed. However if you are having trouble importing Ninazu into your bundler (Webpack, Vite, Browserify, etc.), then please do [open a new issue](https://github.com/shovon/type-guardian/issues), and I will investigate.
 
 ##### Importing via CommonJS `require`
 
 Once installed, you should be able to import the module via CommonJS `require`, like so:
 
 ```javascript
-const parseValidate = require("ninazu");
+const parseValidate = require("type-guardian");
 ```
 
 ##### Importing via Node.js' ECMAScript module (`import` statement)
@@ -179,7 +179,7 @@ const parseValidate = require("ninazu");
 In a Node.js `mjs` file, you can simply import using the `import` syntax.
 
 ```javascript
-import * as parseValidate from "ninazu";
+import * as parseValidate from "type-guardian";
 ```
 
 #### Deno
@@ -187,7 +187,7 @@ import * as parseValidate from "ninazu";
 With Deno, you can directly import the `lib.ts` file from GitHub.
 
 ```typescript
-import * as parseValidate from "https://raw.githubusercontent.com/shovon/ninazu/main/lib.ts";
+import * as parseValidate from "https://raw.githubusercontent.com/shovon/type-guardian/main/lib.ts";
 ```
 
 #### Browser via `import` statement (dist/esm/lib.js)
@@ -205,7 +205,7 @@ Download or copy & paste the ECMAScript module located in [`dist/esm/lib.js`]().
 ```html
 <!-- Minified -->
 <script type="module">
-  import * as parseValidate from "/path/to/ninazu/lib.js";
+  import * as parseValidate from "/path/to/type-guardian/lib.js";
 </script>
 ```
 
@@ -213,7 +213,7 @@ Download or copy & paste the ECMAScript module located in [`dist/esm/lib.js`]().
 >
 > If you want a minified version, you can download it from this URL:
 >
-> https://cdn.jsdelivr.net/npm/ninazu@latest/dist/esm/lib.min.js
+> https://cdn.jsdelivr.net/npm/type-guardian@latest/dist/esm/lib.min.js
 
 **Option 2: Importing from npm (via jsDelivr)**
 
@@ -221,7 +221,7 @@ If you don't want to download, and you just want to give the library a try, then
 
 ```html
 <script type="module">
-  import * as valentina from "https://cdn.jsdelivr.net/npm/ninazu@latest/dist/esm/lib.js";
+  import * as valentina from "https://cdn.jsdelivr.net/npm/type-guardian@latest/dist/esm/lib.js";
 </script>
 ```
 
@@ -229,7 +229,7 @@ Alternatively, if you want the minified version, you can simply add a `.min` aft
 
 ```html
 <script type="module">
-  import * as valentina from "https://cdn.jsdelivr.net/npm/ninazu@latest/dist/esm/lib.min.js";
+  import * as valentina from "https://cdn.jsdelivr.net/npm/type-guardian@latest/dist/esm/lib.min.js";
 </script>
 ```
 
@@ -347,7 +347,7 @@ function handleMessage(value: Event) {
 }
 ```
 
-For a full example, take a look at the [example project](https://github.com/shovon/ninazu/tree/main/example).
+For a full example, take a look at the [example project](https://github.com/shovon/type-guardian/tree/main/example).
 
 ### Tips and tricks
 
@@ -419,7 +419,7 @@ import {
   replaceError,
   string,
   ValidationError,
-} from "ninazu";
+} from "type-guardian";
 
 class DateError extends ValidationError {
   constructor(value: string) {
@@ -473,7 +473,7 @@ type CustomDate = InferType<typeof dateSchema>;
 
 > **Note**
 >
-> In the above example, we created a custom error class called `DateError`, by deriving ninazu's `ValidationError` class.
+> In the above example, we created a custom error class called `DateError`, by deriving type-guardian's `ValidationError` class.
 >
 > By the definition of the `error` field in `ValidationResult<T>`, you don't have to use a class. You can simply initialize an object with the appropriate fileds.
 >
@@ -639,7 +639,7 @@ Better yet, these validators can be used beyond just validation; but also data t
 For instance, if you have a string that represents a timestamp, you can convert the string to a JavaScript `Date`.
 
 ```typescript
-import { ValidationError } from "ninazu";
+import { ValidationError } from "type-guardian";
 
 class DateError extends ValidationError {
   constructor(value: string) {
