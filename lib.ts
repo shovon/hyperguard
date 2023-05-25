@@ -191,6 +191,49 @@ export function either<T extends Validator<unknown>[]>(
 	} as ValidatorArrayToValidatorUnion<T>;
 }
 
+export class ExcludeError<T, U> extends ValidationError {
+	constructor(
+		value: any,
+		public validationResults: ValidationResult<Exclude<T, U>>
+	) {
+		super("Exclude error", `Value includes a value that it shouldn't`, value);
+	}
+}
+
+/**
+ * A validator that validates if a value does not validate against another
+ * validator.
+ *
+ * Similar to TypeScript's `Exclude` utility type.
+ * @param a The validation to include
+ * @param b The validation to exclude
+ * @returns A validator where it validates if value validates with `a` but does
+ *   not validate against `b`.
+ */
+export function exclude<V, T>(
+	a: Validator<V>,
+	b: Validator<T>
+): Validator<Exclude<V, T>> {
+	return {
+		validate: (value: any): ValidationResult<Exclude<V, T>> => {
+			const aValidation = a.validate(value);
+			const bValidation = b.validate(value);
+
+			if (aValidation.isValid && !bValidation.isValid) {
+				return {
+					isValid: true,
+					value: aValidation.value as Exclude<V, T>,
+				};
+			}
+
+			return {
+				isValid: false,
+				error: new ExcludeError("Exclude error", value),
+			};
+		},
+	};
+}
+
 type ValidatorTupleToValueTuple<T extends Validator<unknown>[]> = Validator<{
 	[P in keyof T]: T[P] extends Validator<infer U> ? U : never;
 }>;
@@ -519,18 +562,71 @@ export class ValueIsNullError extends ValidationError {
 	}
 }
 
+type InferSchema<V extends { [key: string]: Validator<unknown> }> = {
+	[K in keyof V]: InferType<V[K]>;
+};
+
+export type ObjectValidator<
+	V extends object,
+	S extends {
+		[key in keyof V]: Validator<V[key]>;
+	}
+> = Validator<InferSchema<S>> &
+	Readonly<{
+		/**
+		 * The schema that this validator uses to validate objects.
+		 */
+		readonly shape: S;
+
+		/**
+		 * A validator that validates objects against the same schema, but the
+		 * fields are optional.
+		 */
+		readonly partial: ObjectValidator<
+			Partial<V>,
+			{ [key in keyof V]: Validator<V[key] | undefined> }
+		>;
+
+		/**
+		 * A validator that validates objects against the same schema, but the with
+		 * the specified keys omitted.
+		 * @param keys The keys to omit
+		 * @returns A validator that validates objects against the same schema,
+		 *   but with the specified keys omitted
+		 */
+		readonly omit: <T extends keyof V>(
+			keys: T[]
+		) => ObjectValidator<Omit<V, T>, S>;
+
+		readonly pick: <T extends keyof V>(
+			keys: T[]
+		) => ObjectValidator<Pick<V, T>, S>;
+
+		readonly required: ObjectValidator<
+			{
+				[key in keyof V]: Exclude<Exclude<V[key], undefined>, null>;
+			},
+			{
+				[key in keyof V]: Validator<Exclude<Exclude<V[key], undefined>, null>>;
+			}
+		>;
+	}>;
+
 /**
  * Creates a validator for an object, specified by the "schema".
  *
  * Each field in the "schema" is a validator, and each of them will validate
  * values against objects in concern.
- * @param schema An object containing fields of nothing but validators, each of
+ * @param shape An object containing fields of nothing but validators, each of
  *   which will be used to validate the value's respective fields
  * @returns A validator that will validate an object against the `schema`
  */
-export function object<V extends object>(schema: {
-	[key in keyof V]: Validator<V[key]>;
-}): Validator<V> {
+export function object<
+	V extends object,
+	S extends {
+		[key in keyof V]: Validator<V[key]>;
+	}
+>(shape: S): ObjectValidator<V, S> {
 	return {
 		validate: (value: any) => {
 			if (value === undefined) {
@@ -545,9 +641,9 @@ export function object<V extends object>(schema: {
 					error: new UnexpectedTypeofError(value, "object"),
 				};
 			}
-			const fields = Object.keys(schema).map((key) => ({
+			const fields = Object.keys(shape).map((key) => ({
 				key,
-				validation: ((schema as any)[key] as Validator<any>).validate(
+				validation: ((shape as any)[key] as Validator<any>).validate(
 					value[key]
 				),
 			}));
@@ -577,6 +673,46 @@ export function object<V extends object>(schema: {
 						),
 				  };
 		},
+		get partial(): ObjectValidator<
+			Partial<V>,
+			{ [key in keyof V]: Validator<V[key] | undefined> }
+		> {
+			const partialSchema = {} as {
+				[key in keyof V]: Validator<V[key] | undefined>;
+			};
+			for (const [key, validator] of Object.entries<Validator<V[keyof V]>>(
+				shape
+			)) {
+				const k = key as keyof V;
+				partialSchema[k] = either(validator, exact(undefined));
+			}
+			return object(partialSchema);
+		},
+		shape,
+		omit: () => object(shape),
+		pick: () => object(shape),
+		get required(): ObjectValidator<
+			{
+				[key in keyof V]: Exclude<Exclude<V[key], undefined>, null>;
+			},
+			{
+				[key in keyof V]: Validator<Exclude<Exclude<V[key], undefined>, null>>;
+			}
+		> {
+			const requiredSchema = {} as {
+				[key in keyof V]: Validator<Exclude<Exclude<V[key], undefined>, null>>;
+			};
+			for (const [key, validator] of Object.entries<Validator<V[keyof V]>>(
+				shape
+			)) {
+				const k = key as keyof V;
+				requiredSchema[k] = exclude(
+					validator,
+					either(exact(undefined), exact(null))
+				) as Validator<Exclude<Exclude<V[keyof V], undefined>, null>>;
+			}
+			return object(requiredSchema);
+		},
 	};
 }
 
@@ -586,6 +722,17 @@ export function object<V extends object>(schema: {
  * @returns A validator that will validate *all* objects
  */
 export function any(): Validator<any> {
+	return {
+		validate: (value: any) => ({ isValid: true, value }),
+	};
+}
+
+/**
+ * Creates a validator that where the validation function will never determine
+ * that a value is invalid
+ * @returns A validator that will validate *all* objects
+ */
+export function unknown(): Validator<any> {
 	return {
 		validate: (value: any) => ({ isValid: true, value }),
 	};

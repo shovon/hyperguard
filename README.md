@@ -1,4 +1,4 @@
-# Ninazu: JavaScript object validation
+# Type Guardian: TypeScript object validation
 
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/shovon/valentina/blob/main/LICENSE) [![npm version](https://badge.fury.io/js/ninazu.svg)](https://badge.fury.io/js/ninazu) [![CircleCI](https://circleci.com/gh/shovon/ninazu/tree/main.svg?style=svg)](https://circleci.com/gh/shovon/valentina/tree/main) [![Gitter](https://badges.gitter.im/valentina-validation/community.svg)](https://gitter.im/valentina-validation/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
