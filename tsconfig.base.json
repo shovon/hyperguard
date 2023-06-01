@@ -1,17 +1,18 @@
 {
-  "files": ["lib.ts", "test.ts"],
-  "compilerOptions": {
-    "declaration": true,
-    "noImplicitAny": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "strictBindCallApply": true,
-    "strictFunctionTypes": true,
-    "strictNullChecks": true,
-    "strictPropertyInitialization": true,
-    "downlevelIteration": true,
-    "allowUnreachableCode": false,
-    "useUnknownInCatchVariables": true,
-    "noImplicitOverride": true
-  }
+	"files": ["lib.ts", "test.ts"],
+	"compilerOptions": {
+		"lib": ["es2017"],
+		"declaration": true,
+		"noImplicitAny": true,
+		"noImplicitReturns": true,
+		"noImplicitThis": true,
+		"strictBindCallApply": true,
+		"strictFunctionTypes": true,
+		"strictNullChecks": true,
+		"strictPropertyInitialization": true,
+		"downlevelIteration": true,
+		"allowUnreachableCode": false,
+		"useUnknownInCatchVariables": true,
+		"noImplicitOverride": true
+	}
 }

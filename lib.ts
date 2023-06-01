@@ -567,7 +567,7 @@ type InferSchema<V extends { [key: string]: Validator<unknown> }> = {
 };
 
 export type ObjectValidator<
-	V extends object,
+	V,
 	S extends {
 		[key in keyof V]: Validator<V[key]>;
 	}
@@ -583,8 +583,12 @@ export type ObjectValidator<
 		 * fields are optional.
 		 */
 		readonly partial: ObjectValidator<
-			Partial<V>,
-			{ [key in keyof V]: Validator<V[key] | undefined> }
+			Partial<InferSchema<S>>,
+			{
+				[key in keyof InferSchema<S>]: Validator<
+					InferSchema<S>[key] | undefined
+				>;
+			}
 		>;
 
 		/**
@@ -612,6 +616,12 @@ export type ObjectValidator<
 		>;
 	}>;
 
+function objectEntries<T extends object>(
+	o: T
+): Iterable<[keyof T, T[keyof T]]> {
+	return Object.entries(o) as any;
+}
+
 /**
  * Creates a validator for an object, specified by the "schema".
  *
@@ -622,7 +632,7 @@ export type ObjectValidator<
  * @returns A validator that will validate an object against the `schema`
  */
 export function object<
-	V extends object,
+	V,
 	S extends {
 		[key in keyof V]: Validator<V[key]>;
 	}
@@ -674,17 +684,20 @@ export function object<
 				  };
 		},
 		get partial(): ObjectValidator<
-			Partial<V>,
-			{ [key in keyof V]: Validator<V[key] | undefined> }
+			Partial<InferSchema<S>>,
+			{
+				[key in keyof InferSchema<S>]: Validator<
+					InferSchema<S>[key] | undefined
+				>;
+			}
 		> {
 			const partialSchema = {} as {
-				[key in keyof V]: Validator<V[key] | undefined>;
+				[key in keyof InferSchema<S>]: Validator<
+					InferSchema<S>[key] | undefined
+				>;
 			};
-			for (const [key, validator] of Object.entries<Validator<V[keyof V]>>(
-				shape
-			)) {
-				const k = key as keyof V;
-				partialSchema[k] = either(validator, exact(undefined));
+			for (const [key, validator] of objectEntries(shape)) {
+				partialSchema[key] = either(validator, exact(undefined));
 			}
 			return object(partialSchema);
 		},

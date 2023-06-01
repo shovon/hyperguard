@@ -6,13 +6,12 @@ _ninazu_ is a tiny library for validating JavaScript values. Whether they be pri
 
 **Killer Features:**
 
-- clear and transparent API, with no hidden surprises
-- minimal and intuitive API, allowing for expressive JavaScript object schema and type definitions
+- clear, minimal, and intuitive API, with no hidden surprises
 - Powerful TypeScript support to infer static types from schema
 - Composable validators, empowering you to define your own rules, your way
 - zero dependencies
 - install either via npm, or copy and paste the [`lib.ts`](https://raw.githubusercontent.com/shovon/valentina/main/lib.ts) (or [`dist/lib.js`](https://raw.githubusercontent.com/shovon/valentina/main/dist/lib.js) for JavaScript) file into your project
-- no library lock-ins. So you used this library for a day, and now you hate it? As long as the next library defines their own [`Validator`](https://github.com/shovon/valentina/blob/c56c15a5ddededc5ea69c6b7f96108a1b83ac8b1/lib.ts#L30-L36) type, you should be able to migrate to that other library very easily. Or, you can quickly write your own
+- no library lock-ins. So you used this library for a day, and now you hate it? As long as the next library defines their own [`Validator`](https://github.com/shovon/type-guardian/blob/c56c15a5ddededc5ea69c6b7f96108a1b83ac8b1/lib.ts#L30-L36) type, you should be able to migrate to that other library very easily. Or, you can quickly write your own
 
 ## Getting Started
 

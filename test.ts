@@ -239,12 +239,90 @@ const assertIncorrect = <T>(
 		whenCreated: new Date().toISOString(),
 	};
 
+	const objUnderTestPartial1 = {
+		cool: "sweet",
+		nice: 10,
+	};
+
+	const objUnderTestPartial2 = {
+		cool: "sweet",
+		whenCreated: new Date().toISOString(),
+	};
+
+	const objUnderTestPartial3 = {
+		cool: "sweet",
+	};
+
+	const objUnderTestPartial4 = {
+		nice: 10,
+	};
+
+	const objUnderTestPartial5 = {
+		whenCreated: new Date().toISOString(),
+	};
+
+	const objUnderTestPartial6 = {};
+
 	const validation = objectWithDate.validate(objectUnderTest);
 
 	assert(validation.isValid);
 	assert(typeof validation.value.cool === "string");
 	assert(typeof validation.value.nice === "number");
 	assert(validation.value.whenCreated instanceof Date);
+
+	{
+		const validation = objectWithDate.partial.validate(objUnderTestPartial1);
+
+		assert(validation.isValid);
+		assert(typeof validation.value.cool === "string");
+		assert(typeof validation.value.nice === "number");
+		assert(validation.value.whenCreated === undefined);
+	}
+
+	{
+		const validation = objectWithDate.partial.validate(objUnderTestPartial2);
+
+		assert(validation.isValid);
+		assert(typeof validation.value.cool === "string");
+		assert(typeof validation.value.nice === "undefined");
+		assert(validation.value.whenCreated instanceof Date);
+	}
+
+	{
+		const validation = objectWithDate.partial.validate(objUnderTestPartial3);
+
+		assert(validation.isValid);
+		assert(typeof validation.value.cool === "string");
+		assert(typeof validation.value.nice === "undefined");
+		assert(validation.value.whenCreated === undefined);
+	}
+
+	{
+		const validation = objectWithDate.partial.validate(objUnderTestPartial4);
+
+		assert(validation.isValid);
+		assert(typeof validation.value.cool === "undefined");
+		assert(typeof validation.value.nice === "number");
+		assert(validation.value.whenCreated === undefined);
+	}
+
+	{
+		const validation = objectWithDate.partial.validate(objUnderTestPartial5);
+
+		assert(validation.isValid);
+		assert(typeof validation.value.cool === "undefined");
+		assert(typeof validation.value.nice === "undefined");
+		assert(validation.value.whenCreated instanceof Date);
+	}
+
+	{
+		const validation = objectWithDate.partial.validate(objUnderTestPartial6);
+
+		assert(validation.isValid);
+		assert(typeof validation.value.cool === "undefined");
+		assert(typeof validation.value.nice === "undefined");
+		assert(validation.value.whenCreated === undefined);
+	}
 
 	assertValidator(object({}), {}, "An empty object is a valid empty object");
 	assertValidator(

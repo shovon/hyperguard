@@ -98,6 +98,40 @@ export function either(...alts) {
         },
     };
 }
+export class ExcludeError extends ValidationError {
+    constructor(value, validationResults) {
+        super("Exclude error", `Value includes a value that it shouldn't`, value);
+        this.validationResults = validationResults;
+    }
+}
+/**
+ * A validator that validates if a value does not validate against another
+ * validator.
+ *
+ * Similar to TypeScript's `Exclude` utility type.
+ * @param a The validation to include
+ * @param b The validation to exclude
+ * @returns A validator where it validates if value validates with `a` but does
+ *   not validate against `b`.
+ */
+export function exclude(a, b) {
+    return {
+        validate: (value) => {
+            const aValidation = a.validate(value);
+            const bValidation = b.validate(value);
+            if (aValidation.isValid && !bValidation.isValid) {
+                return {
+                    isValid: true,
+                    value: aValidation.value,
+                };
+            }
+            return {
+                isValid: false,
+                error: new ExcludeError("Exclude error", value),
+            };
+        },
+    };
+}
 /**
  * Used to validate a tuple against the individual values in an array.
  *
@@ -348,16 +382,19 @@ export class ValueIsNullError extends ValidationError {
         super("Value is null", "The supplied value is null, when it should have been something else", null);
     }
 }
+function objectEntries(o) {
+    return Object.entries(o);
+}
 /**
  * Creates a validator for an object, specified by the "schema".
  *
  * Each field in the "schema" is a validator, and each of them will validate
  * values against objects in concern.
- * @param schema An object containing fields of nothing but validators, each of
+ * @param shape An object containing fields of nothing but validators, each of
  *   which will be used to validate the value's respective fields
  * @returns A validator that will validate an object against the `schema`
  */
-export function object(schema) {
+export function object(shape) {
     return {
         validate: (value) => {
             if (value === undefined) {
@@ -372,9 +409,9 @@ export function object(schema) {
                     error: new UnexpectedTypeofError(value, "object"),
                 };
             }
-            const fields = Object.keys(schema).map((key) => ({
+            const fields = Object.keys(shape).map((key) => ({
                 key,
-                validation: schema[key].validate(value[key]),
+                validation: shape[key].validate(value[key]),
             }));
             return fields.every(({ validation }) => validation.isValid)
                 ? {
@@ -393,6 +430,24 @@ export function object(schema) {
                         .map(({ key, validation }) => ({ [key]: validation })))),
                 };
         },
+        get partial() {
+            const partialSchema = {};
+            for (const [key, validator] of objectEntries(shape)) {
+                partialSchema[key] = either(validator, exact(undefined));
+            }
+            return object(partialSchema);
+        },
+        shape,
+        omit: () => object(shape),
+        pick: () => object(shape),
+        get required() {
+            const requiredSchema = {};
+            for (const [key, validator] of Object.entries(shape)) {
+                const k = key;
+                requiredSchema[k] = exclude(validator, either(exact(undefined), exact(null)));
+            }
+            return object(requiredSchema);
+        },
     };
 }
 /**
@@ -401,6 +456,16 @@ export function object(schema) {
  * @returns A validator that will validate *all* objects
  */
 export function any() {
+    return {
+        validate: (value) => ({ isValid: true, value }),
+    };
+}
+/**
+ * Creates a validator that where the validation function will never determine
+ * that a value is invalid
+ * @returns A validator that will validate *all* objects
+ */
+export function unknown() {
     return {
         validate: (value) => ({ isValid: true, value }),
     };

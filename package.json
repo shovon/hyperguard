@@ -33,7 +33,7 @@
 		"prepublish": "npm run build && npm run test",
 		"clean": "rm -rf dist"
 	},
-	"devDependencies": {
-		"@types/node": "^17.0.21"
+	"dependencies": {
+		"@types/node": "^20.2.5"
 	}
 }
