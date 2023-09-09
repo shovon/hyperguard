@@ -23,6 +23,7 @@ import {
 	fallback,
 	validate,
 	intersection,
+	keyOf,
 } from "./lib";
 import { strict as assert } from "assert";
 
@@ -364,6 +365,13 @@ const assertIncorrect = <T>(
 		"haha",
 		"An object not matching the schema should fail the test"
 	);
+}
+
+{
+	assertValidator(
+		keyOf({ a: 1, b: 2, c: 3 }),
+		"a",
+	)
 }
 
 {

@@ -622,6 +622,39 @@ function objectEntries<T extends object>(
 	return Object.entries(o) as any;
 }
 
+export class KeyNotExistError extends ValidationError {
+	constructor(private key: any) {
+		super(
+			"Key does not exist in object",
+			`The supplied key ${key} does not exist in the supplied object`,
+			undefined
+		);
+	}
+}
+
+export function keyOf<T>(o: T): Validator<keyof T> {
+	return {
+		validate: (value: any): ValidationResult<keyof T> => {
+			if (typeof o !== "object" || o === null) {
+				return {
+					isValid: false,
+					error: new UnexpectedTypeofError(o, "object"),
+				}
+			}
+			if (!Object.keys(o).includes(value)) {
+				return {
+					isValid: false,
+					error: new KeyNotExistError(value),
+				}
+			}
+			return {
+				isValid: true,
+				value
+			}
+		},
+	}
+}
+
 /**
  * Creates a validator for an object, specified by the "schema".
  *

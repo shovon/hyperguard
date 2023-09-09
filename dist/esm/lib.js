@@ -385,6 +385,34 @@ export class ValueIsNullError extends ValidationError {
 function objectEntries(o) {
     return Object.entries(o);
 }
+export class KeyNotExistError extends ValidationError {
+    constructor(key) {
+        super("Key does not exist in object", `The supplied key ${key} does not exist in the supplied object`, undefined);
+        this.key = key;
+    }
+}
+export function keyOf(o) {
+    return {
+        validate: (value) => {
+            if (typeof o !== "object" || o === null) {
+                return {
+                    isValid: false,
+                    error: new UnexpectedTypeofError(o, "object"),
+                };
+            }
+            if (!Object.keys(o).includes(value)) {
+                return {
+                    isValid: false,
+                    error: new KeyNotExistError(value),
+                };
+            }
+            return {
+                isValid: true,
+                value
+            };
+        },
+    };
+}
 /**
  * Creates a validator for an object, specified by the "schema".
  *
