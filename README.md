@@ -2,7 +2,7 @@
 
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/shovon/valentina/blob/main/LICENSE) [![npm version](https://badge.fury.io/js/type-guardian.svg)](https://badge.fury.io/js/type-guardian) [![CircleCI](https://circleci.com/gh/shovon/type-guardian/tree/main.svg?style=svg)](https://circleci.com/gh/shovon/valentina/tree/main) [![Gitter](https://badges.gitter.im/valentina-validation/community.svg)](https://gitter.im/valentina-validation/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-_Type-Guardian_ is a tiny library for validating JavaScript values. Whether they be primitives, such as strings and numbers, or modelling more complex objects, Ninazu will empower you to express your data validation rules, your way.
+_Type-Guardian_ is a tiny library for validating JavaScript values. Whether they be primitives, such as strings and numbers, or modelling more complex objects, Type Guardian will empower you to express your data validation rules, your way.
 
 **Killer Features:**
 
@@ -15,7 +15,7 @@ _Type-Guardian_ is a tiny library for validating JavaScript values. Whether they
 
 ## Getting Started
 
-Schema creation is done by creating a validator. Ninazu has simple creators, that will allow you to define your overall schema.
+Schema creation is done by creating a validator. Type Guardian has simple creators, that will allow you to define your overall schema.
 
 ```typescript
 import {
@@ -86,7 +86,7 @@ These are the very basics that you can go off of, and start validating your data
 
 ## Table of Contents
 
-* [Ninazu: JavaScript object validation](#type-guardian-javascript-object-validation)
+* [Type Guardian: JavaScript object validation](#type-guardian-javascript-object-validation)
    * [Getting Started](#getting-started)
    * [Table of Contents](#table-of-contents)
    * [Usage Guide](#usage-guide)
@@ -135,7 +135,7 @@ These are the very basics that you can go off of, and start validating your data
 
 ## Usage Guide
 
-The Ninazu library was designed to be used for the purposes of validating incoming JSON data, whether they be from an HTTP request, an AJAX response, a WebSocket payload, etc.
+The Type Guardian library was designed to be used for the purposes of validating incoming JSON data, whether they be from an HTTP request, an AJAX response, a WebSocket payload, etc.
 
 ```typescript
 const data = await fetch(url).then((response) => response.json());
@@ -147,23 +147,23 @@ if (validation.isValid) {
 }
 ```
 
-Ninazu becomes especially powerful when larger `Validator`s are comprised from smaller reusable validators, that serve their own purpose. These validators can then be used across multiple larger validators.
+Type Guardian becomes especially powerful when larger `Validator`s are comprised from smaller reusable validators, that serve their own purpose. These validators can then be used across multiple larger validators.
 
 ### Installing
 
-By design, Ninazu places you under **no obligation** to use any package manager; you most certainly can copy and paste either [`lib.ts`](https://github.com/shovon/type-guardian/blob/main/lib.ts) for TypeScript, [`dist/lib.js`](https://github.com/shovon/valentina/blob/main/dist/lib.js) for CommonJS (require), or [`dist/esm/lib.js`](https://github.com/shovon/type-guardian/blob/main/dist/esm/lib.js) for importing via the `import` statement.
+By design, Type Guardian places you under **no obligation** to use any package manager; you most certainly can copy and paste either [`lib.ts`](https://github.com/shovon/type-guardian/blob/main/lib.ts) for TypeScript, [`dist/lib.js`](https://github.com/shovon/valentina/blob/main/dist/lib.js) for CommonJS (require), or [`dist/esm/lib.js`](https://github.com/shovon/type-guardian/blob/main/dist/esm/lib.js) for importing via the `import` statement.
 
 With that said, you are certainly more than welcomed to use a package manager, especially since it will allow you to easily upgrade, without the possibility of errors while copying and pasting.
 
 #### npm (Node.js, Webpack, Vite, Browserify, or any other that use npm)
 
-If you are using Node.js or a bundler that uses npm, Ninazu has been published to npm for your convenience. You can install using your preferred package manager. For example:
+If you are using Node.js or a bundler that uses npm, Type Guardian has been published to npm for your convenience. You can install using your preferred package manager. For example:
 
 - npm: `npm install type-guardian`
 - Yarn: `yarn add type-guardian`
 - pnpm: `pnpm add type-guardian`
 
-Additional, for the JavaScript CommonJS code, transpilers should not be needed. However if you are having trouble importing Ninazu into your bundler (Webpack, Vite, Browserify, etc.), then please do [open a new issue](https://github.com/shovon/type-guardian/issues), and I will investigate.
+Additional, for the JavaScript CommonJS code, transpilers should not be needed. However if you are having trouble importing Type Guardian into your bundler (Webpack, Vite, Browserify, etc.), then please do [open a new issue](https://github.com/shovon/type-guardian/issues), and I will investigate.
 
 ##### Importing via CommonJS `require`
 
@@ -350,7 +350,7 @@ For a full example, take a look at the [example project](https://github.com/shov
 
 ### Tips and tricks
 
-Below are some tricks you can use to make Ninazu an even more powerful validation tool.
+Below are some tricks you can use to make Type Guardian an even more powerful validation tool.
 
 #### Recursive types
 
@@ -374,7 +374,7 @@ const nodeSchema: Validator<Node> = lazy<Node>(() => {
 
 #### Create custom validators by composing other validators
 
-Ninazu offers some basic validator creators, such as for strings, numbers, and booleans. But, if you wanted to create your own validator creator for other purposes, you certainly can. Here's an example: optional values.
+Type Guardian offers some basic validator creators, such as for strings, numbers, and booleans. But, if you wanted to create your own validator creator for other purposes, you certainly can. Here's an example: optional values.
 
 So let's say you wanted validation for an object with string fields that can be set to `undefined`, then a validator for that would look like so:
 
@@ -496,7 +496,7 @@ type CustomDate = InferType<typeof dateSchema>;
 
 ## Design Philosophy
 
-Ninazu is written with five principles in mind:
+Type Guardian is written with five principles in mind:
 
 - Atomic validators
 - Validator composition
@@ -512,7 +512,7 @@ Ninazu is written with five principles in mind:
 >
 > of or forming a single irreducible unit or component in a larger system.
 
-The central idea is that complex validation rules can be built from the ground up out of [atomic](https://spin.atomicobject.com/2016/01/06/defining-atomic-object/) elements. Schema construction will happen through the _composition_ of one or more of these "atoms". The Ninazu library's `Validator` is the type definition that serves as the "atom".
+The central idea is that complex validation rules can be built from the ground up out of [atomic](https://spin.atomicobject.com/2016/01/06/defining-atomic-object/) elements. Schema construction will happen through the _composition_ of one or more of these "atoms". The Type Guardian library's `Validator` is the type definition that serves as the "atom".
 
 The definition of a `Validator` is simply:
 
@@ -539,7 +539,7 @@ In fact, as far as this library is concerned, you can define your `Validator`s n
 
 ### Composition
 
-Rather than relying on—arguably—complex configurations and validation engines, Ninazu empowers you to define schemas by composing smaller validators.
+Rather than relying on—arguably—complex configurations and validation engines, Type Guardian empowers you to define schemas by composing smaller validators.
 
 Additionally, you can easily re-use smaller validators across larger schemas.
 
@@ -594,9 +594,9 @@ None of the schema components are represented as a small part of a larger config
 
 Traditionally, validation libraries often resorted to abstracting away the minutiae behind JavaScript. According to those libraries, the idea is that JavaScript as a language is flawed, and those flaws need to be abstracted away.
 
-**Ninazu, on the other hand, embraces JavaScript.**
+**Type Guardian, on the other hand, embraces JavaScript.**
 
-At it's core, the power of Ninazu is all encompassed by the following type definitions:
+At it's core, the power of Type Guardian is all encompassed by the following type definitions:
 
 ```typescript
 export type Validator<T> = {
@@ -617,9 +617,9 @@ export type IValidationError = {
 
 > The `__` is only used for TypeScript type casting. You don't actually need \*\* in the actual JavaScript Validator object
 
-You don't even need to use Ninazu. As long as you can define your own Validator, you can perform validations as you would with Ninazu.
+You don't even need to use Type Guardian. As long as you can define your own Validator, you can perform validations as you would with Type Guardian.
 
-Alternatively, you can even write your own `Validator`s, and they will be 100% compatible with Ninazu.
+Alternatively, you can even write your own `Validator`s, and they will be 100% compatible with Type Guardian.
 
 ### Clarity and transparency
 
@@ -631,7 +631,7 @@ Additionally, results from validation will be easily inspectable, and serializab
 
 ### Power to the client
 
-Want to go beyond what this library has to offer? You're in luck. Ninazu won't lock you into using a quazi-proprietary `addMethod` function. You are free to create your own validators.
+Want to go beyond what this library has to offer? You're in luck. Type Guardian won't lock you into using a quazi-proprietary `addMethod` function. You are free to create your own validators.
 
 Better yet, these validators can be used beyond just validation; but also data transformation.
 
@@ -1055,7 +1055,7 @@ if (emptyStr.isValid) {
 
 #### Motivation and usage
 
-The core of Ninazu's philosophy is that not only should we validate inputs, but also apply necessary transformations from them.
+The core of Type Guardian's philosophy is that not only should we validate inputs, but also apply necessary transformations from them.
 
 In this case, not only are we expecting a string, but the string should also be a valid JSON string. From which, we should be able to parse it into a JavaScript object.
 
