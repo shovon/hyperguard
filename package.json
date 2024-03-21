@@ -1,6 +1,6 @@
 {
-	"name": "type-guardian",
-	"version": "0.3.1",
+	"name": "hyperguard",
+	"version": "0.3.2",
 	"description": "Dead simple JavaScript object validation",
 	"keywords": [
 		"javascript",

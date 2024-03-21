@@ -1,8 +1,8 @@
-# Type Guardian: TypeScript object validation
+# Hyperguard: TypeScript object validation
 
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/shovon/valentina/blob/main/LICENSE) [![npm version](https://badge.fury.io/js/type-guardian.svg)](https://badge.fury.io/js/type-guardian) [![CircleCI](https://circleci.com/gh/shovon/type-guardian/tree/main.svg?style=svg)](https://circleci.com/gh/shovon/valentina/tree/main) [![Gitter](https://badges.gitter.im/valentina-validation/community.svg)](https://gitter.im/valentina-validation/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/shovon/valentina/blob/main/LICENSE) [![npm version](https://badge.fury.io/js/Hyperguard.svg)](https://badge.fury.io/js/Hyperguard) [![CircleCI](https://circleci.com/gh/shovon/Hyperguard/tree/main.svg?style=svg)](https://circleci.com/gh/shovon/valentina/tree/main) [![Gitter](https://badges.gitter.im/valentina-validation/community.svg)](https://gitter.im/valentina-validation/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-_Type-Guardian_ is a tiny library for validating JavaScript values. Whether they be primitives, such as strings and numbers, or modelling more complex objects, Type Guardian will empower you to express your data validation rules, your way.
+_Hyperguard_ is a tiny library for validating JavaScript values. Whether they be primitives, such as strings and numbers, or modelling more complex objects, Hyperguard will empower you to express your data validation rules, your way.
 
 **Killer Features:**
 
@@ -11,37 +11,37 @@ _Type-Guardian_ is a tiny library for validating JavaScript values. Whether they
 - Composable validators, empowering you to define your own rules, your way
 - zero dependencies
 - install either via npm, or copy and paste the [`lib.ts`](https://raw.githubusercontent.com/shovon/valentina/main/lib.ts) (or [`dist/lib.js`](https://raw.githubusercontent.com/shovon/valentina/main/dist/lib.js) for JavaScript) file into your project
-- no library lock-ins. So you used this library for a day, and now you hate it? As long as the next library defines their own [`Validator`](https://github.com/shovon/type-guardian/blob/c56c15a5ddededc5ea69c6b7f96108a1b83ac8b1/lib.ts#L30-L36) type, you should be able to migrate to that other library very easily. Or, you can quickly write your own
+- no library lock-ins. So you used this library for a day, and now you hate it? As long as the next library defines their own [`Validator`](https://github.com/shovon/Hyperguard/blob/c56c15a5ddededc5ea69c6b7f96108a1b83ac8b1/lib.ts#L30-L36) type, you should be able to migrate to that other library very easily. Or, you can quickly write your own
 
 ## Getting Started
 
-Schema creation is done by creating a validator. Type Guardian has simple creators, that will allow you to define your overall schema.
+Schema creation is done by creating a validator. Hyperguard has simple creators, that will allow you to define your overall schema.
 
 ```typescript
 import {
-  object,
-  string,
-  number,
-  InferType,
-  either,
-  Validator,
-} from "type-guardian";
+	object,
+	string,
+	number,
+	InferType,
+	either,
+	Validator,
+} from "Hyperguard";
 
 // Create a validator that allows for values to be set to `undefined`
 const optional = <T>(validator: Validator<T>) =>
-  either(validator, exact(undefined));
+	either(validator, exact(undefined));
 
 // You create a whole schema validators by composing other smaller validators
 let userSchema = object({
-  name: string(),
-  age: number(),
-  address: optional(
-    object({
-      apartment: optional(string()),
-      streetNumber: string(),
-      streetName: string(),
-    })
-  ),
+	name: string(),
+	age: number(),
+	address: optional(
+		object({
+			apartment: optional(string()),
+			streetNumber: string(),
+			streetName: string(),
+		})
+	),
 });
 
 type User = InferType<typeof userSchema>;
@@ -62,9 +62,9 @@ A validator has a `validate` method, which you can invoke for the purposes of va
 
 ```typescript
 const data: any = {
-  name: "Jane",
-  age: 31,
-  address: { streetNumber: "123", streetName: "Peaceful Blvd" },
+	name: "Jane",
+	age: 31,
+	address: { streetNumber: "123", streetName: "Peaceful Blvd" },
 };
 
 const result = userSchema.validate(data);
@@ -75,7 +75,7 @@ result.isValid;
 // In TypeScript, to cast the above `data` into a `user`, use a type guard
 let user: User;
 if (result.isValid) {
-  user = result.value;
+	user = result.value;
 }
 
 // Simply defining `const str = result.value` will result in a compile-time
@@ -86,56 +86,55 @@ These are the very basics that you can go off of, and start validating your data
 
 ## Table of Contents
 
-* [Type Guardian: JavaScript object validation](#type-guardian-javascript-object-validation)
-   * [Getting Started](#getting-started)
-   * [Table of Contents](#table-of-contents)
-   * [Usage Guide](#usage-guide)
-      * [Installing](#installing)
-         * [npm (Node.js, Webpack, Vite, Browserify, or any other that use npm)](#npm-nodejs-webpack-vite-browserify-or-any-other-that-use-npm)
-            * [Importing via CommonJS require](#importing-via-commonjs-require)
-            * [Importing via Node.js' ECMAScript module (import statement)](#importing-via-nodejs-ecmascript-module-import-statement)
-         * [Deno](#deno)
-         * [Browser via import statement (dist/esm/lib.js)](#browser-via-import-statement-distesmlibjs)
-      * [Example application](#example-application)
-      * [Tips and tricks](#tips-and-tricks)
-         * [Recursive types](#recursive-types)
-         * [Create custom validators by composing other validators](#create-custom-validators-by-composing-other-validators)
-         * [Custom validators and parsing values](#custom-validators-and-parsing-values)
-   * [Design Philosophy](#design-philosophy)
-      * [Atomic Validators](#atomic-validators)
-      * [Composition](#composition)
-      * [Embrace JavaScript itself; use idioms](#embrace-javascript-itself-use-idioms)
-      * [Clarity and transparency](#clarity-and-transparency)
-      * [Power to the client](#power-to-the-client)
-   * [API](#api)
-      * [string(): Validator&lt;string&gt;](#string-validatorstring)
-      * [number(): Validator&lt;number&gt;](#number-validatornumber)
-      * [boolean(): Validator&lt;boolean&gt;](#boolean-validatorboolean)
-      * [exact&lt;V extends string | number | boolean | null | undefined&gt;(expected: V): Validator&lt;V&gt;](#exactv-extends-string--number--boolean--null--undefinedexpected-v-validatorv)
-      * [either(...alts: Validator&lt;any&gt;[]): Validator&lt;any&gt;](#eitheralts-validatorany-validatorany)
-      * [arrayOf&lt;T&gt;(validator: Validator&lt;T&gt;): Validator&lt;T[]&gt;](#arrayoftvalidator-validatort-validatort)
-      * [any(): Validator&lt;any&gt;](#any-validatorany)
-         * [Usage](#usage)
-      * [objectOf&lt;T&gt;(validator: Validator&lt;T&gt;): Validator&lt;{ [key: string]: V }&gt;](#objectoftvalidator-validatort-validator-key-string-v-)
-      * [tuple&lt;T&gt;(validator: Validator&lt;T&gt;): Validator&lt;{ [key: string]: V }&gt;](#tupletvalidator-validatort-validator-key-string-v-)
-      * [except&lt;T, I&gt;(validator: Validator&lt;T&gt;, invalidator: Validator&lt;I&gt;): Exclude&lt;T, I&gt;](#exceptt-ivalidator-validatort-invalidator-validatori-excludet-i)
-         * [Usage](#usage-1)
-      * [object&lt;V extends object&gt;(schema: { [key in keyof V]: Validator&lt;V[key]&gt; }): Validator&lt;V&gt;](#objectv-extends-objectschema--key-in-keyof-v-validatorvkey--validatorv)
-      * [lazy&lt;V&gt;(schemaFn: () =&gt; Validator&lt;V&gt;): Validator&lt;V&gt;](#lazyvschemafn---validatorv-validatorv)
-         * [Motivation and usage](#motivation-and-usage)
-      * [transform&lt;T&gt;(parse: (value: any) =&gt; T): Validator&lt;T&gt;](#transformtparse-value-any--t-validatort)
-         * [Motivation and usage](#motivation-and-usage-1)
-      * [chain&lt;T1, T2&gt;(left: Validator&lt;T1&gt;, right: Validator&lt;T2&gt;): Validator&lt;T2&gt;](#chaint1-t2left-validatort1-right-validatort2-validatort2)
-      * [fallback&lt;T1, T2&gt;(validator: Validator&lt;T1&gt;, getFallback: () =&gt; T2)](#fallbackt1-t2validator-validatort1-getfallback---t2)
-         * [Motivation and usage](#motivation-and-usage-2)
-      * [predicate&lt;T&gt;(validator: Validator&lt;T&gt;, pred: (value: T) =&gt; boolean)](#predicatetvalidator-validatort-pred-value-t--boolean)
-      * [replaceError&lt;T&gt;(validator: Validator&lt;T&gt;, createError: (value: any, error: IValidationError) =&gt; IValidationError): Validator&lt;T&gt;](#replaceerrortvalidator-validatort-createerror-value-any-error-ivalidationerror--ivalidationerror-validatort)
-   * [Similar libraries](#similar-libraries)
-
+- [Hyperguard: JavaScript object validation](#Hyperguard-javascript-object-validation)
+  - [Getting Started](#getting-started)
+  - [Table of Contents](#table-of-contents)
+  - [Usage Guide](#usage-guide)
+    - [Installing](#installing)
+      - [npm (Node.js, Webpack, Vite, Browserify, or any other that use npm)](#npm-nodejs-webpack-vite-browserify-or-any-other-that-use-npm)
+        - [Importing via CommonJS require](#importing-via-commonjs-require)
+        - [Importing via Node.js' ECMAScript module (import statement)](#importing-via-nodejs-ecmascript-module-import-statement)
+      - [Deno](#deno)
+      - [Browser via import statement (dist/esm/lib.js)](#browser-via-import-statement-distesmlibjs)
+    - [Example application](#example-application)
+    - [Tips and tricks](#tips-and-tricks)
+      - [Recursive types](#recursive-types)
+      - [Create custom validators by composing other validators](#create-custom-validators-by-composing-other-validators)
+      - [Custom validators and parsing values](#custom-validators-and-parsing-values)
+  - [Design Philosophy](#design-philosophy)
+    - [Atomic Validators](#atomic-validators)
+    - [Composition](#composition)
+    - [Embrace JavaScript itself; use idioms](#embrace-javascript-itself-use-idioms)
+    - [Clarity and transparency](#clarity-and-transparency)
+    - [Power to the client](#power-to-the-client)
+  - [API](#api)
+    - [string(): Validator&lt;string&gt;](#string-validatorstring)
+    - [number(): Validator&lt;number&gt;](#number-validatornumber)
+    - [boolean(): Validator&lt;boolean&gt;](#boolean-validatorboolean)
+    - [exact&lt;V extends string | number | boolean | null | undefined&gt;(expected: V): Validator&lt;V&gt;](#exactv-extends-string--number--boolean--null--undefinedexpected-v-validatorv)
+    - [either(...alts: Validator&lt;any&gt;[]): Validator&lt;any&gt;](#eitheralts-validatorany-validatorany)
+    - [arrayOf&lt;T&gt;(validator: Validator&lt;T&gt;): Validator&lt;T[]&gt;](#arrayoftvalidator-validatort-validatort)
+    - [any(): Validator&lt;any&gt;](#any-validatorany)
+      - [Usage](#usage)
+    - [objectOf&lt;T&gt;(validator: Validator&lt;T&gt;): Validator&lt;{ [key: string]: V }&gt;](#objectoftvalidator-validatort-validator-key-string-v-)
+    - [tuple&lt;T&gt;(validator: Validator&lt;T&gt;): Validator&lt;{ [key: string]: V }&gt;](#tupletvalidator-validatort-validator-key-string-v-)
+    - [except&lt;T, I&gt;(validator: Validator&lt;T&gt;, invalidator: Validator&lt;I&gt;): Exclude&lt;T, I&gt;](#exceptt-ivalidator-validatort-invalidator-validatori-excludet-i)
+      - [Usage](#usage-1)
+    - [object&lt;V extends object&gt;(schema: { [key in keyof V]: Validator&lt;V[key]&gt; }): Validator&lt;V&gt;](#objectv-extends-objectschema--key-in-keyof-v-validatorvkey--validatorv)
+    - [lazy&lt;V&gt;(schemaFn: () =&gt; Validator&lt;V&gt;): Validator&lt;V&gt;](#lazyvschemafn---validatorv-validatorv)
+      - [Motivation and usage](#motivation-and-usage)
+    - [transform&lt;T&gt;(parse: (value: any) =&gt; T): Validator&lt;T&gt;](#transformtparse-value-any--t-validatort)
+      - [Motivation and usage](#motivation-and-usage-1)
+    - [chain&lt;T1, T2&gt;(left: Validator&lt;T1&gt;, right: Validator&lt;T2&gt;): Validator&lt;T2&gt;](#chaint1-t2left-validatort1-right-validatort2-validatort2)
+    - [fallback&lt;T1, T2&gt;(validator: Validator&lt;T1&gt;, getFallback: () =&gt; T2)](#fallbackt1-t2validator-validatort1-getfallback---t2)
+      - [Motivation and usage](#motivation-and-usage-2)
+    - [predicate&lt;T&gt;(validator: Validator&lt;T&gt;, pred: (value: T) =&gt; boolean)](#predicatetvalidator-validatort-pred-value-t--boolean)
+    - [replaceError&lt;T&gt;(validator: Validator&lt;T&gt;, createError: (value: any, error: IValidationError) =&gt; IValidationError): Validator&lt;T&gt;](#replaceerrortvalidator-validatort-createerror-value-any-error-ivalidationerror--ivalidationerror-validatort)
+  - [Similar libraries](#similar-libraries)
 
 ## Usage Guide
 
-The Type Guardian library was designed to be used for the purposes of validating incoming JSON data, whether they be from an HTTP request, an AJAX response, a WebSocket payload, etc.
+The Hyperguard library was designed to be used for the purposes of validating incoming JSON data, whether they be from an HTTP request, an AJAX response, a WebSocket payload, etc.
 
 ```typescript
 const data = await fetch(url).then((response) => response.json());
@@ -143,34 +142,34 @@ const data = await fetch(url).then((response) => response.json());
 const validation = schema.validate(data);
 
 if (validation.isValid) {
-  const value = validation.value;
+	const value = validation.value;
 }
 ```
 
-Type Guardian becomes especially powerful when larger `Validator`s are comprised from smaller reusable validators, that serve their own purpose. These validators can then be used across multiple larger validators.
+Hyperguard becomes especially powerful when larger `Validator`s are comprised from smaller reusable validators, that serve their own purpose. These validators can then be used across multiple larger validators.
 
 ### Installing
 
-By design, Type Guardian places you under **no obligation** to use any package manager; you most certainly can copy and paste either [`lib.ts`](https://github.com/shovon/type-guardian/blob/main/lib.ts) for TypeScript, [`dist/lib.js`](https://github.com/shovon/valentina/blob/main/dist/lib.js) for CommonJS (require), or [`dist/esm/lib.js`](https://github.com/shovon/type-guardian/blob/main/dist/esm/lib.js) for importing via the `import` statement.
+By design, Hyperguard places you under **no obligation** to use any package manager; you most certainly can copy and paste either [`lib.ts`](https://github.com/shovon/Hyperguard/blob/main/lib.ts) for TypeScript, [`dist/lib.js`](https://github.com/shovon/valentina/blob/main/dist/lib.js) for CommonJS (require), or [`dist/esm/lib.js`](https://github.com/shovon/Hyperguard/blob/main/dist/esm/lib.js) for importing via the `import` statement.
 
 With that said, you are certainly more than welcomed to use a package manager, especially since it will allow you to easily upgrade, without the possibility of errors while copying and pasting.
 
 #### npm (Node.js, Webpack, Vite, Browserify, or any other that use npm)
 
-If you are using Node.js or a bundler that uses npm, Type Guardian has been published to npm for your convenience. You can install using your preferred package manager. For example:
+If you are using Node.js or a bundler that uses npm, Hyperguard has been published to npm for your convenience. You can install using your preferred package manager. For example:
 
-- npm: `npm install type-guardian`
-- Yarn: `yarn add type-guardian`
-- pnpm: `pnpm add type-guardian`
+- npm: `npm install Hyperguard`
+- Yarn: `yarn add Hyperguard`
+- pnpm: `pnpm add Hyperguard`
 
-Additional, for the JavaScript CommonJS code, transpilers should not be needed. However if you are having trouble importing Type Guardian into your bundler (Webpack, Vite, Browserify, etc.), then please do [open a new issue](https://github.com/shovon/type-guardian/issues), and I will investigate.
+Additional, for the JavaScript CommonJS code, transpilers should not be needed. However if you are having trouble importing Hyperguard into your bundler (Webpack, Vite, Browserify, etc.), then please do [open a new issue](https://github.com/shovon/Hyperguard/issues), and I will investigate.
 
 ##### Importing via CommonJS `require`
 
 Once installed, you should be able to import the module via CommonJS `require`, like so:
 
 ```javascript
-const parseValidate = require("type-guardian");
+const parseValidate = require("Hyperguard");
 ```
 
 ##### Importing via Node.js' ECMAScript module (`import` statement)
@@ -178,7 +177,7 @@ const parseValidate = require("type-guardian");
 In a Node.js `mjs` file, you can simply import using the `import` syntax.
 
 ```javascript
-import * as parseValidate from "type-guardian";
+import * as parseValidate from "Hyperguard";
 ```
 
 #### Deno
@@ -186,7 +185,7 @@ import * as parseValidate from "type-guardian";
 With Deno, you can directly import the `lib.ts` file from GitHub.
 
 ```typescript
-import * as parseValidate from "https://raw.githubusercontent.com/shovon/type-guardian/main/lib.ts";
+import * as parseValidate from "https://raw.githubusercontent.com/shovon/Hyperguard/main/lib.ts";
 ```
 
 #### Browser via `import` statement (dist/esm/lib.js)
@@ -204,7 +203,7 @@ Download or copy & paste the ECMAScript module located in [`dist/esm/lib.js`]().
 ```html
 <!-- Minified -->
 <script type="module">
-  import * as parseValidate from "/path/to/type-guardian/lib.js";
+	import * as parseValidate from "/path/to/Hyperguard/lib.js";
 </script>
 ```
 
@@ -212,7 +211,7 @@ Download or copy & paste the ECMAScript module located in [`dist/esm/lib.js`]().
 >
 > If you want a minified version, you can download it from this URL:
 >
-> https://cdn.jsdelivr.net/npm/type-guardian@latest/dist/esm/lib.min.js
+> https://cdn.jsdelivr.net/npm/Hyperguard@latest/dist/esm/lib.min.js
 
 **Option 2: Importing from npm (via jsDelivr)**
 
@@ -220,7 +219,7 @@ If you don't want to download, and you just want to give the library a try, then
 
 ```html
 <script type="module">
-  import * as valentina from "https://cdn.jsdelivr.net/npm/type-guardian@latest/dist/esm/lib.js";
+	import * as valentina from "https://cdn.jsdelivr.net/npm/Hyperguard@latest/dist/esm/lib.js";
 </script>
 ```
 
@@ -228,7 +227,7 @@ Alternatively, if you want the minified version, you can simply add a `.min` aft
 
 ```html
 <script type="module">
-  import * as valentina from "https://cdn.jsdelivr.net/npm/type-guardian@latest/dist/esm/lib.min.js";
+	import * as valentina from "https://cdn.jsdelivr.net/npm/Hyperguard@latest/dist/esm/lib.min.js";
 </script>
 ```
 
@@ -245,8 +244,8 @@ The user object will have two fields: `id` and a `name`.
 
 ```typescript
 export const userSchema = object({
-  id: string(),
-  name: string(),
+	id: string(),
+	name: string(),
 });
 
 export type User = InferType<typeof userSchema>;
@@ -269,10 +268,10 @@ import { userSchema } from "./User";
 // USER_JOINED
 
 export const userJoinedSchema = object({
-  type: exact("USER_JOINED"),
+	type: exact("USER_JOINED"),
 
-  // Compositon from another schema
-  data: userSchema,
+	// Compositon from another schema
+	data: userSchema,
 });
 
 export type UserJoined = InferType<typeof userJoinedSchema>;
@@ -280,19 +279,19 @@ export type UserJoined = InferType<typeof userJoinedSchema>;
 // APPLICATION_STATE
 
 export const applicationStateSchema = object({
-  type: exact("APPLICATION_STATE"),
+	type: exact("APPLICATION_STATE"),
 
-  // Compositon from another schema
-  data: arrayOf(userSchema),
+	// Compositon from another schema
+	data: arrayOf(userSchema),
 });
 
 export type ApplicationState = InferType<typeof applicationStateSchema>;
 
 export const userLeftSchema = object({
-  type: exact("USER_LEFT"),
-  data: object({
-    id: string(),
-  }),
+	type: exact("USER_LEFT"),
+	data: object({
+		id: string(),
+	}),
 });
 
 export type UserLeft = InferType<typeof userLeftSchema>;
@@ -302,12 +301,12 @@ And then, when a message was broadcast, the sent message from the server could h
 
 ```typescript
 export const messageReceivedSchema = object({
-  type: exact("MESSAGE_RECEIVED"),
-  data: object({
-    from: string(),
-    whenSent: string(),
-    messageBody: string(),
-  }),
+	type: exact("MESSAGE_RECEIVED"),
+	data: object({
+		from: string(),
+		whenSent: string(),
+		messageBody: string(),
+	}),
 });
 
 export type MessageReceived = InferType<typeof messageReceivedSchema>;
@@ -317,10 +316,10 @@ And finally, you can consolidate all events into a single schema, by using the `
 
 ```typescript
 export const eventSchema = either(
-  applicationStateSchema,
-  userJoinedSchema,
-  userLeftSchema,
-  messageReceivedSchema
+	applicationStateSchema,
+	userJoinedSchema,
+	userLeftSchema,
+	messageReceivedSchema
 );
 
 export type Event = InferType<typeof eventSchema>;
@@ -330,27 +329,27 @@ Then, the application can handle events like so:
 
 ```typescript
 function handleMessage(value: Event) {
-  switch (value.type) {
-    case "USER_JOINED":
-      break;
-    case "APPLICATION_STATE":
-      break;
-    case "USER_LEFT":
-      break;
-    case "MESSAGE_RECEIVED":
-      break;
-    default:
-      console.error("Unknown type");
-      break;
-  }
+	switch (value.type) {
+		case "USER_JOINED":
+			break;
+		case "APPLICATION_STATE":
+			break;
+		case "USER_LEFT":
+			break;
+		case "MESSAGE_RECEIVED":
+			break;
+		default:
+			console.error("Unknown type");
+			break;
+	}
 }
 ```
 
-For a full example, take a look at the [example project](https://github.com/shovon/type-guardian/tree/main/example).
+For a full example, take a look at the [example project](https://github.com/shovon/Hyperguard/tree/main/example).
 
 ### Tips and tricks
 
-Below are some tricks you can use to make Type Guardian an even more powerful validation tool.
+Below are some tricks you can use to make Hyperguard an even more powerful validation tool.
 
 #### Recursive types
 
@@ -358,23 +357,23 @@ If your application has data, whose schema comes in a tree-like structure (recur
 
 ```typescript
 type Node = {
-  value: any;
-  left: Node | null;
-  right: Node | null;
+	value: any;
+	left: Node | null;
+	right: Node | null;
 };
 
 const nodeSchema: Validator<Node> = lazy<Node>(() => {
-  object({
-    value: any(),
-    left: either(node, exact(null)),
-    right: either(node, exact(null)),
-  });
+	object({
+		value: any(),
+		left: either(node, exact(null)),
+		right: either(node, exact(null)),
+	});
 });
 ```
 
 #### Create custom validators by composing other validators
 
-Type Guardian offers some basic validator creators, such as for strings, numbers, and booleans. But, if you wanted to create your own validator creator for other purposes, you certainly can. Here's an example: optional values.
+Hyperguard offers some basic validator creators, such as for strings, numbers, and booleans. But, if you wanted to create your own validator creator for other purposes, you certainly can. Here's an example: optional values.
 
 So let's say you wanted validation for an object with string fields that can be set to `undefined`, then a validator for that would look like so:
 
@@ -388,7 +387,7 @@ Such a function will look like so:
 
 ```typescript
 const optional = <T>(validator: Validator<T>) =>
-  either(validator, exact(undefined));
+	either(validator, exact(undefined));
 ```
 
 Same for nullable types:
@@ -401,7 +400,7 @@ And, if you wanted validation for fields that are both nullable and optional, th
 
 ```typescript
 const optionalNullable = <T>(validator: Validator<T>) =>
-  nullable(optional(validator));
+	nullable(optional(validator));
 ```
 
 #### Custom validators and parsing values
@@ -412,35 +411,35 @@ For instance, the JSON standard does not have a data type for `Date`s. You can c
 
 ```typescript
 import {
-  chain,
-  transform,
-  predicate,
-  replaceError,
-  string,
-  ValidationError,
-} from "type-guardian";
+	chain,
+	transform,
+	predicate,
+	replaceError,
+	string,
+	ValidationError,
+} from "Hyperguard";
 
 class DateError extends ValidationError {
-  constructor(value: string) {
-    super(
-      "Date error",
-      `The supplied string ${value} was not a valid format that can be parsed into a Date`,
-      value
-    );
-  }
+	constructor(value: string) {
+		super(
+			"Date error",
+			`The supplied string ${value} was not a valid format that can be parsed into a Date`,
+			value
+		);
+	}
 }
 
 export const date = () =>
-  replaceError(
-    predicate(
-      chain(
-        string(),
-        transform((value) => new Date(value))
-      ),
-      (d) => isNaN(d.getTime())
-    ),
-    (value) => new DateError(value)
-  );
+	replaceError(
+		predicate(
+			chain(
+				string(),
+				transform((value) => new Date(value))
+			),
+			(d) => isNaN(d.getTime())
+		),
+		(value) => new DateError(value)
+	);
 ```
 
 From which you can try to derive a date from a string.
@@ -453,7 +452,7 @@ const valid = new Date(new Date().toISOString());
 const shouldBeValid = date().validate(validDate);
 
 if (valid.isValid) {
-  valid.value; // This is the value
+	valid.value; // This is the value
 }
 
 const invalid = new Date("invalid");
@@ -472,7 +471,7 @@ type CustomDate = InferType<typeof dateSchema>;
 
 > **Note**
 >
-> In the above example, we created a custom error class called `DateError`, by deriving type-guardian's `ValidationError` class.
+> In the above example, we created a custom error class called `DateError`, by deriving Hyperguard's `ValidationError` class.
 >
 > By the definition of the `error` field in `ValidationResult<T>`, you don't have to use a class. You can simply initialize an object with the appropriate fileds.
 >
@@ -482,11 +481,11 @@ type CustomDate = InferType<typeof dateSchema>;
 >
 > ```typescript
 > function createDateError(value: string) {
->   return {
->     type: "Date error",
->     errorMessage: `The supplied string ${value} was not a valid format that can be parsed into a Date`,
->     value,
->   };
+> 	return {
+> 		type: "Date error",
+> 		errorMessage: `The supplied string ${value} was not a valid format that can be parsed into a Date`,
+> 		value,
+> 	};
 > }
 > ```
 >
@@ -496,7 +495,7 @@ type CustomDate = InferType<typeof dateSchema>;
 
 ## Design Philosophy
 
-Type Guardian is written with five principles in mind:
+Hyperguard is written with five principles in mind:
 
 - Atomic validators
 - Validator composition
@@ -512,7 +511,7 @@ Type Guardian is written with five principles in mind:
 >
 > of or forming a single irreducible unit or component in a larger system.
 
-The central idea is that complex validation rules can be built from the ground up out of [atomic](https://spin.atomicobject.com/2016/01/06/defining-atomic-object/) elements. Schema construction will happen through the _composition_ of one or more of these "atoms". The Type Guardian library's `Validator` is the type definition that serves as the "atom".
+The central idea is that complex validation rules can be built from the ground up out of [atomic](https://spin.atomicobject.com/2016/01/06/defining-atomic-object/) elements. Schema construction will happen through the _composition_ of one or more of these "atoms". The Hyperguard library's `Validator` is the type definition that serves as the "atom".
 
 The definition of a `Validator` is simply:
 
@@ -539,7 +538,7 @@ In fact, as far as this library is concerned, you can define your `Validator`s n
 
 ### Composition
 
-Rather than relying on—arguably—complex configurations and validation engines, Type Guardian empowers you to define schemas by composing smaller validators.
+Rather than relying on—arguably—complex configurations and validation engines, Hyperguard empowers you to define schemas by composing smaller validators.
 
 Additionally, you can easily re-use smaller validators across larger schemas.
 
@@ -561,8 +560,8 @@ The following is the user schema:
 
 ```typescript
 export const userSchema = object({
-  id: string(),
-  name: string(),
+	id: string(),
+	name: string(),
 });
 ```
 
@@ -570,13 +569,13 @@ And here are the schemas for the `USER_JOINED` and `APPLICATION_STATE` messages.
 
 ```typescript
 export const userJoined = object({
-  type: exact("USER_JOINED"),
-  data: userSchema,
+	type: exact("USER_JOINED"),
+	data: userSchema,
 });
 
 export const applicationState = object({
-  type: exact("APPLICATION_STATE"),
-  data: arrayOf(userSchema),
+	type: exact("APPLICATION_STATE"),
+	data: arrayOf(userSchema),
 });
 ```
 
@@ -594,9 +593,9 @@ None of the schema components are represented as a small part of a larger config
 
 Traditionally, validation libraries often resorted to abstracting away the minutiae behind JavaScript. According to those libraries, the idea is that JavaScript as a language is flawed, and those flaws need to be abstracted away.
 
-**Type Guardian, on the other hand, embraces JavaScript.**
+**Hyperguard, on the other hand, embraces JavaScript.**
 
-At it's core, the power of Type Guardian is all encompassed by the following type definitions:
+At it's core, the power of Hyperguard is all encompassed by the following type definitions:
 
 ```typescript
 export type Validator<T> = {
@@ -617,9 +616,9 @@ export type IValidationError = {
 
 > The `__` is only used for TypeScript type casting. You don't actually need \*\* in the actual JavaScript Validator object
 
-You don't even need to use Type Guardian. As long as you can define your own Validator, you can perform validations as you would with Type Guardian.
+You don't even need to use Hyperguard. As long as you can define your own Validator, you can perform validations as you would with Hyperguard.
 
-Alternatively, you can even write your own `Validator`s, and they will be 100% compatible with Type Guardian.
+Alternatively, you can even write your own `Validator`s, and they will be 100% compatible with Hyperguard.
 
 ### Clarity and transparency
 
@@ -631,40 +630,40 @@ Additionally, results from validation will be easily inspectable, and serializab
 
 ### Power to the client
 
-Want to go beyond what this library has to offer? You're in luck. Type Guardian won't lock you into using a quazi-proprietary `addMethod` function. You are free to create your own validators.
+Want to go beyond what this library has to offer? You're in luck. Hyperguard won't lock you into using a quazi-proprietary `addMethod` function. You are free to create your own validators.
 
 Better yet, these validators can be used beyond just validation; but also data transformation.
 
 For instance, if you have a string that represents a timestamp, you can convert the string to a JavaScript `Date`.
 
 ```typescript
-import { ValidationError } from "type-guardian";
+import { ValidationError } from "Hyperguard";
 
 class DateError extends ValidationError {
-  constructor(value: string) {
-    super(
-      "Date error",
-      `The supplied string ${value} was not a valid format that can be parsed into a Date`,
-      value
-    );
-  }
+	constructor(value: string) {
+		super(
+			"Date error",
+			`The supplied string ${value} was not a valid format that can be parsed into a Date`,
+			value
+		);
+	}
 }
 
 export const date = (): Validator<Date> => ({
-  __: new Date(),
-  validate: (value: any) => {
-    const validation = string().validate(value);
-    if (validation.isValid === false) {
-      return { isValid: false, error: validation.error };
-    }
-    const d = new Date(validation.value);
-    return isNaN(d.getTime())
-      ? {
-          isValid: false,
-          error: new DateError(validation.value),
-        }
-      : { isValid: true, value: d };
-  },
+	__: new Date(),
+	validate: (value: any) => {
+		const validation = string().validate(value);
+		if (validation.isValid === false) {
+			return { isValid: false, error: validation.error };
+		}
+		const d = new Date(validation.value);
+		return isNaN(d.getTime())
+			? {
+					isValid: false,
+					error: new DateError(validation.value),
+			  }
+			: { isValid: true, value: d };
+	},
 });
 ```
 
@@ -673,7 +672,7 @@ You can then use the `date` validator creator to parse strings into a `Date`.
 ```typescript
 const validation = date().validate("2022-03-04T23:44:42.086Z");
 if (validation.isValid) {
-  // validation.value should be a Date, and not a string
+	// validation.value should be a Date, and not a string
 }
 ```
 
@@ -965,32 +964,32 @@ Example:
 
 ```typescript
 const objValidator = object({
-  type: exact("SOME_OBJ"),
-  value: string(),
-  someNumber: number(),
-  somethingOptional: either(string(), exact(undefined)),
+	type: exact("SOME_OBJ"),
+	value: string(),
+	someNumber: number(),
+	somethingOptional: either(string(), exact(undefined)),
 });
 
 // ✅ Evaluates to true
 objValidator.validate({ type: "SOME_OBJ", value: "something", someNumber: 10 })
-  .isValid;
+	.isValid;
 
 // ✅ Evaluates to true
 objValidator.validate({
-  type: "SOME_OBJ",
-  value: "something",
-  someNumber: 10,
-  sometihingOptional: "sweet",
+	type: "SOME_OBJ",
+	value: "something",
+	someNumber: 10,
+	sometihingOptional: "sweet",
 }).isValid;
 
 // ✅ Evaluates to true
 objValidator.validate({ type: "SOME_OBJ", value: "something", someNumber: 10 })
-  .isValid;
+	.isValid;
 
 // ❌ Evaluates to false (the field `type` is set to something other than
 // `SOME_OBJ`)
 objValidator.validate({ type: "something", value: "something", someNumber: 10 })
-  .isValid;
+	.isValid;
 ```
 
 ### `lazy<V>(schemaFn: () => Validator<V>): Validator<V>`
@@ -1019,17 +1018,17 @@ If your application has data, whose schema comes in a tree-like structure (recur
 
 ```typescript
 type Node = {
-  value: any;
-  left: Node | null;
-  right: Node | null;
+	value: any;
+	left: Node | null;
+	right: Node | null;
 };
 
 const nodeSchema: Validator<Node> = lazy<Node>(() => {
-  object({
-    value: any(),
-    left: either(node, exact(null)),
-    right: either(node, exact(null)),
-  });
+	object({
+		value: any(),
+		left: either(node, exact(null)),
+		right: either(node, exact(null)),
+	});
 });
 ```
 
@@ -1042,20 +1041,20 @@ const json = transform<any>(JSON.parse.bind(JSON));
 
 const result1 = json.validate("1");
 if (result1.isValid) {
-  // We get the JavaScript Number `1`
-  result1.value;
+	// We get the JavaScript Number `1`
+	result1.value;
 }
 
-const emptyStr = json.validate("\"\"");
+const emptyStr = json.validate('""');
 if (emptyStr.isValid) {
-  // We get the JavaScript string `""`
-  emptyStr.value;
+	// We get the JavaScript string `""`
+	emptyStr.value;
 }
 ```
 
 #### Motivation and usage
 
-The core of Type Guardian's philosophy is that not only should we validate inputs, but also apply necessary transformations from them.
+The core of Hyperguard's philosophy is that not only should we validate inputs, but also apply necessary transformations from them.
 
 In this case, not only are we expecting a string, but the string should also be a valid JSON string. From which, we should be able to parse it into a JavaScript object.
 
@@ -1067,42 +1066,39 @@ Takes two other validators, to create a new validator where the left validation 
 
 ```typescript
 const date = chain(
-  either(string(), number()),
-  transform((value) => new Date(value))
+	either(string(), number()),
+	transform((value) => new Date(value))
 );
 
 // ✅ Evaluates to true
-date.validate('2020-10-10').isValid
+date.validate("2020-10-10").isValid;
 
 // ✅ Evaluates to true
-date.validate(10).isValid
+date.validate(10).isValid;
 ```
 
 ### `fallback<T1, T2>(validator: Validator<T1>, getFallback: () => T2)`
 
 Takes a validator, and a function to return a default fallback value, and gives a validator that will never fail.
 
-
 ```typescript
 const alwaysNumber = fallback(number(), () => 42);
 
 // ✅ Evaluates to true
-fallback.validate(10); 
+fallback.validate(10);
 
 const fallbackValidation = fallback.validate("10");
 
 // ✅ Evaluates to true, even if the supplied input is a string
 if (fallbackValidation.isValid) {
-
-  // Will evaluate to `42`, since `"10"` is a string, not a number/
-  fallbackValidation.value;
+	// Will evaluate to `42`, since `"10"` is a string, not a number/
+	fallbackValidation.value;
 }
 ```
 
 #### Motivation and usage
 
 In many instances, you just don't want validations to fail, and bite the bullet and just set a default value.
-
 
 ### `predicate<T>(validator: Validator<T>, pred: (value: T) => boolean)`
 
@@ -1127,14 +1123,14 @@ Given the original validator, whatever error is emitted by it, replace by the er
 
 ```typescript
 const withDifferentError = replaceError(string(), (value) => ({
-  type: 'Custom error',
-  errorMessage: 'Some custom error',
-  value
+	type: "Custom error",
+	errorMessage: "Some custom error",
+	value,
 }));
 
 if (!validator.validate(10).isValid) {
-  // This is where the error will be.
-  validator.error;
+	// This is where the error will be.
+	validator.error;
 }
 ```
 
