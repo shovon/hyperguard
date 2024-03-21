@@ -9,33 +9,28 @@ import {
 	boolean,
 	tuple,
 	Validator,
-	any,
 	lazy,
 	except,
 	ExactTypes,
 	IValidationError,
 	PossibleTypeof,
-	transform,
 	predicate,
 	replaceError,
 	ValidationError,
-	chain,
 	fallback,
 	validate,
 	intersection,
 	keyOf,
+	map,
+	unknown,
+	BadObjectError,
 } from "./lib";
 import { strict as assert } from "assert";
 
 const date = () =>
 	predicate(
-		chain(
-			string(),
-			transform((value) => new Date(value))
-		),
-		(d) => {
-			return !isNaN(d.getTime());
-		}
+		map(either(string(), number()), (value) => new Date(value)),
+		(d) => !isNaN(d.getTime())
 	);
 
 const assertValidator = <T>(v: Validator<T>, value: T, intent: string = "") => {
@@ -85,13 +80,10 @@ const assertIncorrect = <T>(
 };
 
 {
-	// chain
+	// map
 
 	const dateParse = () =>
-		chain(
-			transform((value) => new Date(value)),
-			transform((value) => value.toISOString())
-		);
+		map(either(string(), number()), (value) => new Date(value).toISOString());
 
 	const expectedDateString = new Date(0).toISOString();
 
@@ -107,7 +99,7 @@ const assertIncorrect = <T>(
 		object({
 			type: string(),
 			errorMessage: string(),
-			value: any(),
+			value: unknown(),
 			expectedValue: validator,
 		});
 
@@ -167,7 +159,7 @@ const assertIncorrect = <T>(
 		object({
 			type: string(),
 			errorMessage: string(),
-			value: any(),
+			value: unknown(),
 			expectedType: exact(validator),
 		});
 
@@ -189,7 +181,7 @@ const assertIncorrect = <T>(
 		object({
 			type: string(),
 			errorMessage: string(),
-			value: any(),
+			value: unknown(),
 			expectedType: exact(validator),
 		});
 
@@ -210,7 +202,7 @@ const assertIncorrect = <T>(
 		object({
 			type: string(),
 			errorMessage: string(),
-			value: any(),
+			value: unknown(),
 			expectedType: exact(validator),
 		});
 
@@ -265,6 +257,11 @@ const assertIncorrect = <T>(
 	const objUnderTestPartial6 = {};
 
 	const validation = objectWithDate.validate(objectUnderTest);
+
+	// TODO: delete
+	if (!validation.isValid) {
+		console.log(validation.error.faultyFields);
+	}
 
 	assert(validation.isValid);
 	assert(typeof validation.value.cool === "string");
@@ -368,10 +365,7 @@ const assertIncorrect = <T>(
 }
 
 {
-	assertValidator(
-		keyOf({ a: 1, b: 2, c: 3 }),
-		"a",
-	)
+	assertValidator(keyOf({ a: 1, b: 2, c: 3 }), "a");
 }
 
 {
@@ -425,10 +419,7 @@ const assertIncorrect = <T>(
 
 	const date = () =>
 		predicate(
-			chain(
-				string(),
-				transform((value) => new Date(value))
-			),
+			map(string(), (value) => new Date(value)),
 			(d) => !isNaN(d.getTime())
 		);
 
@@ -525,10 +516,7 @@ const assertIncorrect = <T>(
 
 	const date = () =>
 		predicate(
-			chain(
-				string(),
-				transform((value) => new Date(value))
-			),
+			map(string(), (value) => new Date(value)),
 			(d) => {
 				return !isNaN(d.getTime());
 			}
@@ -585,13 +573,13 @@ const assertIncorrect = <T>(
 
 {
 	// any
-	assertValidator(any(), "", "Any. Shouldn't matter");
-	assertValidator(any(), 10, "Any. Shouldn't matter");
-	assertValidator(any(), 6, "Any. Shouldn't matter");
-	assertValidator(any(), {}, "Any. Shouldn't matter");
-	assertValidator(any(), { sweet: "cool" }, "Any. Shouldn't matter");
-	assertValidator(any(), [], "Any. Shouldn't matte");
-	assertValidator(any(), [{ haha: "cool" }], "Any. Shouldn't matter");
+	assertValidator(unknown(), "", "Any. Shouldn't matter");
+	assertValidator(unknown(), 10, "Any. Shouldn't matter");
+	assertValidator(unknown(), 6, "Any. Shouldn't matter");
+	assertValidator(unknown(), {}, "Any. Shouldn't matter");
+	assertValidator(unknown(), { sweet: "cool" }, "Any. Shouldn't matter");
+	assertValidator(unknown(), [], "Any. Shouldn't matte");
+	assertValidator(unknown(), [{ haha: "cool" }], "Any. Shouldn't matter");
 }
 
 {
@@ -651,7 +639,7 @@ const assertIncorrect = <T>(
 
 	const node: Validator<Node> = lazy<Node>(() =>
 		object({
-			value: any(),
+			value: unknown(),
 			left: either(node, exact(null)),
 			right: either(node, exact(null)),
 		})
@@ -726,11 +714,11 @@ const assertIncorrect = <T>(
 		object({
 			type: string(),
 			errorMessage: string(),
-			value: any(),
+			value: unknown(),
 			errorObject: object({}),
 		});
 
-	const jsonParser = () => transform((value) => JSON.parse(value));
+	const jsonParser = () => map(string(), (value) => JSON.parse(value));
 	assertTransformValidator(
 		jsonParser(),
 		"{}",
@@ -750,7 +738,7 @@ const assertIncorrect = <T>(
 		object({
 			type: string(),
 			errorMessage: string(),
-			value: any(),
+			value: unknown(),
 		});
 
 	const minString = (length: number) =>
@@ -770,10 +758,7 @@ const assertIncorrect = <T>(
 	);
 
 	const date = predicate(
-		chain(
-			string(),
-			transform((value) => new Date(value))
-		),
+		map(string(), (value) => new Date(value)),
 		(v) => !isNaN(v.getTime())
 	);
 
@@ -793,7 +778,7 @@ const assertIncorrect = <T>(
 		object({
 			type: exact(type),
 			errorMessage: exact(errorMessage),
-			value: any(),
+			value: unknown(),
 			customMessage: exact(customMessage),
 		});
 
@@ -846,10 +831,7 @@ const assertIncorrect = <T>(
 
 	const isoString = "1970-01-01T00:00:00.000Z";
 
-	const date = chain(
-		string(),
-		transform((value) => new Date(value))
-	);
+	const date = map(string(), (value) => new Date(value));
 
 	assertDateEqual(date, isoString);
 	assertIncorrect(date, 10, "Number is not a string");

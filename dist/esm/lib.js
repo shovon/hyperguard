@@ -99,9 +99,8 @@ export function either(...alts) {
     };
 }
 export class ExcludeError extends ValidationError {
-    constructor(value, validationResults) {
+    constructor(value) {
         super("Exclude error", `Value includes a value that it shouldn't`, value);
-        this.validationResults = validationResults;
     }
 }
 /**
@@ -127,7 +126,7 @@ export function exclude(a, b) {
             }
             return {
                 isValid: false,
-                error: new ExcludeError("Exclude error", value),
+                error: new ExcludeError(value),
             };
         },
     };
@@ -163,7 +162,7 @@ export function tuple(t) {
                 };
             }
             const validations = t.map((validator, i) => validator.validate(value[i]));
-            return validations.every((validation) => validation.isValid)
+            return (validations.every((validation) => validation.isValid)
                 ? {
                     isValid: true,
                     value: validations.map((v) => v.isValid && v.value),
@@ -171,7 +170,7 @@ export function tuple(t) {
                 : {
                     isValid: false,
                     error: new TupleError(value, validations.filter((validation) => !validation.isValid)),
-                };
+                });
         },
     };
 }
@@ -253,7 +252,7 @@ class NotExactValueError extends ValidationError {
 export function exact(expected) {
     return {
         validate: (value) => Object.is(value, expected)
-            ? { value, isValid: true }
+            ? { value: value, isValid: true }
             : { isValid: false, error: new NotExactValueError(value, expected) },
     };
 }
@@ -296,7 +295,7 @@ export function arrayOf(validator) {
                 return { isValid: false, error: new NotAnArrayError(value) };
             }
             const validations = value.map((v) => validator.validate(v));
-            return validations.every(({ isValid }) => isValid)
+            return validations.every((validation) => validation.isValid)
                 ? {
                     value: validations.map((validation) => validation.value),
                     isValid: true,
@@ -314,6 +313,12 @@ export class BadObjectError extends ValidationError {
     constructor(value, faultyFields) {
         super("Bad object", "The supplied object had fields that failed to validate", value);
         this.faultyFields = faultyFields;
+    }
+}
+export class FatalError extends ValidationError {
+    constructor(value, error) {
+        super("Fatal error", "A fatal error occurred", value);
+        this.error = error;
     }
 }
 function mergeObjects(objects) {
@@ -354,7 +359,7 @@ export function objectOf(validator) {
                 key,
                 validation: validator.validate(value[key]),
             }));
-            return fields.every(({ validation }) => validation.isValid)
+            return fields.every((keyValidation) => keyValidation.validation.isValid)
                 ? {
                     value: fields
                         .map(({ key, validation }) => ({
@@ -366,8 +371,10 @@ export function objectOf(validator) {
                 : {
                     isValid: false,
                     error: new BadObjectError(value, mergeObjects(fields
-                        .filter(({ validation }) => !validation.isValid)
-                        .map(({ key, validation }) => ({ [key]: validation })))),
+                        .filter((keyValidation) => !keyValidation.validation.isValid)
+                        .map(({ key, validation }) => ({
+                        [key]: validation.error,
+                    })))),
                 };
         },
     };
@@ -400,7 +407,15 @@ export function keyOf(o) {
                     error: new UnexpectedTypeofError(o, "object"),
                 };
             }
-            if (!Object.keys(o).includes(value)) {
+            if (typeof value !== "string" &&
+                typeof value !== "number" &&
+                typeof value !== "symbol") {
+                return {
+                    isValid: false,
+                    error: new UnexpectedTypeofError(value, "string"),
+                };
+            }
+            if (!Object.keys(o).includes(value.toString())) {
                 return {
                     isValid: false,
                     error: new KeyNotExistError(value),
@@ -408,7 +423,7 @@ export function keyOf(o) {
             }
             return {
                 isValid: true,
-                value
+                value: value,
             };
         },
     };
@@ -418,11 +433,20 @@ export function keyOf(o) {
  *
  * Each field in the "schema" is a validator, and each of them will validate
  * values against objects in concern.
+ *
+ * Note: the resulting validator will not "invalidate" objects that have fields
+ * not defined in the shape.
+ *
+ * If you need such a string cimplementation of the object validator, then let
+ * me know, and I will gladly implement it.
  * @param shape An object containing fields of nothing but validators, each of
  *   which will be used to validate the value's respective fields
  * @returns A validator that will validate an object against the `schema`
  */
 export function object(shape) {
+    // type S = {
+    // 	[key in keyof V]: Validator<V[key]>;
+    // };
     return {
         validate: (value) => {
             if (value === undefined) {
@@ -454,8 +478,8 @@ export function object(shape) {
                 : {
                     isValid: false,
                     error: new BadObjectError(value, mergeObjects(fields
-                        .filter(({ validation }) => !validation.isValid)
-                        .map(({ key, validation }) => ({ [key]: validation })))),
+                        .filter((keyValidation) => !keyValidation.validation.isValid)
+                        .map(({ key, validation }) => ({ [key]: validation.error })))),
                 };
         },
         get partial() {
@@ -476,16 +500,6 @@ export function object(shape) {
             }
             return object(requiredSchema);
         },
-    };
-}
-/**
- * Creates a validator that where the validation function will never determine
- * that a value is invalid
- * @returns A validator that will validate *all* objects
- */
-export function any() {
-    return {
-        validate: (value) => ({ isValid: true, value }),
     };
 }
 /**
@@ -517,19 +531,19 @@ export class TransformError extends ValidationError {
         this.errorObject = errorObject;
     }
 }
-/**
- * Creates a validator that will parse the supplied value
- *
- * @param parse The parser function that will parse the supplied value
- * @returns A validator to validate the value against
- */
-export const transform = (parse) => ({
+export const map = (validator, fn) => ({
     validate(value) {
         try {
-            return { isValid: true, value: parse(value) };
+            const validation = validator.validate(value);
+            return validation.isValid
+                ? { isValid: true, value: fn(validation.value) }
+                : validation;
         }
         catch (e) {
-            return { isValid: false, error: new TransformError(value, e) };
+            return {
+                isValid: false,
+                error: new FatalError(value, e),
+            };
         }
     },
 });
@@ -589,6 +603,10 @@ export const chain = (left, right) => ({
             ? { isValid: false, error: validation.error }
             : right.validate(validation.value);
     },
+});
+export const start = (validator) => ({
+    validate: validator.validate.bind(validator),
+    next: (v) => start(chain(validator, v)),
 });
 /**
  * Gets the intersection of two validators
