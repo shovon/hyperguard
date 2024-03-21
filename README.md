@@ -1,6 +1,6 @@
 # Hyperguard: TypeScript object validation
 
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/shovon/hyperguard/blob/main/LICENSE) [![npm version](https://badge.fury.io/js/Hyperguard.svg)](https://badge.fury.io/js/hyperguard) [![CircleCI](https://circleci.com/gh/shovon/hyperguard/tree/main.svg?style=svg)](https://circleci.com/gh/shovon/hyperguard/tree/main)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/shovon/hyperguard/blob/main/LICENSE) ![Hyperguard version](https://img.shields.io/npm/v/hyperguard) [![CircleCI](https://circleci.com/gh/shovon/hyperguard/tree/main.svg?style=svg)](https://circleci.com/gh/shovon/hyperguard/tree/main)
 
 _Hyperguard_ is a tiny library for validating JavaScript values. Whether they be primitives, such as strings and numbers, or modelling more complex objects, Hyperguard will empower you to express your data validation rules, your way.
 
