@@ -1,12 +1,11 @@
 {
 	"extends": "./tsconfig.base.json",
-	"files": ["lib.ts"],
+	"files": ["lib.ts", "test.ts"],
 	"compilerOptions": {
-		"declaration": true,
 		"types": ["node"],
-		"outDir": "dist",
 		"module": "CommonJS",
-		"target": "ES5",
-		"inlineSourceMap": true
+		"target": "ES2022",
+		"allowImportingTsExtensions": true,
+		"noEmit": true
 	}
 }

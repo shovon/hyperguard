@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Salehen Shovon Rahman
+Copyright 2026 Salehen Shovon Rahman
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -37,29 +37,50 @@ export class ValidationError extends Error {
         this.value = value;
     }
 }
+/**
+ * A validation error raised when a value fails to match any of the validators
+ * supplied to {@link either}.
+ */
 export class EitherError extends ValidationError {
     constructor(value, validationResults) {
         super("Either error", "The provided value does not match any of the possible validators", value);
         this.validationResults = validationResults;
     }
 }
+/**
+ * A validation error raised when one or more elements of a tuple fail to
+ * validate against their respective validators in {@link tuple}.
+ */
 export class TupleError extends ValidationError {
     constructor(value, validationResults) {
         super("Tuple error", `The supplied tuple had ${validationResults.filter((validation) => !validation.isValid)} issues`, value);
         this.validationResults = validationResults;
     }
 }
+/**
+ * A validation error raised when a value was expected to be an array but was
+ * something else.
+ */
 export class NotAnArrayError extends ValidationError {
     constructor(value) {
         super("Not an array error", "Expected an array, but instead got something else", value);
     }
 }
+/**
+ * A validation error raised when an array's length does not match the length
+ * expected by the validator (e.g. a {@link tuple}).
+ */
 export class UnexpectedArrayLengthError extends ValidationError {
     constructor(value, expectedLength) {
         super("Unexpected array length error", `Expected an array of length ${expectedLength} but instead got ${value.length}`, value);
         this.expectedLength = expectedLength;
     }
 }
+const first = (arr) => {
+    if (arr.length <= 0)
+        throw new Error("Array is empty");
+    return arr[0];
+};
 /**
  * A validator for validating objects against a list of validators.
  *
@@ -69,15 +90,11 @@ export class UnexpectedArrayLengthError extends ValidationError {
  * ## Usage
  *
  * ```typescript
- * const alts = alternatives(string(), number());
+ * const stringOrNumber = either(string(), number());
  *
- * const num = 10;
- * const str = "hello";
- * const bool = true;
- *
- * console.log(alts.validate(num).valid); // Should be true
- * console.log(alts.validate(str).valid); // Should be true
- * console.log(alts.validate(bool).valid); // Should be false
+ * stringOrNumber.validate(10).isValid;      // ✅ true
+ * stringOrNumber.validate("hello").isValid; // ✅ true
+ * stringOrNumber.validate(true).isValid;    // ❌ false
  * ```
  * @param alts A list of validators that are to be run
  * @returns A validator to validate an object against a set of validators
@@ -89,7 +106,7 @@ export function either(...alts) {
             return validations.some((validation) => validation.isValid)
                 ? {
                     isValid: true,
-                    value: validations.filter((v) => v.isValid)[0].value,
+                    value: first(validations.filter((v) => v.isValid)).value,
                 }
                 : {
                     isValid: false,
@@ -98,7 +115,11 @@ export function either(...alts) {
         },
     };
 }
-export class ExcludeError extends ValidationError {
+/**
+ * A validation error raised when a value validates against the excluded
+ * validator in {@link exclude}, meaning it includes a value it shouldn't.
+ */
+export class ExcludedIncludedError extends ValidationError {
     constructor(value, validationResults) {
         super("Exclude error", `Value includes a value that it shouldn't`, value);
         this.validationResults = validationResults;
@@ -109,6 +130,16 @@ export class ExcludeError extends ValidationError {
  * validator.
  *
  * Similar to TypeScript's `Exclude` utility type.
+ *
+ * ## Usage
+ *
+ * ```typescript
+ * const notAdmin = exclude(string(), exact("admin"));
+ *
+ * notAdmin.validate("hello").isValid; // ✅ true  (a string, not "admin")
+ * notAdmin.validate("admin").isValid; // ❌ false (excluded value)
+ * notAdmin.validate(42).isValid;      // ❌ false (not a string)
+ * ```
  * @param a The validation to include
  * @param b The validation to exclude
  * @returns A validator where it validates if value validates with `a` but does
@@ -119,7 +150,14 @@ export function exclude(a, b) {
         validate: (value) => {
             const aValidation = a.validate(value);
             const bValidation = b.validate(value);
-            if (aValidation.isValid && !bValidation.isValid) {
+            if (!aValidation.isValid) {
+                return {
+                    isValid: false,
+                    error: aValidation.error,
+                };
+            }
+            const isNotT = (val) => !bValidation.isValid;
+            if (isNotT(aValidation.value)) {
                 return {
                     isValid: true,
                     value: aValidation.value,
@@ -127,7 +165,7 @@ export function exclude(a, b) {
             }
             return {
                 isValid: false,
-                error: new ExcludeError("Exclude error", value),
+                error: new ExcludedIncludedError("Exclude error", bValidation),
             };
         },
     };
@@ -138,11 +176,11 @@ export function exclude(a, b) {
  * ## Usage
  *
  * ```typescript
- * const tup = tuple(string(), number());
+ * const tup = tuple([string(), number()]);
  *
- * alts.validate(["a", 1]).isValid // will be true
- * alts.validate([1, "a"]).isValid // will be false
- * alts.validate([1]).isValid // will be false
+ * tup.validate(["a", 1]).isValid; // ✅ true
+ * tup.validate([1, "a"]).isValid; // ❌ false (wrong order)
+ * tup.validate([1]).isValid;      // ❌ false (wrong length)
  * ```
  * @param t The tuple of validators to validate a tuple against
  * @returns A validator to validate tuples
@@ -163,18 +201,27 @@ export function tuple(t) {
                 };
             }
             const validations = t.map((validator, i) => validator.validate(value[i]));
-            return validations.every((validation) => validation.isValid)
-                ? {
-                    isValid: true,
-                    value: validations.map((v) => v.isValid && v.value),
-                }
-                : {
+            const allValid = (results) => results.every((validation) => validation.isValid);
+            if (!allValid(validations)) {
+                return {
                     isValid: false,
                     error: new TupleError(value, validations.filter((validation) => !validation.isValid)),
                 };
+            }
+            // Return the validated (and possibly transformed) values rather than the
+            // raw input, so per-element transforms are carried through. The `.map`
+            // erases the positional tuple types, so we reassert the tuple shape here.
+            return {
+                isValid: true,
+                value: validations.map((validation) => validation.value),
+            };
         },
     };
 }
+/**
+ * A validation error raised when a value matches a validator that was supposed
+ * to reject it (e.g. the invalidator in {@link except}).
+ */
 export class UnexpectedValueError extends ValidationError {
     constructor(value) {
         super("Unexpected value error", "The supplied value is not allowed", value);
@@ -187,15 +234,15 @@ export class UnexpectedValueError extends ValidationError {
  * This validator is especially useful for cases where a value can be a string,
  * except for specific strings.
  *
- * For example:
+ * ## Usage
  *
- * ```
- *const everythingButValidator = except(string(), exact("but"));
+ * ```typescript
+ * const everythingBut = except(string(), exact("but"));
  *
- * everythingButValidator.validate("apples").isValid; // ✅
- * everythingButValidator.validate("bananas").isValid; // ✅
- * everythingButValidator.validate("cherries").isValid; // ✅
- * everythingButValidator.validate("but").isValid; // ❌
+ * everythingBut.validate("apples").isValid; // ✅ true
+ * everythingBut.validate("cherries").isValid; // ✅ true
+ * everythingBut.validate("but").isValid; // ❌ false (the excluded value)
+ * everythingBut.validate(42).isValid; // ❌ false (not a string)
  * ```
  * @param validator The validator for which to validate the value against
  * @param invalidator The validator for which if is valid, the value will be
@@ -220,6 +267,10 @@ function _v(v) {
     return typeof v;
 }
 const _s = _v({});
+/**
+ * A validation error raised when the `typeof` a value does not match the
+ * expected type.
+ */
 export class UnexpectedTypeofError extends ValidationError {
     constructor(value, expectedType) {
         super("Unexpected typeof", `Expected a value of type ${expectedType}, but got something else`, value);
@@ -228,6 +279,15 @@ export class UnexpectedTypeofError extends ValidationError {
 }
 /**
  * Creates a validator that determines if the supplied value is a string.
+ *
+ * ## Usage
+ *
+ * ```typescript
+ * const str = string();
+ *
+ * str.validate("hello").isValid; // ✅ true
+ * str.validate(42).isValid;      // ❌ false
+ * ```
  * @returns A validator to check if the value is of type string
  */
 export const string = () => {
@@ -246,19 +306,40 @@ class NotExactValueError extends ValidationError {
 /**
  * Creates a validator that validates values that match the expected value
  * exactly.
+ *
+ * ## Usage
+ *
+ * ```typescript
+ * const yes = exact("yes");
+ *
+ * yes.validate("yes").isValid; // ✅ true
+ * yes.validate("no").isValid;  // ❌ false
+ * ```
  * @param expected The exact value to be expected
  * @returns A validator that will only validate values that match exactly the
  *   expected value
  */
 export function exact(expected) {
     return {
-        validate: (value) => Object.is(value, expected)
-            ? { value, isValid: true }
-            : { isValid: false, error: new NotExactValueError(value, expected) },
+        validate: (value) => {
+            const is = (v, expected) => Object.is(value, expected);
+            return is(value, expected)
+                ? { value, isValid: true }
+                : { isValid: false, error: new NotExactValueError(value, expected) };
+        },
     };
 }
 /**
  * Creates a validator that determines if the supplied value is a number.
+ *
+ * ## Usage
+ *
+ * ```typescript
+ * const num = number();
+ *
+ * num.validate(42).isValid;      // ✅ true
+ * num.validate("42").isValid;    // ❌ false
+ * ```
  * @returns A validator to check if the value is of type number
  */
 export const number = () => ({
@@ -268,6 +349,15 @@ export const number = () => ({
 });
 /**
  * Creates a validator that determines if the supplied value is a boolean.
+ *
+ * ## Usage
+ *
+ * ```typescript
+ * const bool = boolean();
+ *
+ * bool.validate(true).isValid;  // ✅ true
+ * bool.validate("true").isValid; // ❌ false
+ * ```
  * @returns A validator to check if the value is of type boolean
  */
 export const boolean = () => ({
@@ -275,6 +365,42 @@ export const boolean = () => ({
         ? { isValid: false, error: new UnexpectedTypeofError(value, "boolean") }
         : { value, isValid: true },
 });
+/**
+ * A validation error raised when a value is not an instance of the constructor
+ * expected by {@link instance}.
+ */
+export class NotAnInstanceError extends ValidationError {
+    constructor(value, expectedConstructor) {
+        super("Not an instance error", `Expected an instance of ${expectedConstructor.name}, but got something else`, value);
+        this.expectedConstructor = expectedConstructor;
+    }
+}
+/**
+ * Creates a validator that determines if the supplied value is an instance of
+ * the given constructor (i.e. `value instanceof constructor`).
+ *
+ * ## Usage
+ *
+ * ```typescript
+ * const dateValidator = instance(Date);
+ *
+ * dateValidator.validate(new Date()).isValid; // ✅
+ * dateValidator.validate("2026-06-14").isValid; // ❌
+ * ```
+ * @param constructor The constructor to check the value against
+ * @returns A validator that checks if the value is an instance of `constructor`
+ */
+export function instance(constructor) {
+    return {
+        validate: (value) => value instanceof constructor
+            ? { isValid: true, value: value }
+            : { isValid: false, error: new NotAnInstanceError(value, constructor) },
+    };
+}
+/**
+ * A validation error raised when one or more elements of an array fail to
+ * validate in {@link arrayOf}, collecting each offending element and its index.
+ */
 export class ArrayOfInvalidValuesError extends ValidationError {
     constructor(value, errors) {
         super("Array of invalid values", `${errors.length} of the ${value.length} are invalid`, value);
@@ -284,6 +410,16 @@ export class ArrayOfInvalidValuesError extends ValidationError {
 /**
  * Creates a validator that determines if the supplied value is an array of the
  * specified validator.
+ *
+ * ## Usage
+ *
+ * ```typescript
+ * const numbers = arrayOf(number());
+ *
+ * numbers.validate([1, 2, 3]).isValid;   // ✅ true
+ * numbers.validate([1, "2", 3]).isValid; // ❌ false (a non-number element)
+ * numbers.validate("nope").isValid;      // ❌ false (not an array)
+ * ```
  * @param validator The validator to validate the individual array values
  *   against
  * @returns A validator to check if the value is an array of the specified
@@ -296,7 +432,7 @@ export function arrayOf(validator) {
                 return { isValid: false, error: new NotAnArrayError(value) };
             }
             const validations = value.map((v) => validator.validate(v));
-            return validations.every(({ isValid }) => isValid)
+            return validations.every((validation) => validation.isValid)
                 ? {
                     value: validations.map((validation) => validation.value),
                     isValid: true,
@@ -310,6 +446,10 @@ export function arrayOf(validator) {
         },
     };
 }
+/**
+ * A validation error raised when one or more fields of an object fail to
+ * validate (in {@link object} or {@link objectOf}), keyed by field name.
+ */
 export class BadObjectError extends ValidationError {
     constructor(value, faultyFields) {
         super("Bad object", "The supplied object had fields that failed to validate", value);
@@ -329,6 +469,16 @@ function mergeObjects(objects) {
  * Creates a validator that determines if the supplied value is an object, whose
  * fields contains are of nothing but types as defined by the specified
  * validator.
+ *
+ * ## Usage
+ *
+ * ```typescript
+ * // An object used as a string-keyed map of numbers.
+ * const scores = objectOf(number());
+ *
+ * scores.validate({ alice: 10, bob: 20 }).isValid; // ✅ true
+ * scores.validate({ alice: 10, bob: "20" }).isValid; // ❌ false (a non-number field)
+ * ```
  * @param validator The validator to validate the individual fields in the
  *   object
  * @returns A validator that determines if the supplied value is an object,
@@ -341,156 +491,183 @@ export function objectOf(validator) {
             if (value === undefined) {
                 return { isValid: false, error: new ValueIsUndefinedError() };
             }
-            if (value === null) {
-                return { isValid: false, error: new ValueIsNullError() };
-            }
             if (typeof value !== "object") {
                 return {
                     isValid: false,
                     error: new UnexpectedTypeofError(value, "object"),
                 };
             }
-            const fields = Object.keys(value).map((key) => ({
-                key,
-                validation: validator.validate(value[key]),
+            if (value === null) {
+                return { isValid: false, error: new ValueIsNullError() };
+            }
+            const fields = Object.entries(value).map(([k, v]) => ({
+                key: k,
+                validation: validator.validate(v),
             }));
-            return fields.every(({ validation }) => validation.isValid)
-                ? {
+            if (fields.every((fAndV) => fAndV.validation.isValid)) {
+                return {
                     value: fields
                         .map(({ key, validation }) => ({
                         [key]: validation.value,
                     }))
                         .reduce((prev, next) => Object.assign(prev, next), {}),
                     isValid: true,
-                }
-                : {
-                    isValid: false,
-                    error: new BadObjectError(value, mergeObjects(fields
-                        .filter(({ validation }) => !validation.isValid)
-                        .map(({ key, validation }) => ({ [key]: validation })))),
                 };
+            }
+            const validationsOnly = fields
+                .filter((fAndV) => !fAndV.validation.isValid)
+                .map(({ key, validation }) => ({ [key]: validation.error }));
+            return {
+                isValid: false,
+                error: new BadObjectError(value, mergeObjects(validationsOnly)),
+            };
         },
     };
 }
+/**
+ * A validation error raised when a value is `undefined` but was expected to be
+ * something else.
+ */
 export class ValueIsUndefinedError extends ValidationError {
     constructor() {
         super("Value is undefined", "The supplied value is undefined, when it should have been something else", undefined);
     }
 }
+/**
+ * A validation error raised when a value is `null` but was expected to be
+ * something else.
+ */
 export class ValueIsNullError extends ValidationError {
     constructor() {
         super("Value is null", "The supplied value is null, when it should have been something else", null);
     }
 }
-function objectEntries(o) {
-    return Object.entries(o);
-}
+/**
+ * A validation error raised when a referenced key does not exist on the
+ * supplied object.
+ */
 export class KeyNotExistError extends ValidationError {
-    constructor(key) {
-        super("Key does not exist in object", `The supplied key ${key} does not exist in the supplied object`, undefined);
-        this.key = key;
+    constructor(_key) {
+        super("Key does not exist in object", `The supplied key ${_key} does not exist in the supplied object`, undefined);
+        this._key = _key;
+    }
+    get key() {
+        return this._key;
     }
 }
-export function keyOf(o) {
-    return {
-        validate: (value) => {
-            if (typeof o !== "object" || o === null) {
-                return {
-                    isValid: false,
-                    error: new UnexpectedTypeofError(o, "object"),
-                };
-            }
-            if (!Object.keys(o).includes(value)) {
-                return {
-                    isValid: false,
-                    error: new KeyNotExistError(value),
-                };
-            }
-            return {
-                isValid: true,
-                value
-            };
-        },
+const isRecord = (value) => typeof value === "object" && value != null;
+function mapValues(obj, fn) {
+    const has = (key) => {
+        return Object.hasOwn(obj, key);
     };
+    const isIn = (key, value) => {
+        return has(key);
+    };
+    return Object.fromEntries(Object.entries(obj).map(([k, v]) => {
+        if (!has(k))
+            throw new Error("An unknown error occurred");
+        if (!isIn(k, v))
+            throw new Error("An unknown error occurred");
+        return [k, fn(v, k)];
+    }));
 }
 /**
  * Creates a validator for an object, specified by the "schema".
  *
  * Each field in the "schema" is a validator, and each of them will validate
  * values against objects in concern.
+ *
+ * ## Usage
+ *
+ * ```typescript
+ * const user = object({
+ *   name: string(),
+ *   age: number(),
+ * });
+ *
+ * user.validate({ name: "Ada", age: 36 }).isValid; // ✅ true
+ * user.validate({ name: "Ada" }).isValid;          // ❌ false (missing age)
+ * user.validate({ name: "Ada", age: "36" }).isValid; // ❌ false (age not a number)
+ * ```
  * @param shape An object containing fields of nothing but validators, each of
  *   which will be used to validate the value's respective fields
  * @returns A validator that will validate an object against the `schema`
  */
 export function object(shape) {
     return {
+        get shape() {
+            return shape;
+        },
         validate: (value) => {
+            // Process of elimination. Check if undefined. If yes, invalid.
             if (value === undefined) {
                 return { isValid: false, error: new ValueIsUndefinedError() };
             }
-            if (value === null) {
-                return { isValid: false, error: new ValueIsNullError() };
-            }
-            if (typeof value !== "object") {
+            // Otherwise, not undefined, therefore continue.
+            // Check if object. If not, invalid.
+            if (!isRecord(value)) {
                 return {
                     isValid: false,
                     error: new UnexpectedTypeofError(value, "object"),
                 };
             }
-            const fields = Object.keys(shape).map((key) => ({
+            // Type-assert fields by key and validation result (effectively, rather
+            // than an array of key value pairs, instead, it's an array of key and
+            // validation result).
+            const fields = Object.entries(shape).map(([key, validator]) => ({
                 key,
-                validation: shape[key].validate(value[key]),
+                validation: validator.validate(value[key]),
             }));
-            return fields.every(({ validation }) => validation.isValid)
-                ? {
-                    value: Object.assign({ ...value }, fields
-                        .filter(({ validation }) => !!validation.value)
-                        .map(({ key, validation }) => ({
-                        [key]: validation.value,
-                    }))
-                        .reduce((prev, next) => Object.assign(prev, next), {})),
-                    isValid: true,
-                }
-                : {
+            const onlyBadFields = fields.filter((keyValidation) => !keyValidation.validation.isValid);
+            const f = fields;
+            const onlyGoodFields = f.filter((keyValidation) => keyValidation.validation.isValid);
+            if (!fields.every((f) => f.validation.isValid)) {
+                return {
                     isValid: false,
-                    error: new BadObjectError(value, mergeObjects(fields
-                        .filter(({ validation }) => !validation.isValid)
-                        .map(({ key, validation }) => ({ [key]: validation })))),
+                    error: new BadObjectError(value, mergeObjects(onlyBadFields.map(({ key, validation }) => ({
+                        [key]: validation.error,
+                    })))),
                 };
+            }
+            return {
+                value: Object.assign({ ...value }, onlyGoodFields
+                    // Only write back keys that were actually present in the input.
+                    // A field absent from the input but optional in the schema
+                    // validates (as `undefined`) without us materializing a spurious
+                    // `key: undefined` entry on the result.
+                    .filter(({ key }) => Object.hasOwn(value, key))
+                    .map(({ key, validation }) => {
+                    return {
+                        [key]: validation.value,
+                    };
+                })
+                    .reduce((prev, next) => Object.assign(prev, next), {})),
+                isValid: true,
+            };
         },
         get partial() {
-            const partialSchema = {};
-            for (const [key, validator] of objectEntries(shape)) {
-                partialSchema[key] = either(validator, exact(undefined));
-            }
-            return object(partialSchema);
+            return object(mapValues(shape, (v) => either(v, exact(undefined))));
         },
-        shape,
         omit: () => object(shape),
         pick: () => object(shape),
         get required() {
-            const requiredSchema = {};
-            for (const [key, validator] of Object.entries(shape)) {
-                const k = key;
-                requiredSchema[k] = exclude(validator, either(exact(undefined), exact(null)));
-            }
-            return object(requiredSchema);
+            return object(mapValues(shape, (v) => exclude(v, exact(undefined))));
         },
     };
 }
 /**
  * Creates a validator that where the validation function will never determine
  * that a value is invalid
- * @returns A validator that will validate *all* objects
- */
-export function any() {
-    return {
-        validate: (value) => ({ isValid: true, value }),
-    };
-}
-/**
- * Creates a validator that where the validation function will never determine
- * that a value is invalid
+ *
+ * ## Usage
+ *
+ * ```typescript
+ * const anything = unknown();
+ *
+ * anything.validate(42).isValid;      // ✅ true
+ * anything.validate("hi").isValid;    // ✅ true
+ * anything.validate(null).isValid;    // ✅ true
+ * ```
  * @returns A validator that will validate *all* objects
  */
 export function unknown() {
@@ -502,6 +679,21 @@ export function unknown() {
  * Creates a validator that lazily evaluates the callback, at every validation.
  *
  * Useful for recursive types, such as a node for a tree.
+ *
+ * ## Usage
+ *
+ * ```typescript
+ * type Tree = { value: number; children: Tree[] };
+ *
+ * // `lazy` defers referencing `tree` until validation time, so the validator
+ * // can refer to itself.
+ * const tree: Validator<Tree> = object({
+ *   value: number(),
+ *   children: lazy(() => arrayOf(tree)),
+ * });
+ *
+ * tree.validate({ value: 1, children: [{ value: 2, children: [] }] }).isValid; // ✅ true
+ * ```
  * @param schemaFn A function that returns a validator
  * @returns A validator, effectively just a "forwarding" of the validator
  *   returned by the `schemaFn`
@@ -511,6 +703,10 @@ export function lazy(schemaFn) {
         validate: (value) => schemaFn().validate(value),
     };
 }
+/**
+ * A validation error raised when a {@link transform} parser throws, wrapping the
+ * thrown error in `errorObject`.
+ */
 export class TransformError extends ValidationError {
     constructor(value, errorObject) {
         super("Parsing error", "Failed to parse the value", value);
@@ -518,15 +714,35 @@ export class TransformError extends ValidationError {
     }
 }
 /**
- * Creates a validator that will parse the supplied value
+ * Creates a validator that first validates the supplied value against
+ * `validator`, then maps the validated value through `parse`.
  *
- * @param parse The parser function that will parse the supplied value
- * @returns A validator to validate the value against
+ * Because the input is validated up front, the `parse` callback receives a
+ * value already narrowed to the validator's type, rather than `unknown`. To
+ * transform an arbitrary value with no prior validation, pass {@link unknown}
+ * as the validator.
+ *
+ * ## Usage
+ *
+ * ```typescript
+ * // `value` is inferred as `string`, so no cast is needed.
+ * const toDate = transform(string(), (value) => new Date(value));
+ *
+ * toDate.validate("1970-01-01T00:00:00.000Z").isValid; // ✅
+ * toDate.validate(42).isValid;                          // ❌ not a string
+ * ```
+ * @param validator The validator the value must satisfy before being parsed
+ * @param parse The parser, receiving the validated value
+ * @returns A validator that validates then maps the value
  */
-export const transform = (parse) => ({
+export const transform = (validator, parse) => ({
     validate(value) {
+        const validation = validator.validate(value);
+        if (validation.isValid === false) {
+            return validation;
+        }
         try {
-            return { isValid: true, value: parse(value) };
+            return { isValid: true, value: parse(validation.value) };
         }
         catch (e) {
             return { isValid: false, error: new TransformError(value, e) };
@@ -540,6 +756,17 @@ class PredicateError extends ValidationError {
 }
 /**
  * A validator creator that also accepts a predicate
+ *
+ * ## Usage
+ *
+ * ```typescript
+ * // A string of at least 8 characters. `value` is typed as `string`.
+ * const password = predicate(string(), (value) => value.length >= 8);
+ *
+ * password.validate("hunter2000").isValid; // ✅ true
+ * password.validate("short").isValid;      // ❌ false (fails the predicate)
+ * password.validate(42).isValid;           // ❌ false (not a string)
+ * ```
  * @param validator The validator to run the predicate against
  * @param pred The predicate to run against the value
  * @returns A Validator, where if the predicate were to fail, it will result in
@@ -560,6 +787,22 @@ export function predicate(validator, pred) {
 /**
  * A Validator creator that substitutes the error from one validator, to another
  * error for that validator.
+ *
+ * ## Usage
+ *
+ * ```typescript
+ * class NotAName extends ValidationError {
+ *   constructor(value: unknown) {
+ *     super("Not a name", "Expected a name string", value);
+ *   }
+ * }
+ *
+ * // Same validation as `string()`, but with a custom error on failure.
+ * const name = replaceError(string(), (value) => new NotAName(value));
+ *
+ * name.validate("Ada").isValid; // ✅ true
+ * name.validate(42).isValid;    // ❌ false (fails with a NotAName error)
+ * ```
  * @param validator The validator for which to have the error substituted
  * @param createError An error function that will return the appropriate error
  *   object
@@ -577,6 +820,20 @@ export function replaceError(validator, createError) {
 }
 /**
  * Chains two validators together.
+ *
+ * The value (possibly transformed) produced by `left` is fed into `right`, so
+ * this is how you compose, for example, a parse step with a shape check.
+ *
+ * ## Usage
+ *
+ * ```typescript
+ * // Validate a string, then constrain it to a minimum length.
+ * const nonEmpty = chain(string(), predicate(string(), (s) => s.length > 0));
+ *
+ * nonEmpty.validate("hi").isValid; // ✅ true
+ * nonEmpty.validate("").isValid;   // ❌ false (empty)
+ * nonEmpty.validate(42).isValid;   // ❌ false (not a string)
+ * ```
  * @param left the first validator to validate values against
  * @param right the second validator to validate values against
  * @returns a validator that will validate first against the first validator
@@ -592,6 +849,19 @@ export const chain = (left, right) => ({
 });
 /**
  * Gets the intersection of two validators
+ *
+ * ## Usage
+ *
+ * ```typescript
+ * const named = object({ name: string() });
+ * const aged = object({ age: number() });
+ *
+ * // Must satisfy both shapes: { name: string } & { age: number }.
+ * const person = intersection(named, aged);
+ *
+ * person.validate({ name: "Ada", age: 36 }).isValid; // ✅ true
+ * person.validate({ name: "Ada" }).isValid;          // ❌ false (missing age)
+ * ```
  * @param a The first validator to validate the object against
  * @param b The second validator to validate the object against
  * @returns A validator that is the intersection of the types represented by
@@ -611,6 +881,16 @@ export const intersection = (a, b) => ({
 });
 /**
  * Creates a validator that can fallback to another value.
+ *
+ * ## Usage
+ *
+ * ```typescript
+ * // Use the given number, or default to 0 when the value isn't a number.
+ * const count = fallback(number(), () => 0);
+ *
+ * count.validate(42);    // { isValid: true, value: 42 }
+ * count.validate("nope"); // { isValid: true, value: 0 }  (fell back)
+ * ```
  * @param validator The validator that, if failed, will need a fallback
  * @param getFallback The function to acquire the fallback value
  * @returns A validator that should never be invalid
@@ -626,6 +906,19 @@ export const fallback = (validator, getFallback) => ({
 /**
  * This function validates and returns the parsed value. If validation failed,
  * it will throw a runtime exception
+ *
+ * ## Usage
+ *
+ * ```typescript
+ * const user = object({ name: string(), age: number() });
+ *
+ * // Returns the typed value on success...
+ * const value = validate(user, { name: "Ada", age: 36 });
+ * value.name; // "Ada", typed as string
+ *
+ * // ...and throws the ValidationError on failure.
+ * validate(user, { name: "Ada" }); // throws
+ * ```
  * @param validator A validator to run the validation against the supplied value
  * @param value The value to run the validation against
  * @returns The outcome of the validation

@@ -2,16 +2,18 @@
 
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/shovon/hyperguard/blob/main/LICENSE) ![Hyperguard version](https://img.shields.io/npm/v/hyperguard) [![CircleCI](https://circleci.com/gh/shovon/hyperguard/tree/main.svg?style=svg)](https://circleci.com/gh/shovon/hyperguard/tree/main)
 
-_Hyperguard_ is a tiny library for validating JavaScript values. Whether they be primitives, such as strings and numbers, or modelling more complex objects, Hyperguard will empower you to express your data validation rules, your way.
+_Hyperguard_ is a tiny, zero-dependency library for validating JavaScript and TypeScript values. You build schemas by composing small validators. Your types are inferred for free, your validators double as parsers, and nothing ever locks you in.
 
 **Killer Features:**
 
-- clear, minimal, and intuitive API, with no hidden surprises
-- Powerful TypeScript support to infer static types from schema
-- Composable validators, empowering you to define your own rules, your way
-- zero dependencies
-- install either via npm, or copy and paste the [`lib.ts`](https://raw.githubusercontent.com/shovon/valentina/main/lib.ts) (or [`dist/lib.js`](https://raw.githubusercontent.com/shovon/valentina/main/dist/lib.js) for JavaScript) file into your project
-- no library lock-ins. So you used this library for a day, and now you hate it? As long as the next library defines their own [`Validator`](https://github.com/shovon/Hyperguard/blob/c56c15a5ddededc5ea69c6b7f96108a1b83ac8b1/lib.ts#L30-L36) type, you should be able to migrate to that other library very easily. Or, you can quickly write your own
+- **Tiny and zero-dependency**. The whole library is a single file you can read in one sitting
+- **Type inference built in**. Derive your static TypeScript types straight from a schema with `InferType`, no duplication
+- **Composable by design** . Build complex schemas out of small validators, and write your own whenever you need to
+- **Validators are also parsers**. Transform values as you validate them (an ISO string into a `Date`, say)
+- **Plain, serializable results**. Validation returns a simple discriminated union you can inspect or `JSON.stringify` and send over the wire
+- **No lock-in**. Every validator is just [an object with a `validate` method](#validator), so moving to (or away from) Hyperguard is trivial
+
+New here? Head to [Getting Started](#getting-started).
 
 ## Getting Started
 
@@ -19,29 +21,30 @@ Schema creation is done by creating a validator. Hyperguard has simple creators,
 
 ```typescript
 import {
-	object,
-	string,
-	number,
-	InferType,
-	either,
-	Validator,
-} from "Hyperguard";
+  object,
+  string,
+  number,
+  exact,
+  either,
+  InferType,
+  Validator,
+} from "hyperguard";
 
 // Create a validator that allows for values to be set to `undefined`
 const optional = <T>(validator: Validator<T>) =>
-	either(validator, exact(undefined));
+  either(validator, exact(undefined));
 
 // You create a whole schema validators by composing other smaller validators
 let userSchema = object({
-	name: string(),
-	age: number(),
-	address: optional(
-		object({
-			apartment: optional(string()),
-			streetNumber: string(),
-			streetName: string(),
-		})
-	),
+  name: string(),
+  age: number(),
+  address: optional(
+    object({
+      apartment: optional(string()),
+      streetNumber: string(),
+      streetName: string(),
+    }),
+  ),
 });
 
 type User = InferType<typeof userSchema>;
@@ -51,7 +54,7 @@ type User = {
   age: number
   address: {
     apartment: string | undefined
-    streetNmber: string
+    streetNumber: string
     streetName: string
   } | undefined
 }
@@ -62,9 +65,9 @@ A validator has a `validate` method, which you can invoke for the purposes of va
 
 ```typescript
 const data: any = {
-	name: "Jane",
-	age: 31,
-	address: { streetNumber: "123", streetName: "Peaceful Blvd" },
+  name: "Jane",
+  age: 31,
+  address: { streetNumber: "123", streetName: "Peaceful Blvd" },
 };
 
 const result = userSchema.validate(data);
@@ -75,7 +78,7 @@ result.isValid;
 // In TypeScript, to cast the above `data` into a `user`, use a type guard
 let user: User;
 if (result.isValid) {
-	user = result.value;
+  user = result.value;
 }
 
 // Simply defining `const str = result.value` will result in a compile-time
@@ -86,51 +89,63 @@ These are the very basics that you can go off of, and start validating your data
 
 ## Table of Contents
 
-- [Hyperguard: JavaScript object validation](#Hyperguard-javascript-object-validation)
-  - [Getting Started](#getting-started)
-  - [Table of Contents](#table-of-contents)
-  - [Usage Guide](#usage-guide)
-    - [Installing](#installing)
-      - [npm (Node.js, Webpack, Vite, Browserify, or any other that use npm)](#npm-nodejs-webpack-vite-browserify-or-any-other-that-use-npm)
-        - [Importing via CommonJS require](#importing-via-commonjs-require)
-        - [Importing via Node.js' ECMAScript module (import statement)](#importing-via-nodejs-ecmascript-module-import-statement)
-      - [Deno](#deno)
-      - [Browser via import statement (dist/esm/lib.js)](#browser-via-import-statement-distesmlibjs)
-    - [Example application](#example-application)
-    - [Tips and tricks](#tips-and-tricks)
-      - [Recursive types](#recursive-types)
-      - [Create custom validators by composing other validators](#create-custom-validators-by-composing-other-validators)
-      - [Custom validators and parsing values](#custom-validators-and-parsing-values)
-  - [Design Philosophy](#design-philosophy)
-    - [Atomic Validators](#atomic-validators)
-    - [Composition](#composition)
-    - [Embrace JavaScript itself; use idioms](#embrace-javascript-itself-use-idioms)
-    - [Clarity and transparency](#clarity-and-transparency)
-    - [Power to the client](#power-to-the-client)
-  - [API](#api)
-    - [string(): Validator&lt;string&gt;](#string-validatorstring)
-    - [number(): Validator&lt;number&gt;](#number-validatornumber)
-    - [boolean(): Validator&lt;boolean&gt;](#boolean-validatorboolean)
-    - [exact&lt;V extends string | number | boolean | null | undefined&gt;(expected: V): Validator&lt;V&gt;](#exactv-extends-string--number--boolean--null--undefinedexpected-v-validatorv)
-    - [either(...alts: Validator&lt;any&gt;[]): Validator&lt;any&gt;](#eitheralts-validatorany-validatorany)
-    - [arrayOf&lt;T&gt;(validator: Validator&lt;T&gt;): Validator&lt;T[]&gt;](#arrayoftvalidator-validatort-validatort)
-    - [any(): Validator&lt;any&gt;](#any-validatorany)
-      - [Usage](#usage)
-    - [objectOf&lt;T&gt;(validator: Validator&lt;T&gt;): Validator&lt;{ [key: string]: V }&gt;](#objectoftvalidator-validatort-validator-key-string-v-)
-    - [tuple&lt;T&gt;(validator: Validator&lt;T&gt;): Validator&lt;{ [key: string]: V }&gt;](#tupletvalidator-validatort-validator-key-string-v-)
-    - [except&lt;T, I&gt;(validator: Validator&lt;T&gt;, invalidator: Validator&lt;I&gt;): Exclude&lt;T, I&gt;](#exceptt-ivalidator-validatort-invalidator-validatori-excludet-i)
-      - [Usage](#usage-1)
-    - [object&lt;V extends object&gt;(schema: { [key in keyof V]: Validator&lt;V[key]&gt; }): Validator&lt;V&gt;](#objectv-extends-objectschema--key-in-keyof-v-validatorvkey--validatorv)
-    - [lazy&lt;V&gt;(schemaFn: () =&gt; Validator&lt;V&gt;): Validator&lt;V&gt;](#lazyvschemafn---validatorv-validatorv)
-      - [Motivation and usage](#motivation-and-usage)
-    - [transform&lt;T&gt;(parse: (value: any) =&gt; T): Validator&lt;T&gt;](#transformtparse-value-any--t-validatort)
-      - [Motivation and usage](#motivation-and-usage-1)
-    - [chain&lt;T1, T2&gt;(left: Validator&lt;T1&gt;, right: Validator&lt;T2&gt;): Validator&lt;T2&gt;](#chaint1-t2left-validatort1-right-validatort2-validatort2)
-    - [fallback&lt;T1, T2&gt;(validator: Validator&lt;T1&gt;, getFallback: () =&gt; T2)](#fallbackt1-t2validator-validatort1-getfallback---t2)
-      - [Motivation and usage](#motivation-and-usage-2)
-    - [predicate&lt;T&gt;(validator: Validator&lt;T&gt;, pred: (value: T) =&gt; boolean)](#predicatetvalidator-validatort-pred-value-t--boolean)
-    - [replaceError&lt;T&gt;(validator: Validator&lt;T&gt;, createError: (value: any, error: IValidationError) =&gt; IValidationError): Validator&lt;T&gt;](#replaceerrortvalidator-validatort-createerror-value-any-error-ivalidationerror--ivalidationerror-validatort)
-  - [Similar libraries](#similar-libraries)
+<!-- doc-gen TOC maxDepth=4 -->
+
+- [Getting Started](#getting-started)
+- [Usage Guide](#usage-guide)
+  - [Installing](#installing)
+    - [npm (Node.js, Webpack, Vite, Browserify, or any other that use npm)](#npm-nodejs-webpack-vite-browserify-or-any-other-that-use-npm)
+    - [Deno](#deno)
+    - [Browser via `import` statement (dist/esm/lib.js)](#browser-via-import-statement-distesmlibjs)
+  - [Example application](#example-application)
+  - [Tips and tricks](#tips-and-tricks)
+    - [Recursive types](#recursive-types)
+    - [Create custom validators by composing other validators](#create-custom-validators-by-composing-other-validators)
+    - [Custom validators and parsing values](#custom-validators-and-parsing-values)
+- [Design Philosophy](#design-philosophy)
+  - [Atomic Validators](#atomic-validators)
+  - [Composition](#composition)
+  - [Embrace JavaScript itself; use idioms](#embrace-javascript-itself-use-idioms)
+  - [Clarity and transparency](#clarity-and-transparency)
+  - [Power to the client](#power-to-the-client)
+- [API](#api)
+  - [Functions](#functions)
+    - [arrayOf()](#arrayof)
+    - [boolean()](#boolean)
+    - [chain()](#chain)
+    - [either()](#either)
+    - [exact()](#exact)
+    - [except()](#except)
+    - [exclude()](#exclude)
+    - [fallback()](#fallback)
+    - [instance()](#instance)
+    - [intersection()](#intersection)
+    - [lazy()](#lazy)
+    - [number()](#number)
+    - [object()](#object)
+    - [objectOf()](#objectof)
+    - [predicate()](#predicate)
+    - [replaceError()](#replaceerror)
+    - [string()](#string)
+    - [transform()](#transform)
+    - [tuple()](#tuple)
+    - [unknown()](#unknown)
+    - [validate()](#validate)
+  - [Type Aliases](#type-aliases)
+    - [ExactTypes](#exacttypes)
+    - [InferType](#infertype)
+    - [IValidationError](#ivalidationerror)
+    - [ObjectValidator](#objectvalidator)
+    - [PossibleTypeof](#possibletypeof)
+    - [ValidationFailure](#validationfailure)
+    - [ValidationResult](#validationresult)
+    - [ValidationSuccess](#validationsuccess)
+    - [Validator](#validator)
+- [Similar libraries](#similar-libraries)
+  - [How Hyperguard compares to zod](#how-hyperguard-compares-to-zod)
+  - [See also](#see-also)
+
+<!-- end-doc-gen -->
 
 ## Usage Guide
 
@@ -142,7 +157,7 @@ const data = await fetch(url).then((response) => response.json());
 const validation = schema.validate(data);
 
 if (validation.isValid) {
-	const value = validation.value;
+  const value = validation.value;
 }
 ```
 
@@ -150,7 +165,7 @@ Hyperguard becomes especially powerful when larger `Validator`s are comprised fr
 
 ### Installing
 
-By design, Hyperguard places you under **no obligation** to use any package manager; you most certainly can copy and paste either [`lib.ts`](https://github.com/shovon/Hyperguard/blob/main/lib.ts) for TypeScript, [`dist/lib.js`](https://github.com/shovon/valentina/blob/main/dist/lib.js) for CommonJS (require), or [`dist/esm/lib.js`](https://github.com/shovon/Hyperguard/blob/main/dist/esm/lib.js) for importing via the `import` statement.
+By design, Hyperguard places you under **no obligation** to use any package manager; you most certainly can copy and paste either [`lib.ts`](https://github.com/shovon/hyperguard/blob/main/lib.ts) for TypeScript, [`dist/lib.js`](https://github.com/shovon/hyperguard/blob/main/dist/lib.js) for CommonJS (require), or [`dist/esm/lib.js`](https://github.com/shovon/hyperguard/blob/main/dist/esm/lib.js) for importing via the `import` statement.
 
 With that said, you are certainly more than welcomed to use a package manager, especially since it will allow you to easily upgrade, without the possibility of errors while copying and pasting.
 
@@ -158,18 +173,18 @@ With that said, you are certainly more than welcomed to use a package manager, e
 
 If you are using Node.js or a bundler that uses npm, Hyperguard has been published to npm for your convenience. You can install using your preferred package manager. For example:
 
-- npm: `npm install Hyperguard`
-- Yarn: `yarn add Hyperguard`
-- pnpm: `pnpm add Hyperguard`
+- npm: `npm install hyperguard`
+- Yarn: `yarn add hyperguard`
+- pnpm: `pnpm add hyperguard`
 
-Additional, for the JavaScript CommonJS code, transpilers should not be needed. However if you are having trouble importing Hyperguard into your bundler (Webpack, Vite, Browserify, etc.), then please do [open a new issue](https://github.com/shovon/Hyperguard/issues), and I will investigate.
+Additional, for the JavaScript CommonJS code, transpilers should not be needed. However if you are having trouble importing Hyperguard into your bundler (Webpack, Vite, Browserify, etc.), then please do [open a new issue](https://github.com/shovon/hyperguard/issues), and I will investigate.
 
 ##### Importing via CommonJS `require`
 
 Once installed, you should be able to import the module via CommonJS `require`, like so:
 
 ```javascript
-const parseValidate = require("Hyperguard");
+const hyperguard = require("hyperguard");
 ```
 
 ##### Importing via Node.js' ECMAScript module (`import` statement)
@@ -177,7 +192,7 @@ const parseValidate = require("Hyperguard");
 In a Node.js `mjs` file, you can simply import using the `import` syntax.
 
 ```javascript
-import * as parseValidate from "Hyperguard";
+import * as hyperguard from "hyperguard";
 ```
 
 #### Deno
@@ -185,7 +200,7 @@ import * as parseValidate from "Hyperguard";
 With Deno, you can directly import the `lib.ts` file from GitHub.
 
 ```typescript
-import * as parseValidate from "https://raw.githubusercontent.com/shovon/Hyperguard/main/lib.ts";
+import * as hyperguard from "https://raw.githubusercontent.com/shovon/hyperguard/main/lib.ts";
 ```
 
 #### Browser via `import` statement (dist/esm/lib.js)
@@ -203,7 +218,7 @@ Download or copy & paste the ECMAScript module located in [`dist/esm/lib.js`]().
 ```html
 <!-- Minified -->
 <script type="module">
-	import * as parseValidate from "/path/to/Hyperguard/lib.js";
+  import * as hyperguard from "/path/to/hyperguard/lib.js";
 </script>
 ```
 
@@ -211,7 +226,7 @@ Download or copy & paste the ECMAScript module located in [`dist/esm/lib.js`]().
 >
 > If you want a minified version, you can download it from this URL:
 >
-> https://cdn.jsdelivr.net/npm/Hyperguard@latest/dist/esm/lib.min.js
+> https://cdn.jsdelivr.net/npm/hyperguard@latest/dist/esm/lib.min.js
 
 **Option 2: Importing from npm (via jsDelivr)**
 
@@ -219,7 +234,7 @@ If you don't want to download, and you just want to give the library a try, then
 
 ```html
 <script type="module">
-	import * as valentina from "https://cdn.jsdelivr.net/npm/Hyperguard@latest/dist/esm/lib.js";
+  import * as hyperguard from "https://cdn.jsdelivr.net/npm/hyperguard@latest/dist/esm/lib.js";
 </script>
 ```
 
@@ -227,7 +242,7 @@ Alternatively, if you want the minified version, you can simply add a `.min` aft
 
 ```html
 <script type="module">
-	import * as valentina from "https://cdn.jsdelivr.net/npm/Hyperguard@latest/dist/esm/lib.min.js";
+  import * as hyperguard from "https://cdn.jsdelivr.net/npm/hyperguard@latest/dist/esm/lib.min.js";
 </script>
 ```
 
@@ -244,8 +259,8 @@ The user object will have two fields: `id` and a `name`.
 
 ```typescript
 export const userSchema = object({
-	id: string(),
-	name: string(),
+  id: string(),
+  name: string(),
 });
 
 export type User = InferType<typeof userSchema>;
@@ -268,10 +283,10 @@ import { userSchema } from "./User";
 // USER_JOINED
 
 export const userJoinedSchema = object({
-	type: exact("USER_JOINED"),
+  type: exact("USER_JOINED"),
 
-	// Compositon from another schema
-	data: userSchema,
+  // Compositon from another schema
+  data: userSchema,
 });
 
 export type UserJoined = InferType<typeof userJoinedSchema>;
@@ -279,19 +294,19 @@ export type UserJoined = InferType<typeof userJoinedSchema>;
 // APPLICATION_STATE
 
 export const applicationStateSchema = object({
-	type: exact("APPLICATION_STATE"),
+  type: exact("APPLICATION_STATE"),
 
-	// Compositon from another schema
-	data: arrayOf(userSchema),
+  // Compositon from another schema
+  data: arrayOf(userSchema),
 });
 
 export type ApplicationState = InferType<typeof applicationStateSchema>;
 
 export const userLeftSchema = object({
-	type: exact("USER_LEFT"),
-	data: object({
-		id: string(),
-	}),
+  type: exact("USER_LEFT"),
+  data: object({
+    id: string(),
+  }),
 });
 
 export type UserLeft = InferType<typeof userLeftSchema>;
@@ -301,12 +316,12 @@ And then, when a message was broadcast, the sent message from the server could h
 
 ```typescript
 export const messageReceivedSchema = object({
-	type: exact("MESSAGE_RECEIVED"),
-	data: object({
-		from: string(),
-		whenSent: string(),
-		messageBody: string(),
-	}),
+  type: exact("MESSAGE_RECEIVED"),
+  data: object({
+    from: string(),
+    whenSent: string(),
+    messageBody: string(),
+  }),
 });
 
 export type MessageReceived = InferType<typeof messageReceivedSchema>;
@@ -316,10 +331,10 @@ And finally, you can consolidate all events into a single schema, by using the `
 
 ```typescript
 export const eventSchema = either(
-	applicationStateSchema,
-	userJoinedSchema,
-	userLeftSchema,
-	messageReceivedSchema
+  applicationStateSchema,
+  userJoinedSchema,
+  userLeftSchema,
+  messageReceivedSchema,
 );
 
 export type Event = InferType<typeof eventSchema>;
@@ -329,23 +344,23 @@ Then, the application can handle events like so:
 
 ```typescript
 function handleMessage(value: Event) {
-	switch (value.type) {
-		case "USER_JOINED":
-			break;
-		case "APPLICATION_STATE":
-			break;
-		case "USER_LEFT":
-			break;
-		case "MESSAGE_RECEIVED":
-			break;
-		default:
-			console.error("Unknown type");
-			break;
-	}
+  switch (value.type) {
+    case "USER_JOINED":
+      break;
+    case "APPLICATION_STATE":
+      break;
+    case "USER_LEFT":
+      break;
+    case "MESSAGE_RECEIVED":
+      break;
+    default:
+      console.error("Unknown type");
+      break;
+  }
 }
 ```
 
-For a full example, take a look at the [example project](https://github.com/shovon/Hyperguard/tree/main/example).
+For a full example, take a look at the [example project](https://github.com/shovon/hyperguard/tree/main/example).
 
 ### Tips and tricks
 
@@ -357,18 +372,18 @@ If your application has data, whose schema comes in a tree-like structure (recur
 
 ```typescript
 type Node = {
-	value: any;
-	left: Node | null;
-	right: Node | null;
+  value: unknown;
+  left: Node | null;
+  right: Node | null;
 };
 
-const nodeSchema: Validator<Node> = lazy<Node>(() => {
-	object({
-		value: any(),
-		left: either(node, exact(null)),
-		right: either(node, exact(null)),
-	});
-});
+const nodeSchema: Validator<Node> = lazy<Node>(() =>
+  object({
+    value: unknown(),
+    left: either(nodeSchema, exact(null)),
+    right: either(nodeSchema, exact(null)),
+  }),
+);
 ```
 
 #### Create custom validators by composing other validators
@@ -387,7 +402,7 @@ Such a function will look like so:
 
 ```typescript
 const optional = <T>(validator: Validator<T>) =>
-	either(validator, exact(undefined));
+  either(validator, exact(undefined));
 ```
 
 Same for nullable types:
@@ -400,7 +415,7 @@ And, if you wanted validation for fields that are both nullable and optional, th
 
 ```typescript
 const optionalNullable = <T>(validator: Validator<T>) =>
-	nullable(optional(validator));
+  nullable(optional(validator));
 ```
 
 #### Custom validators and parsing values
@@ -417,7 +432,7 @@ import {
 	replaceError,
 	string,
 	ValidationError,
-} from "Hyperguard";
+} from "hyperguard";
 
 class DateError extends ValidationError {
 	constructor(value: string) {
@@ -432,10 +447,7 @@ class DateError extends ValidationError {
 export const date = () =>
 	replaceError(
 		predicate(
-			chain(
-				string(),
-				transform((value) => new Date(value))
-			),
+			transform(string(), (value) => new Date(value))
 			(d) => isNaN(d.getTime())
 		),
 		(value) => new DateError(value)
@@ -447,17 +459,21 @@ From which you can try to derive a date from a string.
 Example:
 
 ```typescript
-const valid = new Date(new Date().toISOString());
+const validDate = new Date(new Date().toISOString());
 
 const shouldBeValid = date().validate(validDate);
 
-if (valid.isValid) {
-	valid.value; // This is the value
+if (shouldBeValid.isValid) {
+  valid.value; // This is the value
 }
 
 const invalid = new Date("invalid");
 
-const shouldBeInvalid;
+const shouldBeInvalid = date().validate(invalid);
+
+if (!shouldBeValid.isValid) {
+  valid.error; // this is the error
+}
 ```
 
 It gets even better. The above validator will have its type inferred as a `Date`.
@@ -481,11 +497,11 @@ type CustomDate = InferType<typeof dateSchema>;
 >
 > ```typescript
 > function createDateError(value: string) {
-> 	return {
-> 		type: "Date error",
-> 		errorMessage: `The supplied string ${value} was not a valid format that can be parsed into a Date`,
-> 		value,
-> 	};
+>   return {
+>     type: "Date error",
+>     errorMessage: `The supplied string ${value} was not a valid format that can be parsed into a Date`,
+>     value,
+>   };
 > }
 > ```
 >
@@ -517,7 +533,7 @@ The definition of a `Validator` is simply:
 
 ```typescript
 export type Validator<T> = {
-	validate: (value: any) => ValidationResult<T>;
+  validate: (value: unknown) => ValidationResult<T>;
 };
 
 export type ValidationFailure = { isValid: false; error: IValidationError };
@@ -526,10 +542,10 @@ export type ValidationSuccess<T> = { value: T; isValid: true };
 export type ValidationResult<T> = ValidationFailure | ValidationSuccess<T>;
 
 export type IValidationError = {
-	readonly type: string;
-	readonly errorMessage: string;
-	readonly value: any;
-} & { [key: string]: any };
+  readonly type: string;
+  readonly errorMessage: string;
+  readonly value: unknown;
+};
 ```
 
 Any object of type `Validator` can implement the `validate` method in their own way. It can even invoke the `validate` method from another `Validator`.
@@ -548,8 +564,8 @@ The `either` creator is a good example of **validator composition**. It allows y
 const eitherStringOrNumber = either(string(), number());
 
 eitherStringOrNumber.validate("10").isValid; // true
-eitherStringOrNumber.validate(10).sValid; // true
-eitherStringOrNumber.validate(true).sValid; // false
+eitherStringOrNumber.validate(10).isValid; // true
+eitherStringOrNumber.validate(true).isValid; // false
 ```
 
 We can go even further. The `object` creator will allow us to compose multiple validators for the purposes of allowing us to validate a more complex schema
@@ -560,8 +576,8 @@ The following is the user schema:
 
 ```typescript
 export const userSchema = object({
-	id: string(),
-	name: string(),
+  id: string(),
+  name: string(),
 });
 ```
 
@@ -569,13 +585,13 @@ And here are the schemas for the `USER_JOINED` and `APPLICATION_STATE` messages.
 
 ```typescript
 export const userJoined = object({
-	type: exact("USER_JOINED"),
-	data: userSchema,
+  type: exact("USER_JOINED"),
+  data: userSchema,
 });
 
 export const applicationState = object({
-	type: exact("APPLICATION_STATE"),
-	data: arrayOf(userSchema),
+  type: exact("APPLICATION_STATE"),
+  data: arrayOf(userSchema),
 });
 ```
 
@@ -583,11 +599,9 @@ None of the schema components are represented as a small part of a larger config
 
 > **Side note**
 >
-> Notice that the function composition chain becomes cumbersome?
+> When compositions grow deep, wrap them in your own validator creators (see [Create custom validators by composing other validators](#create-custom-validators-by-composing-other-validators)) to keep call sites readable.
 >
-> You can potentially abstract those compositions away, to hide the inherent ugliness of it, but what would be even more awesome is if JavaScript supported the [pipelining operator](https://2ality.com/2022/01/pipe-operator.html).
->
-> **Part of the reason why this library exists is to nudge the [TC39](https://tc39.es/) to actually approve the [proposed JavaScript pipeline operator](https://github.com/tc39/proposal-pipeline-operator)**
+> Composition like this would also read beautifully with the [TC39 pipeline operator](https://github.com/tc39/proposal-pipeline-operator), if it ever lands.
 
 ### Embrace JavaScript itself; use idioms
 
@@ -595,11 +609,11 @@ Traditionally, validation libraries often resorted to abstracting away the minut
 
 **Hyperguard, on the other hand, embraces JavaScript.**
 
-At it's core, the power of Hyperguard is all encompassed by the following type definitions:
+At its core, the power of Hyperguard is all encompassed by the following type definitions:
 
 ```typescript
 export type Validator<T> = {
-	validate: (value: any) => ValidationResult<T>;
+  validate: (value: unknown) => ValidationResult<T>;
 };
 
 export type ValidationFailure = { isValid: false; error: IValidationError };
@@ -608,13 +622,11 @@ export type ValidationSuccess<T> = { value: T; isValid: true };
 export type ValidationResult<T> = ValidationFailure | ValidationSuccess<T>;
 
 export type IValidationError = {
-	readonly type: string;
-	readonly errorMessage: string;
-	readonly value: any;
-} & { [key: string]: any };
+  readonly type: string;
+  readonly errorMessage: string;
+  readonly value: unknown;
+};
 ```
-
-> The `__` is only used for TypeScript type casting. You don't actually need \*\* in the actual JavaScript Validator object
 
 You don't even need to use Hyperguard. As long as you can define your own Validator, you can perform validations as you would with Hyperguard.
 
@@ -630,40 +642,39 @@ Additionally, results from validation will be easily inspectable, and serializab
 
 ### Power to the client
 
-Want to go beyond what this library has to offer? You're in luck. Hyperguard won't lock you into using a quazi-proprietary `addMethod` function. You are free to create your own validators.
+Want to go beyond what this library has to offer? You're in luck. Hyperguard won't lock you into using a quasi-proprietary `addMethod` function. You are free to create your own validators.
 
 Better yet, these validators can be used beyond just validation; but also data transformation.
 
 For instance, if you have a string that represents a timestamp, you can convert the string to a JavaScript `Date`.
 
 ```typescript
-import { ValidationError } from "Hyperguard";
+import { ValidationError } from "hyperguard";
 
 class DateError extends ValidationError {
-	constructor(value: string) {
-		super(
-			"Date error",
-			`The supplied string ${value} was not a valid format that can be parsed into a Date`,
-			value
-		);
-	}
+  constructor(value: string) {
+    super(
+      "Date error",
+      `The supplied string ${value} was not a valid format that can be parsed into a Date`,
+      value,
+    );
+  }
 }
 
 export const date = (): Validator<Date> => ({
-	__: new Date(),
-	validate: (value: any) => {
-		const validation = string().validate(value);
-		if (validation.isValid === false) {
-			return { isValid: false, error: validation.error };
-		}
-		const d = new Date(validation.value);
-		return isNaN(d.getTime())
-			? {
-					isValid: false,
-					error: new DateError(validation.value),
-			  }
-			: { isValid: true, value: d };
-	},
+  validate: (value: unknown) => {
+    const validation = string().validate(value);
+    if (validation.isValid === false) {
+      return { isValid: false, error: validation.error };
+    }
+    const d = new Date(validation.value);
+    return isNaN(d.getTime())
+      ? {
+          isValid: false,
+          error: new DateError(validation.value),
+        }
+      : { isValid: true, value: d };
+  },
 });
 ```
 
@@ -672,470 +683,963 @@ You can then use the `date` validator creator to parse strings into a `Date`.
 ```typescript
 const validation = date().validate("2022-03-04T23:44:42.086Z");
 if (validation.isValid) {
-	// validation.value should be a Date, and not a string
+  // validation.value should be a Date, and not a string
 }
 ```
 
 ## API
 
-### `string(): Validator<string>`
+<!-- doc-gen API -->
 
-Creates a validator for determining if a value is of type string.
+**hyperguard**
 
-Example:
+***
+
+### Functions
+
+#### arrayOf()
+
+> **arrayOf**\<`V`\>(`validator`): [`Validator`](#validator)\<`V`[]\>
+
+Creates a validator that determines if the supplied value is an array of the
+specified validator.
+
+##### Usage
 
 ```typescript
-const strValidator = string();
+const numbers = arrayOf(number());
 
-// ✅ Evaluates to true
-strValidator.validate("").isValid;
-
-// ❌ Evaluates to false
-strValidator.validate(10).isValid;
+numbers.validate([1, 2, 3]).isValid;   // ✅ true
+numbers.validate([1, "2", 3]).isValid; // ❌ false (a non-number element)
+numbers.validate("nope").isValid;      // ❌ false (not an array)
 ```
 
-### `number(): Validator<number>`
+##### Type Parameters
 
-Creates a validator for determining if a value is of type number.
+| Type Parameter |
+| ------ |
+| `V` |
 
-Example:
+##### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `validator` | [`Validator`](#validator)\<`V`\> | The validator to validate the individual array values against |
+
+##### Returns
+
+[`Validator`](#validator)\<`V`[]\>
+
+A validator to check if the value is an array of the specified
+  validator
+
+***
+
+#### boolean()
+
+> **boolean**(): [`Validator`](#validator)\<`boolean`\>
+
+Creates a validator that determines if the supplied value is a boolean.
+
+##### Usage
 
 ```typescript
-const numberValidator = number();
+const bool = boolean();
 
-// ✅ Evaluates to true
-numberValidator.validate(10).isValid;
-
-// ❌ Evaluates to false
-numberValidator.validate("").isValid;
+bool.validate(true).isValid;  // ✅ true
+bool.validate("true").isValid; // ❌ false
 ```
 
-### `boolean(): Validator<boolean>`
+##### Returns
 
-Creates a validator for determining if a value is of type boolean.
+[`Validator`](#validator)\<`boolean`\>
 
-Example:
+A validator to check if the value is of type boolean
+
+***
+
+#### chain()
+
+> **chain**\<`T1`, `T2`\>(`left`, `right`): [`Validator`](#validator)\<`T2`\>
+
+Chains two validators together.
+
+The value (possibly transformed) produced by `left` is fed into `right`, so
+this is how you compose, for example, a parse step with a shape check.
+
+##### Usage
 
 ```typescript
-const boolValidator = boolean();
+// Validate a string, then constrain it to a minimum length.
+const nonEmpty = chain(string(), predicate(string(), (s) => s.length > 0));
 
-// ✅ Evaluates to true
-boolValidator.validate(true).isValid;
-
-// ✅ Evaluates to true
-boolValidator.validate(false).isValid;
-
-// ❌ Evaluates to false
-boolValidator.validate("").isValid;
+nonEmpty.validate("hi").isValid; // ✅ true
+nonEmpty.validate("").isValid;   // ❌ false (empty)
+nonEmpty.validate(42).isValid;   // ❌ false (not a string)
 ```
 
-### `exact<V extends string | number | boolean | null | undefined>(expected: V): Validator<V>`
+##### Type Parameters
 
-Creates a validator that checks to see if the value exactly mathes the expected value passed in as the function's parameter.
+| Type Parameter |
+| ------ |
+| `T1` |
+| `T2` |
 
-Example:
+##### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `left` | [`Validator`](#validator)\<`T1`\> | the first validator to validate values against |
+| `right` | [`Validator`](#validator)\<`T2`\> | the second validator to validate values against |
+
+##### Returns
+
+[`Validator`](#validator)\<`T2`\>
+
+a validator that will validate first against the first validator
+  then the second validator
+
+***
+
+#### either()
+
+> **either**\<`T`\>(...`alts`): `ValidatorArrayToValidatorUnion`\<`T`\>
+
+A validator for validating objects against a list of validators.
+
+This is especially useful if a possible object has more than one possible
+valid type.
+
+##### Usage
 
 ```typescript
-const helloValidator = exact("hello");
+const stringOrNumber = either(string(), number());
 
-// ✅ Evaluates to true
-helloValidator.validate("hello").isValid;
-
-// ❌ Evaluates to false
-helloValidator.validate("").isValid;
+stringOrNumber.validate(10).isValid;      // ✅ true
+stringOrNumber.validate("hello").isValid; // ✅ true
+stringOrNumber.validate(true).isValid;    // ❌ false
 ```
 
-### `either(...alts: Validator<any>[]): Validator<any>`
+##### Type Parameters
 
-Creates a validator for determining if a value is of any of the types as outlined in the supplied set of validators. In other words, you want a _union_ of possible types.
+| Type Parameter |
+| ------ |
+| `T` *extends* [`Validator`](#validator)\<`unknown`\>[] |
 
-So that means—for example—if you expect a value to be _either_ of string, number, or boolean, you can use the `either` function to create a validator to check for any of those types.
+##### Parameters
 
-Example:
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| ...`alts` | `T` | A list of validators that are to be run |
+
+##### Returns
+
+`ValidatorArrayToValidatorUnion`\<`T`\>
+
+A validator to validate an object against a set of validators
+
+***
+
+#### exact()
+
+> **exact**\<`V`\>(`expected`): [`Validator`](#validator)\<`V`\>
+
+Creates a validator that validates values that match the expected value
+exactly.
+
+##### Usage
 
 ```typescript
-const eitherValidator = either(boolean(), string(), number());
-// The resulting validator will be of type Validator<boolean | string | number>
+const yes = exact("yes");
 
-// ✅ Evaluates to true
-eitherValidator.validate(true).isValid;
-
-// ✅ Evaluates to true
-eitherValidator.validate(false).isValid;
-
-// ✅ Evaluates to true
-eitherValidator.validate("").isValid;
-
-// ✅ Evaluates to true
-eitherValidator.validate(10).isValid;
-
-// ❌ Evaluates to false
-boolValidator.validate({}).isValid;
+yes.validate("yes").isValid; // ✅ true
+yes.validate("no").isValid;  // ❌ false
 ```
 
-### `arrayOf<T>(validator: Validator<T>): Validator<T[]>`
+##### Type Parameters
 
-Creates a validator for validating an array and the individual values that the array holds
+| Type Parameter |
+| ------ |
+| `V` *extends* [`ExactTypes`](#exacttypes) |
 
-Example:
+##### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `expected` | `V` | The exact value to be expected |
+
+##### Returns
+
+[`Validator`](#validator)\<`V`\>
+
+A validator that will only validate values that match exactly the
+  expected value
+
+***
+
+#### except()
+
+> **except**\<`T`, `I`\>(`validator`, `invalidator`): [`Validator`](#validator)\<`Exclude`\<`T`, `I`\>\>
+
+Creates a validator for an object that rejects all values that passes the
+invalidator.
+
+This validator is especially useful for cases where a value can be a string,
+except for specific strings.
+
+##### Usage
 
 ```typescript
-const arrayValidator = arrayOf(string());
-// The resulting validator will be of type Validator<string[]>
+const everythingBut = except(string(), exact("but"));
 
-// ✅ Evaluates to true
-arrayValidator.validate([]).isValid;
-
-// ✅ Evaluates to true
-arrayValidator.validate(["cool"]).isValid;
-
-// ✅ Evaluates to true
-arrayValidator.validate(["foo", "bar"]).isValid;
-
-// ✅ Evaluates to true
-arrayValidator.validate(["sweet"]).isValid;
-
-// ❌ Evaluates to false
-arrayValidator.validate({}).isValid;
-
-// ❌ Evaluates to false
-arrayValidator.validate([1, 2, 3]).isValid;
+everythingBut.validate("apples").isValid; // ✅ true
+everythingBut.validate("cherries").isValid; // ✅ true
+everythingBut.validate("but").isValid; // ❌ false (the excluded value)
+everythingBut.validate(42).isValid; // ❌ false (not a string)
 ```
 
-### `any(): Validator<any>`
+##### Type Parameters
 
-Creates a validator that will evaluate all values as being valid.
+| Type Parameter |
+| ------ |
+| `T` |
+| `I` |
 
-Example:
+##### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `validator` | [`Validator`](#validator)\<`T`\> | The validator for which to validate the value against |
+| `invalidator` | [`Validator`](#validator)\<`I`\> | The validator for which if is valid, the value will be rejected |
+
+##### Returns
+
+[`Validator`](#validator)\<`Exclude`\<`T`, `I`\>\>
+
+A Validator that will reject all values for which the invalidator
+  validates the object
+
+***
+
+#### exclude()
+
+> **exclude**\<`V`, `T`\>(`a`, `b`): [`Validator`](#validator)\<`Exclude`\<`V`, `T`\>\>
+
+A validator that validates if a value does not validate against another
+validator.
+
+Similar to TypeScript's `Exclude` utility type.
+
+##### Usage
 
 ```typescript
-const anyValidator = any();
-// Resulting in a validator that will be of type `Validator<any>`
+const notAdmin = exclude(string(), exact("admin"));
 
-// ✅ Evaluates to true
-anyValidator.validate(true).isValid;
-
-// ✅ Evaluates to true
-anyValidator.validate(false).isValid;
-
-// ✅ Evaluates to true
-anyValidator.validate("").isValid;
-
-// ✅ Evaluates to true
-anyValidator.validate(10).isValid;
-
-// ✅ Evaluates to true
-anyValidator.validate(null).isValid;
+notAdmin.validate("hello").isValid; // ✅ true  (a string, not "admin")
+notAdmin.validate("admin").isValid; // ❌ false (excluded value)
+notAdmin.validate(42).isValid;      // ❌ false (not a string)
 ```
 
-#### Usage
+##### Type Parameters
 
-`any()` is especially useful in conjunction with [`arrayOf()`](#). `arrayOf` checks not only if a value is an array, but it will also validate the individual items in said array. If you merely want an array, without checking any of the values, then `any()` comes handy.
+| Type Parameter |
+| ------ |
+| `V` |
+| `T` |
+
+##### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `a` | [`Validator`](#validator)\<`V`\> | The validation to include |
+| `b` | [`Validator`](#validator)\<`T`\> | The validation to exclude |
+
+##### Returns
+
+[`Validator`](#validator)\<`Exclude`\<`V`, `T`\>\>
+
+A validator where it validates if value validates with `a` but does
+  not validate against `b`.
+
+***
+
+#### fallback()
+
+> **fallback**\<`T1`, `T2`\>(`validator`, `getFallback`): [`Validator`](#validator)\<`T1` \| `T2`\>
+
+Creates a validator that can fallback to another value.
+
+##### Usage
 
 ```typescript
-const arrayValidator = arrayOf(any());
+// Use the given number, or default to 0 when the value isn't a number.
+const count = fallback(number(), () => 0);
 
-// ✅ Evaluates to true
-arrayValidator.validate([]).isValid;
-
-// ✅ Evaluates to true
-arrayValidator.validate([1, 2, 3]).isValid;
-
-// ✅ Evaluates to true
-arrayValidator.validate(["a", "b", "c"]).isValid;
-
-// ✅ Evaluates to true
-arrayValidator.validate([true, 1, "2", {}]).isValid;
-
-// ❌ Evaluates to false
-arrayValidator.validate(10).isValid;
-
-// ❌ Evaluates to false
-arrayValidator.validate(null).isValid;
+count.validate(42);    // { isValid: true, value: 42 }
+count.validate("nope"); // { isValid: true, value: 0 }  (fell back)
 ```
 
-### `objectOf<T>(validator: Validator<T>): Validator<{ [key: string]: V }>`
+##### Type Parameters
 
-Creates a validator for validating an object and the individual _values_ (not field names) in said object.
+| Type Parameter |
+| ------ |
+| `T1` |
+| `T2` |
 
-Example:
+##### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `validator` | [`Validator`](#validator)\<`T1`\> | The validator that, if failed, will need a fallback |
+| `getFallback` | () => `T2` | The function to acquire the fallback value |
+
+##### Returns
+
+[`Validator`](#validator)\<`T1` \| `T2`\>
+
+A validator that should never be invalid
+
+***
+
+#### instance()
+
+> **instance**\<`T`\>(`constructor`): [`Validator`](#validator)\<`T`\>
+
+Creates a validator that determines if the supplied value is an instance of
+the given constructor (i.e. `value instanceof constructor`).
+
+##### Usage
 
 ```typescript
-const objectValidator = objectOf(string());
+const dateValidator = instance(Date);
 
-// ✅ Evaluates to true
-objectValidator.validate([]).isValid;
-
-// ✅ Evaluates to true
-objectValidator.validate(["cool"]).isValid;
-
-// ✅ Evaluates to true
-objectValidator.validate(["foo", "bar"]).isValid;
-
-// ✅ Evaluates to true
-objectValidator.validate(["sweet"]).isValid;
-
-// ❌ Evaluates to false
-objectValidator.validate({}).isValid;
-
-// ❌ Evaluates to false
-objectValidator.validate([1, 2, 3]).isValid;
+dateValidator.validate(new Date()).isValid; // ✅
+dateValidator.validate("2026-06-14").isValid; // ❌
 ```
 
-### `tuple<T>(validator: Validator<T>): Validator<{ [key: string]: V }>`
+##### Type Parameters
 
-Creates a validator for validating an object and the individual _values_ (not field names) in said object.
+| Type Parameter |
+| ------ |
+| `T` |
 
-Example:
+##### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `constructor` | `Object` | The constructor to check the value against |
+
+##### Returns
+
+[`Validator`](#validator)\<`T`\>
+
+A validator that checks if the value is an instance of `constructor`
+
+***
+
+#### intersection()
+
+> **intersection**\<`T1`, `T2`\>(`a`, `b`): [`Validator`](#validator)\<`T1` & `T2`\>
+
+Gets the intersection of two validators
+
+##### Usage
 
 ```typescript
-const objectValidator = tuple(string());
+const named = object({ name: string() });
+const aged = object({ age: number() });
 
-// ✅ Evaluates to true
-objectValidator.validate([]).isValid;
+// Must satisfy both shapes: { name: string } & { age: number }.
+const person = intersection(named, aged);
 
-// ✅ Evaluates to true
-objectValidator.validate(["cool"]).isValid;
-
-// ✅ Evaluates to true
-objectValidator.validate(["foo", "bar"]).isValid;
-
-// ✅ Evaluates to true
-objectValidator.validate(["sweet"]).isValid;
-
-// ❌ Evaluates to false
-objectValidator.validate({}).isValid;
-
-// ❌ Evaluates to false
-objectValidator.validate([1, 2, 3]).isValid;
+person.validate({ name: "Ada", age: 36 }).isValid; // ✅ true
+person.validate({ name: "Ada" }).isValid;          // ❌ false (missing age)
 ```
 
-### `except<T, I>(validator: Validator<T>, invalidator: Validator<I>): Exclude<T, I>`
+##### Type Parameters
 
-Given two `Validator`s—one acting as a "validator" and another as an "invalidator"—the function `except` creates a `Validator` that determines it is indeed a value in accordance to the _validator_, _except_ something defined by the supplied *in*validator.
+| Type Parameter |
+| ------ |
+| `T1` |
+| `T2` |
 
-Example:
+##### Parameters
 
-```typescript
-const everythingButValidator = except(string(), exact("but"));
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `a` | [`Validator`](#validator)\<`T1`\> | The first validator to validate the object against |
+| `b` | [`Validator`](#validator)\<`T2`\> | The second validator to validate the object against |
 
-// ✅ Evaluates to true
-everythingButValidator.validate("apples").isValid;
+##### Returns
 
-// ✅ Evaluates to true
-everythingButValidator.validate("bananas").isValid;
+[`Validator`](#validator)\<`T1` & `T2`\>
 
-// ✅ Evaluates to true
-everythingButValidator.validate("cherries").isValid;
+A validator that is the intersection of the types represented by
+  validators a and b
 
-// ❌ Evaluates to false
-everythingButValidator.validate("but").isValid;
-```
+***
 
-> **Note**
->
-> Due to a limitation in TypeScript, we are unable derive a subset of an "unbounded" type. For example, `Exclude<string, "but">` (set of all strings except for the string `"but"`) will merely evaluate to `string`. Likewise, `Exclude<any, undefined>` will simply evaluate to `any`.
+#### lazy()
 
-#### Usage
+> **lazy**\<`V`\>(`schemaFn`): [`Validator`](#validator)\<`V`\>
 
-In some instances, it may not matter the exact content of a value, so long as it is not undefined. The `except` function can create a `Validator` that checks for any value that isn't undefined.
+Creates a validator that lazily evaluates the callback, at every validation.
 
-```typescript
-const notUndefinedValidator = except(any(), exact(undefined));
+Useful for recursive types, such as a node for a tree.
 
-// ✅ Evaluates to true
-notUndefinedValidator.validate("cool").isValid;
-
-// ✅ Evaluates to true
-notUndefinedValidator.validate(19).isValid;
-
-// ✅ Evaluates to true
-notUndefinedValidator.validate([]).isValid;
-
-// ❌ Evaluates to false
-notUndefinedValidator.validate(undefined).isValid;
-```
-
-### `object<V extends object>(schema: { [key in keyof V]: Validator<V[key]> }): Validator<V>`
-
-Given an object of Validators, creates a validator for an object, with validation for specific keys in the object.
-
-Example:
+##### Usage
 
 ```typescript
-const objValidator = object({
-	type: exact("SOME_OBJ"),
-	value: string(),
-	someNumber: number(),
-	somethingOptional: either(string(), exact(undefined)),
+type Tree = { value: number; children: Tree[] };
+
+// `lazy` defers referencing `tree` until validation time, so the validator
+// can refer to itself.
+const tree: Validator<Tree> = object({
+  value: number(),
+  children: lazy(() => arrayOf(tree)),
 });
 
-// ✅ Evaluates to true
-objValidator.validate({ type: "SOME_OBJ", value: "something", someNumber: 10 })
-	.isValid;
-
-// ✅ Evaluates to true
-objValidator.validate({
-	type: "SOME_OBJ",
-	value: "something",
-	someNumber: 10,
-	sometihingOptional: "sweet",
-}).isValid;
-
-// ✅ Evaluates to true
-objValidator.validate({ type: "SOME_OBJ", value: "something", someNumber: 10 })
-	.isValid;
-
-// ❌ Evaluates to false (the field `type` is set to something other than
-// `SOME_OBJ`)
-objValidator.validate({ type: "something", value: "something", someNumber: 10 })
-	.isValid;
+tree.validate({ value: 1, children: [{ value: 2, children: [] }] }).isValid; // ✅ true
 ```
 
-### `lazy<V>(schemaFn: () => Validator<V>): Validator<V>`
+##### Type Parameters
 
-The lazy validator allows you to wrap another validator in a callback.
+| Type Parameter |
+| ------ |
+| `V` |
+
+##### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `schemaFn` | () => [`Validator`](#validator)\<`V`\> | A function that returns a validator |
+
+##### Returns
+
+[`Validator`](#validator)\<`V`\>
+
+A validator, effectively just a "forwarding" of the validator
+  returned by the `schemaFn`
+
+***
+
+#### number()
+
+> **number**(): [`Validator`](#validator)\<`number`\>
+
+Creates a validator that determines if the supplied value is a number.
+
+##### Usage
 
 ```typescript
-const everythingButValidator = lazy(() => except(string(), exact("but")));
+const num = number();
 
-// ✅ Evaluates to true
-everythingButValidator.validate("apples").isValid;
-
-// ✅ Evaluates to true
-everythingButValidator.validate("bananas").isValid;
-
-// ✅ Evaluates to true
-everythingButValidator.validate("cherries").isValid;
-
-// ❌ Evaluates to false
-everythingButValidator.validate("but").isValid;
+num.validate(42).isValid;      // ✅ true
+num.validate("42").isValid;    // ❌ false
 ```
 
-#### Motivation and usage
+##### Returns
 
-If your application has data, whose schema comes in a tree-like structure (recursive type), then you can use the `lazy` validator, so that your schema can work.
+[`Validator`](#validator)\<`number`\>
+
+A validator to check if the value is of type number
+
+***
+
+#### object()
+
+> **object**\<`S`, `V`\>(`shape`): [`ObjectValidator`](#objectvalidator)\<`V`, `S`\>
+
+Creates a validator for an object, specified by the "schema".
+
+Each field in the "schema" is a validator, and each of them will validate
+values against objects in concern.
+
+##### Usage
 
 ```typescript
-type Node = {
-	value: any;
-	left: Node | null;
-	right: Node | null;
-};
-
-const nodeSchema: Validator<Node> = lazy<Node>(() => {
-	object({
-		value: any(),
-		left: either(node, exact(null)),
-		right: either(node, exact(null)),
-	});
+const user = object({
+  name: string(),
+  age: number(),
 });
+
+user.validate({ name: "Ada", age: 36 }).isValid; // ✅ true
+user.validate({ name: "Ada" }).isValid;          // ❌ false (missing age)
+user.validate({ name: "Ada", age: "36" }).isValid; // ❌ false (age not a number)
 ```
 
-### `transform<T>(parse: (value: any) => T): Validator<T>`
+##### Type Parameters
 
-Given a parser function, parses the input object into an output object.
+| Type Parameter | Default type |
+| ------ | ------ |
+| `S` *extends* `object` | - |
+| `V` *extends* `object` | `InferSchema`\<`S`\> |
+
+##### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `shape` | `S` | An object containing fields of nothing but validators, each of which will be used to validate the value's respective fields |
+
+##### Returns
+
+[`ObjectValidator`](#objectvalidator)\<`V`, `S`\>
+
+A validator that will validate an object against the `schema`
+
+***
+
+#### objectOf()
+
+> **objectOf**\<`V`\>(`validator`): [`Validator`](#validator)\<\{\[`keys`: `string`\]: `V`; \}\>
+
+Creates a validator that determines if the supplied value is an object, whose
+fields contains are of nothing but types as defined by the specified
+validator.
+
+##### Usage
 
 ```typescript
-const json = transform<any>(JSON.parse.bind(JSON));
+// An object used as a string-keyed map of numbers.
+const scores = objectOf(number());
 
-const result1 = json.validate("1");
-if (result1.isValid) {
-	// We get the JavaScript Number `1`
-	result1.value;
+scores.validate({ alice: 10, bob: 20 }).isValid; // ✅ true
+scores.validate({ alice: 10, bob: "20" }).isValid; // ❌ false (a non-number field)
+```
+
+##### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `V` |
+
+##### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `validator` | [`Validator`](#validator)\<`V`\> | The validator to validate the individual fields in the object |
+
+##### Returns
+
+[`Validator`](#validator)\<\{\[`keys`: `string`\]: `V`; \}\>
+
+A validator that determines if the supplied value is an object,
+  whose fields contains are of nothing but types as defined by the specified
+  validator.
+
+***
+
+#### predicate()
+
+> **predicate**\<`T`\>(`validator`, `pred`): [`Validator`](#validator)\<`T`\>
+
+A validator creator that also accepts a predicate
+
+##### Usage
+
+```typescript
+// A string of at least 8 characters. `value` is typed as `string`.
+const password = predicate(string(), (value) => value.length >= 8);
+
+password.validate("hunter2000").isValid; // ✅ true
+password.validate("short").isValid;      // ❌ false (fails the predicate)
+password.validate(42).isValid;           // ❌ false (not a string)
+```
+
+##### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `T` |
+
+##### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `validator` | [`Validator`](#validator)\<`T`\> | The validator to run the predicate against |
+| `pred` | (`value`) => `boolean` | The predicate to run against the value |
+
+##### Returns
+
+[`Validator`](#validator)\<`T`\>
+
+A Validator, where if the predicate were to fail, it will result in
+  a failed validation
+
+***
+
+#### replaceError()
+
+> **replaceError**\<`T`\>(`validator`, `createError`): [`Validator`](#validator)\<`T`\>
+
+A Validator creator that substitutes the error from one validator, to another
+error for that validator.
+
+##### Usage
+
+```typescript
+class NotAName extends ValidationError {
+  constructor(value: unknown) {
+    super("Not a name", "Expected a name string", value);
+  }
 }
 
-const emptyStr = json.validate('""');
-if (emptyStr.isValid) {
-	// We get the JavaScript string `""`
-	emptyStr.value;
-}
+// Same validation as `string()`, but with a custom error on failure.
+const name = replaceError(string(), (value) => new NotAName(value));
+
+name.validate("Ada").isValid; // ✅ true
+name.validate(42).isValid;    // ❌ false (fails with a NotAName error)
 ```
 
-#### Motivation and usage
+##### Type Parameters
 
-The core of Hyperguard's philosophy is that not only should we validate inputs, but also apply necessary transformations from them.
+| Type Parameter |
+| ------ |
+| `T` |
 
-In this case, not only are we expecting a string, but the string should also be a valid JSON string. From which, we should be able to parse it into a JavaScript object.
+##### Parameters
 
-This pattern is especially powerful when combined with the `chain` validator.
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `validator` | [`Validator`](#validator)\<`T`\> | The validator for which to have the error substituted |
+| `createError` | (`value`, `error`) => [`IValidationError`](#ivalidationerror) | An error function that will return the appropriate error object |
 
-### `chain<T1, T2>(left: Validator<T1>, right: Validator<T2>): Validator<T2>`
+##### Returns
 
-Takes two other validators, to create a new validator where the left validation is run, then the right one shortly afterwards.
+[`Validator`](#validator)\<`T`\>
+
+A validator
+
+***
+
+#### string()
+
+> **string**(): [`Validator`](#validator)\<`string`\>
+
+Creates a validator that determines if the supplied value is a string.
+
+##### Usage
 
 ```typescript
-const date = chain(
-	either(string(), number()),
-	transform((value) => new Date(value))
-);
+const str = string();
 
-// ✅ Evaluates to true
-date.validate("2020-10-10").isValid;
-
-// ✅ Evaluates to true
-date.validate(10).isValid;
+str.validate("hello").isValid; // ✅ true
+str.validate(42).isValid;      // ❌ false
 ```
 
-### `fallback<T1, T2>(validator: Validator<T1>, getFallback: () => T2)`
+##### Returns
 
-Takes a validator, and a function to return a default fallback value, and gives a validator that will never fail.
+[`Validator`](#validator)\<`string`\>
+
+A validator to check if the value is of type string
+
+***
+
+#### transform()
+
+> **transform**\<`I`, `O`\>(`validator`, `parse`): [`Validator`](#validator)\<`O`\>
+
+Creates a validator that first validates the supplied value against
+`validator`, then maps the validated value through `parse`.
+
+Because the input is validated up front, the `parse` callback receives a
+value already narrowed to the validator's type, rather than `unknown`. To
+transform an arbitrary value with no prior validation, pass [unknown](#unknown)
+as the validator.
+
+##### Usage
 
 ```typescript
-const alwaysNumber = fallback(number(), () => 42);
+// `value` is inferred as `string`, so no cast is needed.
+const toDate = transform(string(), (value) => new Date(value));
 
-// ✅ Evaluates to true
-fallback.validate(10);
-
-const fallbackValidation = fallback.validate("10");
-
-// ✅ Evaluates to true, even if the supplied input is a string
-if (fallbackValidation.isValid) {
-	// Will evaluate to `42`, since `"10"` is a string, not a number/
-	fallbackValidation.value;
-}
+toDate.validate("1970-01-01T00:00:00.000Z").isValid; // ✅
+toDate.validate(42).isValid;                          // ❌ not a string
 ```
 
-#### Motivation and usage
+##### Type Parameters
 
-In many instances, you just don't want validations to fail, and bite the bullet and just set a default value.
+| Type Parameter |
+| ------ |
+| `I` |
+| `O` |
 
-### `predicate<T>(validator: Validator<T>, pred: (value: T) => boolean)`
+##### Parameters
 
-Accepts a validator, and a predicate function. Validation will first run the input against the validator, then check against the predicate. If the predicate fails, then, we will get a failed validation.
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `validator` | [`Validator`](#validator)\<`I`\> | The validator the value must satisfy before being parsed |
+| `parse` | (`value`) => `O` | The parser, receiving the validated value |
+
+##### Returns
+
+[`Validator`](#validator)\<`O`\>
+
+A validator that validates then maps the value
+
+***
+
+#### tuple()
+
+> **tuple**\<`T`\>(`t`): `ValidatorTupleToValueTuple`\<`T`\>
+
+Used to validate a tuple against the individual values in an array.
+
+##### Usage
 
 ```typescript
-const even = predicate(number(), (value) => value % 2 === 0);
+const tup = tuple([string(), number()]);
 
-// ✅ Evaluates to true
-even.validate(2).isValid;
-
-// ✅ Evaluates to true
-even.validate(4).isValid;
-
-// ❌ Evaluates to false
-even.validate(3).isValid;
+tup.validate(["a", 1]).isValid; // ✅ true
+tup.validate([1, "a"]).isValid; // ❌ false (wrong order)
+tup.validate([1]).isValid;      // ❌ false (wrong length)
 ```
 
-### `replaceError<T>(validator: Validator<T>, createError: (value: any, error: IValidationError) => IValidationError): Validator<T>`
+##### Type Parameters
 
-Given the original validator, whatever error is emitted by it, replace by the error as returned by the `createError` callback function.
+| Type Parameter |
+| ------ |
+| `T` *extends* [`Validator`](#validator)\<`unknown`\>[] |
+
+##### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `t` | \[`...T[]`\] | The tuple of validators to validate a tuple against |
+
+##### Returns
+
+`ValidatorTupleToValueTuple`\<`T`\>
+
+A validator to validate tuples
+
+***
+
+#### unknown()
+
+> **unknown**(): [`Validator`](#validator)\<`unknown`\>
+
+Creates a validator that where the validation function will never determine
+that a value is invalid
+
+##### Usage
 
 ```typescript
-const withDifferentError = replaceError(string(), (value) => ({
-	type: "Custom error",
-	errorMessage: "Some custom error",
-	value,
-}));
+const anything = unknown();
 
-if (!validator.validate(10).isValid) {
-	// This is where the error will be.
-	validator.error;
-}
+anything.validate(42).isValid;      // ✅ true
+anything.validate("hi").isValid;    // ✅ true
+anything.validate(null).isValid;    // ✅ true
 ```
+
+##### Returns
+
+[`Validator`](#validator)\<`unknown`\>
+
+A validator that will validate *all* objects
+
+***
+
+#### validate()
+
+> **validate**\<`T`\>(`validator`, `value`): `T`
+
+This function validates and returns the parsed value. If validation failed,
+it will throw a runtime exception
+
+##### Usage
+
+```typescript
+const user = object({ name: string(), age: number() });
+
+// Returns the typed value on success...
+const value = validate(user, { name: "Ada", age: 36 });
+value.name; // "Ada", typed as string
+
+// ...and throws the ValidationError on failure.
+validate(user, { name: "Ada" }); // throws
+```
+
+##### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `T` |
+
+##### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `validator` | [`Validator`](#validator)\<`T`\> | A validator to run the validation against the supplied value |
+| `value` | `unknown` | The value to run the validation against |
+
+##### Returns
+
+`T`
+
+The outcome of the validation
+
+### Type Aliases
+
+#### ExactTypes
+
+> **ExactTypes** = `string` \| `number` \| `boolean` \| `null` \| `undefined`
+
+The set of primitive values that [exact](#exact) can match against.
+
+***
+
+#### InferType
+
+> **InferType**\<`V`\> = `V` *extends* [`Validator`](#validator)\<infer T\> ? `T` : `never`
+
+A helper type for converting a Validator<T> type to a T
+
+For example, if you wanted to grab the validator from a `string()`, you'd use
+this type like so:
+
+```typescript
+const stringValidator = string();
+
+type Str = InferType<typeof stringValidator>;
+// Should be `type Str = string`
+```
+
+You can do this with objects as well. For example:
+
+```typescript
+const objectValidator = object({
+  name: string(),
+  email: string(),
+  age: number()
+});
+
+type Obj = InferType<typeof objectValidator>;
+// Should be:
+//
+// type Obj = {
+//   name: string
+//   email: string
+//   age: number
+// }
+```
+
+##### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `V` *extends* [`Validator`](#validator)\<`unknown`\> |
+
+***
+
+#### IValidationError
+
+> **IValidationError** = `object`
+
+An object that represents a validation error.
+
+***
+
+#### ObjectValidator
+
+> **ObjectValidator**\<`V`, `S`\> = [`Validator`](#validator)\<`V`\> & `Readonly`\<\{ `omit`: \<`T`\>(`keys`) => [`ObjectValidator`](#objectvalidator)\<`Omit`\<`V`, `T`\>, `S`\>; `partial`: [`ObjectValidator`](#objectvalidator)\<`Partial`\<`V`\>, \{ \[key in keyof V\]: Validator\<V\[key\] \| undefined\> \}\>; `pick`: \<`T`\>(`keys`) => [`ObjectValidator`](#objectvalidator)\<`Pick`\<`V`, `T`\>, `S`\>; `required`: [`ObjectValidator`](#objectvalidator)\<`{ [key in keyof V]: Exclude<V[key], undefined> }`, `{ [key in keyof V]: Validator<Exclude<V[key], undefined>> }`\>; `shape`: `S`; \}\>
+
+A [Validator](#validator) for objects, as produced by [object](#object). In addition to
+validating, it exposes the underlying `shape` and derived validators
+(`partial`, `required`, `omit`, `pick`) for refining the schema.
+
+##### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `V` *extends* `object` |
+| `S` *extends* `object` |
+
+***
+
+#### PossibleTypeof
+
+> **PossibleTypeof** = *typeof* `_s`
+
+The union of strings that the `typeof` operator can produce (e.g. `"string"`,
+`"number"`, `"object"`).
+
+***
+
+#### ValidationFailure
+
+> **ValidationFailure** = `object`
+
+The result of a failed validation, carrying the validation error.
+
+***
+
+#### ValidationResult
+
+> **ValidationResult**\<`T`\> = [`ValidationFailure`](#validationfailure) \| [`ValidationSuccess`](#validationsuccess)\<`T`\>
+
+An object that represents the result of a validation check.
+
+##### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `T` |
+
+***
+
+#### ValidationSuccess
+
+> **ValidationSuccess**\<`T`\> = `object`
+
+The result of a successful validation, carrying the validated value.
+
+##### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `T` |
+
+***
+
+#### Validator
+
+> **Validator**\<`T`\> = `object`
+
+An object that serves as a validator.
+
+##### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `T` |
+
+<!-- end-doc-gen -->
 
 ## Similar libraries
 
-- [yup.js](https://github.com/jquense/yup)
-- [zod](https://github.com/colinhacks/zod)
-- [iots](https://github.com/gcanti/io-ts)
+### How Hyperguard compares to zod
+
+[zod](https://github.com/colinhacks/zod) is excellent, mature, and the right default for most projects. Hyperguard overlaps with it more than it differs — both are zero-dependency, both infer static types from your schema, and both can transform values as they validate. The differences are about _size and philosophy_, not capability.
+
+| | Hyperguard | zod |
+| --- | --- | --- |
+| Dependencies | Zero | Zero |
+| Distribution | npm, or copy one file into your project | npm package |
+| Type inference | Yes (`InferType`) | Yes (`z.infer`) |
+| Transform while validating | Yes (`chain` + `transform`) | Yes (`.transform`) |
+| API style | Function composition (`object`, `either`, `chain`, `predicate`) | Fluent chaining (`.min().email().optional()`) |
+| Built-in formats (email, uuid, min/max…) | Not built in — compose with `predicate` | Extensive, built in |
+| Error reporting | Simple, structural | Rich (issue paths, error maps, i18n) |
+| Extending it | Write a plain object with a `validate` method — first-class | `.refine` / `.superRefine` / `.transform` / `z.custom` |
+| Coupling | Your code depends on a one-method interface, not a library class | Schemas are zod types |
+| Maturity & ecosystem | Small and new | Large, battle-tested, huge ecosystem |
+
+**Reach for zod** when you want batteries-included formats, the richest possible error reporting, or its enormous ecosystem of integrations (tRPC, React Hook Form, and so on).
+
+**Reach for Hyperguard** when you want something tiny enough to vendor and read end-to-end, and a `Validator` contract so minimal — `{ validate(value): ValidationResult<T> }` — that writing your own validators, or swapping the library out entirely, costs you almost nothing.
+
+### See also
+
+- [yup](https://github.com/jquense/yup)
+- [io-ts](https://github.com/gcanti/io-ts)

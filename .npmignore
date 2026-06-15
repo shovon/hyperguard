@@ -5,3 +5,7 @@ example
 .DS_Store
 .circleci
 tsconfig.*
+typedoc.json
+scripts
+.claude
+.prettierignore

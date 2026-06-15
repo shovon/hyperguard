@@ -1,0 +1,14 @@
+{
+	"$schema": "https://typedoc.org/schema.json",
+	"entryPoints": ["lib.ts"],
+	"plugin": ["typedoc-plugin-markdown"],
+	"readme": "none",
+	"disableSources": true,
+	"excludeNotDocumented": true,
+	"excludeInternal": true,
+	"hideBreadcrumbs": true,
+	"outputFileStrategy": "modules",
+	"parametersFormat": "table",
+	"groupOrder": ["Functions", "Variables", "Type Aliases", "Classes"],
+	"logLevel": "Error"
+}

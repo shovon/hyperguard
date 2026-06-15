@@ -1,0 +1,4 @@
+# README.md contains generated regions (API reference + table of contents)
+# between <!-- doc-gen ... --> markers, produced by `npm run docs:api`.
+# Keep formatters away so they don't fight the generator or shift its markers.
+README.md

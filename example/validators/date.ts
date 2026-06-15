@@ -1,5 +1,4 @@
 import {
-  chain,
   transform,
   predicate,
   replaceError,
@@ -8,7 +7,7 @@ import {
 } from "../../lib";
 
 class DateError extends ValidationError {
-  constructor(value: string) {
+  constructor(value: unknown) {
     super(
       "Date error",
       `The supplied string ${value} was not a valid format that can be parsed into a Date`,
@@ -20,10 +19,7 @@ class DateError extends ValidationError {
 export const date = () =>
   replaceError(
     predicate(
-      chain(
-        string(),
-        transform((value) => new Date(value))
-      ),
+      transform(string(), (value) => new Date(value)),
       (d) => !isNaN(d.getTime())
     ),
     (value) => new DateError(value)

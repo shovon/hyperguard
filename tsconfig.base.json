@@ -1,7 +1,7 @@
 {
 	"files": ["lib.ts", "test.ts"],
 	"compilerOptions": {
-		"lib": ["es2017"],
+		"lib": ["es2022"],
 		"declaration": true,
 		"noImplicitAny": true,
 		"noImplicitReturns": true,
@@ -11,8 +11,10 @@
 		"strictNullChecks": true,
 		"strictPropertyInitialization": true,
 		"downlevelIteration": true,
+		"ignoreDeprecations": "6.0",
 		"allowUnreachableCode": false,
 		"useUnknownInCatchVariables": true,
-		"noImplicitOverride": true
+		"noImplicitOverride": true,
+		"erasableSyntaxOnly": true
 	}
 }

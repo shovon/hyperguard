@@ -7,9 +7,9 @@
 		"typescript",
 		"validation"
 	],
-	"homepage": "https://github.com/shovon/valentina#readme",
+	"homepage": "https://github.com/shovon/hyperguard#readme",
 	"bugs": {
-		"url": "https://github.com/shovon/valentina/issues",
+		"url": "https://github.com/shovon/hyperguard/issues",
 		"email": "hey.to.sal@gmail.com"
 	},
 	"license": "MIT",
@@ -20,20 +20,32 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/shovon/valentina.git"
+		"url": "https://github.com/shovon/hyperguard.git"
 	},
 	"main": "dist/lib.js",
 	"module": "dist/esm/lib.js",
 	"types": "dist/lib.d.ts",
 	"scripts": {
-		"test": "npm run build && node dist/test.js",
+		"test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test test.ts",
+		"typecheck": "tsc --project tsconfig.json",
+		"lint": "eslint lib.ts",
+		"docs:api": "node scripts/gen-readme.js",
 		"build": "npm run buildesm && npm run buildcjs",
 		"buildesm": "tsc --project tsconfig.esm.json",
 		"buildcjs": "tsc --project tsconfig.commonjs.json",
-		"prepublish": "npm run build && npm run test",
+		"prepublish": "npm run typecheck && npm run build && npm run test",
 		"clean": "rm -rf dist"
 	},
-	"dependencies": {
-		"@types/node": "^20.2.5"
+	"engines": {
+		"node": ">=22.18"
+	},
+	"devDependencies": {
+		"@eslint/js": "^10.0.1",
+		"@types/node": "^25.9.3",
+		"eslint": "^10.5.0",
+		"typedoc": "^0.28.19",
+		"typedoc-plugin-markdown": "^4.12.0",
+		"typescript": "^6.0.3",
+		"typescript-eslint": "^8.61.0"
 	}
 }
